@@ -4,12 +4,12 @@ ORION | [WIP] | http://www.goreclan.net
 ## Description
 
 Orion is a third party game server administration software designed to work only with the Urban Terror game series.<br>
-Currently supported version are Urban Terror **4.1** and Urban Terror **4.2.x**.<br>
+Currently supported versions are Urban Terror **4.1** and Urban Terror **4.2.x**.<br>
 This software is not directly connected to the development of Urban Terror and is not supported by the Frozen Sand dev team.<br>
 This software is not connected in any way to other game servers management tools (such as BigBrotherBot). However, while developing the software, we tried to maintain some common standards used by other game server administration softwares to facilitate the final user in the software configuration.<br><br>
 **NOTE:** *This software is currently under development, and is not to be considered stable nor complete.*
 
-## Dependancies
+## Dependencies
 
 This software uses a set of third-party libraries that are shipped within the project:
 
