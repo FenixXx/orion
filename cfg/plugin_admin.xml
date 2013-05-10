@@ -1,0 +1,132 @@
+<!-- 
+This file is part of Orion source code
+ 
+Copyright (C) 2012 [Gore]Clan - http://www.goreclan.net
+
+Orion is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Lesser Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This software is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Orion. If not, write to the Free Software Foundation,
+Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA 
+-->
+
+<configuration plugin="admin">
+
+    <!--
+    
+        Groups are (keyword / level : name)
+        ==============================================
+        superadmin / 100 : Super Admin
+        senioradmin / 80 : Senior Admin
+        fulladmin / 60   : Full Admin
+        admin / 40       : Admin
+        moderator / 20   : Moderator
+        friend / 10      : Friend
+        regular / 2      : Regular
+        user / 1         : User
+        guest / 0        : Guest
+    
+    -->
+
+    <section name="commands">
+        <set name="enable">superadmin</set>             <!-- Enable a plugin. Default value: superadmin-->
+        <set name="disable">superadmin</set>            <!-- Disable a plugin. Default value: superadmin -->
+        <set name="get-getcvar">superadmin</set>        <!-- Display a CVAR value. Default value: superadmin -->
+        <set name="set-setcvar">superadmin</set>        <!-- Set a CVAR value. Default value: superadmin -->
+        <set name="runas-su">superadmin</set>           <!-- Run a command as another client. Default value: superadmin -->
+        <set name="plugins">superadmin</set>            <!-- Display the list of loaded plugins. Default value: superadmin -->
+        <set name="shutdown-die">superadmin</set>       <!-- Shutdown the bot. Default value: superadmin -->
+        <set name="status">superadmin</set>             <!-- Display the bot status. Default value: superadmin -->
+        
+        <set name="putgroup">senioradmin</set>          <!-- Change a user group. Default value: senioradmin -->
+        
+        <set name="kill">fulladmin</set>                <!-- Kill a player. Default value: fulladmin -->
+        <set name="lock">fulladmin</set>                <!-- Lock a player into the specified team. Default value: fulladmin -->
+        <set name="orion">fulladmin</set>               <!-- Display bot info. Default value: fulladmin -->
+        <set name="permban-pb">fulladmin</set>          <!-- Ban a player from the server permanently. Default value: fulladmin -->
+        <set name="unlock">fulladmin</set>              <!-- Remove a team lock from a player. Default value: fulladmin -->
+        
+        <set name="ban-b">admin</set>                   <!-- Ban a player from the server. Default value: admin -->
+        <set name="cyclemap">admin</set>                <!-- Cycle the server current map. Default value: admin -->
+        <set name="force">admin</set>                   <!-- Force a player in the specified team. Default value: admin -->
+        <set name="kick-k">admin</set>                  <!-- Kick a player from the server. Default value: admin -->
+        <set name="lookup">admin</set>                  <!-- Lookup a player the storage. Default value: admin -->
+        <set name="map">admin</set>                     <!-- Change the server current map. Default value: admin -->
+        <set name="maps-maplist">admin</set>            <!-- List the available maps. Default value: admin -->
+        <set name="nuke">admin</set>                    <!-- Nuke a player. Default value: admin -->
+        <set name="setnextmap">admin</set>              <!-- Change the server next map. Default value: admin -->
+        <set name="slap">admin</set>                    <!-- Slap a player. Default value: admin -->        
+        
+        <set name="find">moderator</set>                <!-- Display the slot of a player. Default value: moderator -->
+        <set name="leveltest-lt">moderator</set>        <!-- Display the level of a player. Default value: moderator -->
+        <set name="list">moderator</set>                <!-- Display the list of online players. Default value: moderator -->
+        
+        <set name="say">regular</set>                   <!-- Print a message in the game chat. Default value: regular -->
+        
+        <set name="admins">user</set>                   <!-- Display the list of online admins. Default value: user -->
+        <set name="nextmap">user</set>                  <!-- Display the nextmap name. Default value: user -->
+        
+        <set name="help">guest</set>                    <!-- Display an help text regarding available commands or a specific one. Default value: guest -->
+        <set name="register">guest</set>                <!-- Register yourself. Default value: guest -->
+        <set name="time">guest</set>                    <!-- Display the current datetime. Default value: guest -->
+    </section>
+    
+    <section name="settings">
+        <set name="admin_level">20</set>                <!-- Minimum group level for being considered an admin of the server: shows in !admins. Default value: 20 -->
+        <set name="no_reason_level">80</set>            <!-- Minimum group level for no reason commands such as !kick, !ban, etc. Default value: 80 -->
+        <set name="ban_duration">7d</set>               <!-- The length of the ban issued using the !ban command. You can use seconds or a human readable notation. Default value: 7d -->
+    </section>
+    
+    <section name="keywords">
+        <set name="afk">you appear to be away from your keyboard!</set>
+        <set name="ci">connection interrupted!</set>
+        <set name="camp">stop camping or you will be kicked!</set>
+        <set name="obj">go for the objective!</set>
+        <set name="spec">spectator too long on full server!</set>
+    </section>
+    
+    <section name="messages">
+        <set name="admin_list">Admins online: {LIST}</set>
+        <set name="ban_denied">You can't ban ^1{CLIENT}</set>
+        <set name="ban_self">Ban yourself?!? Meh...</set>
+        <set name="client_list">Clients online: {LIST}</set>
+        <set name="client_registered">"You are now registered. Level: ^2{GROUP}"</set>
+        <set name="help_not_found">Unable to find command: ^3{PREFIX}^1{COMMAND}</set>
+        <set name="help_no_access">You have no sufficient access to: ^3{PREFIX}^1{COMMAND}</set>
+        <set name="help_list">Command list: {LIST}</set>
+        <set name="level_test">{CLIENT} [^3@{ID}^7] is a ^2{GROUP} ^7[^4{LEVEL}^7]</set>
+        <set name="kick">{CLIENT} has been kicked by {ADMIN}</set>
+        <set name="kick_denied">You can't kick ^1{CLIENT}</set>
+        <set name="kick_reason">{CLIENT} has been kicked by {ADMIN}: ^3{REASON}</set>
+        <set name="kick_self">Kick yourself?!? Meh...</set>
+        <set name="kill_denied">You can't kill ^1{CLIENT}</set>
+        <set name="lock_denied">You can't lock ^1{CLIENT}</set>
+        <set name="map_change">Changing map: ^2{MAPNAME}</set>
+        <set name="map_cycle">Cycling map to: ^2{MAPNAME}</set>
+        <set name="map_list">Map list: {LIST}</set>
+        <set name="nextmap">Nextmap: ^2{MAPNAME}</set>
+        <set name="no_admins">There are no admins online</set>
+        <set name="nuke_denied">You can't nuke ^1{CLIENT}</set>
+        <set name="say">^6{CLIENT}^7: {MESSAGE}</set>
+        <set name="slap_denied">You can't slap ^1{CLIENT}</set>
+        <set name="permban">{CLIENT} has been banned by {ADMIN}</set>
+        <set name="permban_reason">{CLIENT} has been banned by {ADMIN}: ^3{REASON}</set>
+        <set name="plugin_list">Loaded plugins: {LIST}</set>
+        <set name="putgroup_already">{CLIENT} is already in group ^2{GROUP}</set>
+        <set name="putgroup_denied">You can't change ^1{CLIENT} ^7group</set>
+        <set name="runas_denied">You can't use ^3!^7runas on ^1{CLIENT}</set>
+        <set name="runas_self">Really?!?</set>
+        <set name="tempban">{CLIENT} has been banned by {ADMIN} for ^1{DURATION}</set>
+        <set name="tempban_reason">{CLIENT} has been banned by {ADMIN} for ^1{DURATION}^7: ^3{REASON}</set>
+        <set name="time">Time: ^3{DATETIME}</set>
+    </section>
+
+</configuration>

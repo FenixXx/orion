@@ -1,0 +1,53 @@
+<!-- 
+This file is part of Orion source code
+ 
+Copyright (C) 2012 [Gore]Clan - http://www.goreclan.net
+
+Orion is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Lesser Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This software is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Orion. If not, write to the Free Software Foundation,
+Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA 
+-->
+
+<configuration plugin="location">
+
+    <!--
+    
+        Groups are (keyword / level : name)
+        ==============================================
+        superadmin / 100 : Super Admin
+        senioradmin / 80 : Senior Admin
+        fulladmin / 60   : Full Admin
+        admin / 40       : Admin
+        moderator / 20   : Moderator
+        friend / 10      : Friend
+        regular / 2      : Regular
+        user / 1         : User
+        guest / 0        : Guest
+    
+    -->
+
+    <section name="commands">
+        <set name="country">regular</set>               <!-- Display the country of a player. Default value: regular-->
+    </section>
+    
+    <section name="settings">
+        <set name="geoip_path">res/GeoIP.dat</set>      <!-- The GeoIP.dat country database file path. Default value: res/GeoIP.dat -->
+        <set name="announce">yes</set>                  <!-- Tell if the BOT has to announce the player country on client connect. Default value: yes -->
+    </section>
+    
+    <section name="messages">
+        <set name="location_connect">{CLIENT} from ^3{COUNTRY} ^7[^3{COUNTRYCODE}^7] connected</set>
+        <set name="location_command">{CLIENT} is connected from ^3{COUNTRY} ^7[^3{COUNTRYCODE}^7]</set>
+    </section>
+ 
+</configuration>

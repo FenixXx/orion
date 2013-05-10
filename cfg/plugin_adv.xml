@@ -1,0 +1,57 @@
+<!-- 
+This file is part of Orion source code
+ 
+Copyright (C) 2012 [Gore]Clan - http://www.goreclan.net
+
+Orion is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Lesser Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This software is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Orion. If not, write to the Free Software Foundation,
+Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA 
+-->
+
+<configuration plugin="adv">
+
+    <!--
+    
+        Groups are (keyword / level : name)
+        ==============================================
+        superadmin / 100 : Super Admin
+        senioradmin / 80 : Senior Admin
+        fulladmin / 60   : Full Admin
+        admin / 40       : Admin
+        moderator / 20   : Moderator
+        friend / 10      : Friend
+        regular / 2      : Regular
+        user / 1         : User
+        guest / 0        : Guest
+    
+    -->
+
+    <section name="commands">
+
+    </section>
+    
+    <section name="settings">
+        <set name="delay">60s</set>         <!-- Amount of time before the 1st adv to be printed in-game. Default: 60s -->
+        <set name="rate">30s</set>          <!-- Amount of time between 2 adv in-game print. Default: 30s -->
+    </section>
+    
+    <section name="ads">
+        <set name="ad1">^3Visit us: ^4goreclan.net</set>
+        <set name="ad2">^3Join our ^2Teamspeak 3 ^3server: ^5ts3^4.goreclan.net</set>
+        <set name="ad3">^3Join our ^2IRC ^3Channel: ^4irc.quakenet.org ^5#^4goreclan</set>
+        <set name="ad4">^3Bigger, better, ^1BLOODIER^3: [^1GORE^3]Clan</set>
+        <set name="ad5">@nextmap</set>
+        <set name="ad6">@time</set>
+    </section>
+
+</configuration>
