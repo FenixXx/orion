@@ -27,14 +27,14 @@ package com.orion.urt;
 
 public class Color {
 
-    public static String RED       = "^1";
-    public static String GREEN     = "^2";
-    public static String YELLOW    = "^3";
-    public static String BLUE      = "^4";
-    public static String CYAN      = "^5";
-    public static String MAGENTA   = "^6";
-    public static String WHITE     = "^7";
-    public static String BLACK     = "^8";
+    public final static String RED       = "^1";
+    public final static String GREEN     = "^2";
+    public final static String YELLOW    = "^3";
+    public final static String BLUE      = "^4";
+    public final static String CYAN      = "^5";
+    public final static String MAGENTA   = "^6";
+    public final static String WHITE     = "^7";
+    public final static String BLACK     = "^8";
     
     
     /**
