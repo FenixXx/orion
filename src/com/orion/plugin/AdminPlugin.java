@@ -36,7 +36,7 @@ import java.util.Map;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Joiner;
-import com.orion.annotation.Dependancy;
+import com.orion.annotation.Dependency;
 import com.orion.annotation.Usage;
 import com.orion.bot.Orion;
 import com.orion.bot.PenaltyType;
@@ -935,7 +935,7 @@ public class AdminPlugin extends Plugin {
      * @throws CommandRuntimeException If there is <tt>Runtime</tt> error while processing the command
      **/
     @Usage(message="Kill a player", syntax="!kill [<client>]")
-    @Dependancy(console=UrT42Console.class)
+    @Dependency(console=UrT42Console.class)
     public void CmdKill(Command command) throws CommandSyntaxException, CommandRuntimeException {
         
         // Copying client reference

@@ -35,6 +35,6 @@ import com.orion.console.Console;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 
-public @interface Dependancy {
+public @interface Dependency {
     Class<? extends Console> console();
 }

@@ -35,7 +35,7 @@ import java.util.Timer;
 import org.apache.commons.logging.Log;
 
 import com.google.common.collect.Multimap;
-import com.orion.annotation.Dependancy;
+import com.orion.annotation.Dependency;
 import com.orion.bot.Orion;
 import com.orion.command.Command;
 import com.orion.command.RegisteredCommand;
@@ -215,11 +215,11 @@ public abstract class Plugin {
             					 Command.class);
             
             
-            if (method.isAnnotationPresent(Dependancy.class)) {
+            if (method.isAnnotationPresent(Dependency.class)) {
             	
             	// The specified command has some dependancies that need
             	// to be checked before to register it in the command list
-            	Dependancy dependancy = method.getAnnotation(Dependancy.class);
+            	Dependency dependancy = method.getAnnotation(Dependency.class);
             	
             	if ((dependancy.console().equals(UrT42Console.class)) && (!this.console.getClass().equals(UrT42Console.class))) {
             		this.log.debug("Skipping command !" + name + " registration. !" + name + " is available as from Urban Terror 4.2");
