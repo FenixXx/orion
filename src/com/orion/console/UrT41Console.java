@@ -150,7 +150,7 @@ public class UrT41Console implements Console {
      * @param  client The client to ban from the server
      **/
     public void ban(Client client) {
-        this.rcon.sendNoRead("addip " + client.ip);
+        this.rcon.sendNoRead("addip " + client.getIp().getHostAddress());
     }
     
     
@@ -260,10 +260,10 @@ public class UrT41Console implements Console {
      **/
     public Map<String, String> dumpuser(Client client) {
         
-        String result = this.rcon.sendRead("dumpuser " + client.slot);
+        String result = this.rcon.sendRead("dumpuser " + client.getSlot());
         
         if (result == null) {
-            this.log.debug("Unable to parse dumped info for client " + client.slot + ": RCON response is NULL");
+            this.log.debug("Unable to parse dumped info for client " + client.getSlot() + ": RCON response is NULL");
             return null;
         }
         
@@ -288,7 +288,7 @@ public class UrT41Console implements Console {
         }
         
         if (map.size() == 0) {
-             this.log.debug("Client on slot " + client.slot + " recently disconnected but his character is still in game...");
+             this.log.debug("Client on slot " + client.getSlot() + " recently disconnected but his character is still in game...");
              return null;
         }
         
@@ -353,8 +353,8 @@ public class UrT41Console implements Console {
     public void forceblue(Client client) {
         // Do not execute if the client is already in the specified team.
         // This will prevent to overflow the server with RCON commands.
-        if (client.team != Team.BLUE)
-            this.rcon.sendNoRead("forceteam " + client.slot + " blue");
+        if (client.getTeam() != Team.BLUE)
+            this.rcon.sendNoRead("forceteam " + client.getSlot() + " blue");
     }
     
     
@@ -380,7 +380,7 @@ public class UrT41Console implements Console {
      * @param  client The client who is going to be forced
      **/
     public void forcefree(Client client) {
-        this.rcon.sendNoRead("forceteam " + client.slot + " free");
+        this.rcon.sendNoRead("forceteam " + client.getSlot() + " free");
     }
     
     
@@ -404,8 +404,8 @@ public class UrT41Console implements Console {
     public void forcered(Client client) {
         // Do not execute if the client is already in the specified team.
         // This will prevent to overflow the server with RCON commands.
-        if (client.team != Team.RED)
-            this.rcon.sendNoRead("forceteam " + client.slot + " red");
+        if (client.getTeam() != Team.RED)
+            this.rcon.sendNoRead("forceteam " + client.getSlot() + " red");
     }
     
     
@@ -432,8 +432,8 @@ public class UrT41Console implements Console {
     public void forcespec(Client client) {
         // Do not execute if the client is already in the specified team.
         // This will prevent to overflow the server with RCON commands.
-        if (client.team != Team.SPECTATOR)
-            this.rcon.sendNoRead("forceteam " + client.slot + " spectator");
+        if (client.getTeam() != Team.SPECTATOR)
+            this.rcon.sendNoRead("forceteam " + client.getSlot() + " spectator");
     }
     
     
@@ -964,7 +964,7 @@ public class UrT41Console implements Console {
      * @param  client The client who is going to be kicked from the server
      **/
     public void kick(Client client) {
-        this.rcon.sendNoRead("kick " + client.slot);
+        this.rcon.sendNoRead("kick " + client.getSlot());
     }
     
     
@@ -1045,7 +1045,7 @@ public class UrT41Console implements Console {
      * @param  client The client who is going to be muted
      **/
     public void mute(Client client) {
-        this.rcon.sendNoRead("mute " + client.slot);
+        this.rcon.sendNoRead("mute " + client.getSlot());
     }
     
     
@@ -1068,7 +1068,7 @@ public class UrT41Console implements Console {
      * @param  seconds The amount of seconds after which the mute will expire
      **/
     public void mute(Client client, int seconds) {
-        this.rcon.sendNoRead("mute " + client.slot + " " + seconds);
+        this.rcon.sendNoRead("mute " + client.getSlot() + " " + seconds);
     }
     
     
@@ -1091,7 +1091,7 @@ public class UrT41Console implements Console {
      * @param  client The client who is going to be nuked
      **/
     public void nuke(Client client) {
-        this.rcon.sendNoRead("nuke " + client.slot);
+        this.rcon.sendNoRead("nuke " + client.getSlot());
     }
     
     
@@ -1187,7 +1187,7 @@ public class UrT41Console implements Console {
      * @param  client The client who is going to be slapped
      **/
     public void slap(Client client) {
-        this.rcon.sendNoRead("slap " + client.slot);
+        this.rcon.sendNoRead("slap " + client.getSlot());
     }
     
     
@@ -1209,7 +1209,7 @@ public class UrT41Console implements Console {
      * @param  client The client whose we want to record a demo
      **/
     public void startserverdemo(Client client) {
-        this.rcon.sendNoRead("startserverdemo " + client.slot);
+        this.rcon.sendNoRead("startserverdemo " + client.getSlot());
     }
 
     
@@ -1241,7 +1241,7 @@ public class UrT41Console implements Console {
      * @param  client The client whose we want to stop a demo recording
      **/
     public void stopserverdemo(Client client) {
-        this.rcon.sendNoRead("stopserverdemo " + client.slot);
+        this.rcon.sendNoRead("stopserverdemo " + client.getSlot());
     }
     
     
@@ -1285,7 +1285,7 @@ public class UrT41Console implements Console {
     			
     			// Sending the message
     			sentence = sentence.trim();
-    			this.rcon.sendNoRead("tell " + client.slot + " " + Color.WHITE + sentence);
+    			this.rcon.sendNoRead("tell " + client.getSlot() + " " + Color.WHITE + sentence);
     			
     			try { Thread.sleep(1000); } 
 				catch (InterruptedException e) {
@@ -1297,7 +1297,7 @@ public class UrT41Console implements Console {
     	} else {
     		
     		// Normal tell command.
-    		this.rcon.sendNoRead("tell " + client.slot + " " + Color.WHITE + message);
+    		this.rcon.sendNoRead("tell " + client.getSlot() + " " + Color.WHITE + message);
     		
     	}
     	
@@ -1349,7 +1349,7 @@ public class UrT41Console implements Console {
      * @param  client The client we want to unban
      **/
     public void unban(Client client) {
-        this.rcon.sendNoRead("removeip " + client.ip);
+        this.rcon.sendNoRead("removeip " + client.getIp().getHostAddress());
     }
     
 

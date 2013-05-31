@@ -70,7 +70,7 @@ public class UrT42Console extends UrT41Console implements Console {
      **/
     @Override
     public void authban(Client client, int days, int hours, int mins) throws UnsupportedOperationException {
-        this.rcon.sendNoRead("auth-ban " + client.slot + " " + days + " " + hours + " " + mins);
+        this.rcon.sendNoRead("auth-ban " + client.getSlot() + " " + days + " " + hours + " " + mins);
     }
     
     
@@ -102,10 +102,10 @@ public class UrT42Console extends UrT41Console implements Console {
     public Map<String, String> authwhois(Client client) throws UnsupportedOperationException {
         
         Map<String, String> data = new LinkedHashMap<String, String>();
-        String result = this.rcon.sendRead("auth-whois " + client.slot);
+        String result = this.rcon.sendRead("auth-whois " + client.getSlot());
         
         if (result == null) {
-            this.log.debug("Unable to parse auth info for client " + client.slot + ": RCON response is NULL");
+            this.log.debug("Unable to parse auth info for client " + client.getSlot() + ": RCON response is NULL");
             return null;
         }
         
@@ -119,7 +119,7 @@ public class UrT42Console extends UrT41Console implements Console {
         Matcher matcher = pattern.matcher(result);
         
         if (!matcher.matches()) {
-            this.log.debug("Unable to execute auth-whois command on client " + client.slot + ". Auth system is disabled");
+            this.log.debug("Unable to execute auth-whois command on client " + client.getSlot() + ". Auth system is disabled");
             return null;
         }
         
@@ -190,7 +190,7 @@ public class UrT42Console extends UrT41Console implements Console {
     @Override
     public void kick(Client client, String reason) {
     	if (reason == null) this.kick(client);
-    	else this.rcon.sendNoRead("kick " + client.slot + " " + reason);
+    	else this.rcon.sendNoRead("kick " + client.getSlot() + " " + reason);
     }
     
     
@@ -217,7 +217,7 @@ public class UrT42Console extends UrT41Console implements Console {
      **/
     @Override
     public void kill(Client client) throws UnsupportedOperationException {
-        this.rcon.sendNoRead("smite " + client.slot);
+        this.rcon.sendNoRead("smite " + client.getSlot());
     }
     
     
