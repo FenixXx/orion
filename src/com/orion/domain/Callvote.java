@@ -264,7 +264,7 @@ public class Callvote {
     	
         private int id;
         private String data;
-        private int yes;
+        private int yes = 1;
         private int no;
         private DateTime time_add;
         private DateTime time_edit;
