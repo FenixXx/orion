@@ -99,7 +99,7 @@ public class IpAliasC {
      **/
     public void insert(IpAlias ipalias) throws ClassNotFoundException, SQLException {
         
-        if (!ipalias.client.bot) {
+        if (!ipalias.getClient().isBot()) {
             DateTime date = new DateTime(this.timezone);
             ipalias.time_add  = date;
             ipalias.time_edit = date;
@@ -120,7 +120,7 @@ public class IpAliasC {
      **/
     public void update(IpAlias ipalias) throws ClassNotFoundException, SQLException {
         
-        if (!ipalias.client.bot) {
+        if (!ipalias.getClient().isBot()) {
             ipalias.time_edit = new DateTime(this.timezone);
             this.log.trace("[SQL] UPDATE `ipaliases`: " + ipalias.toString());
             this.dao.update(ipalias);
@@ -139,7 +139,7 @@ public class IpAliasC {
      **/
     public void delete(IpAlias ipalias) throws ClassNotFoundException, SQLException {
         
-        if (!ipalias.client.bot) {
+        if (!ipalias.getClient().isBot()) {
             this.log.trace("[SQL] DELETE `ipaliases`: " + ipalias.toString());
             this.dao.delete(ipalias);
         }
