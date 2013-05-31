@@ -60,7 +60,7 @@ public class Client {
      * 
      * @author Daniele Pantaleone
      **/
-    public Client(Builder builder) {
+    private Client(Builder builder) {
         
         this.setId(builder.id);
         this.setGroup(builder.group);
