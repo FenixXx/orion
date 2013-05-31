@@ -88,7 +88,7 @@ public class ClientC {
         
         // Searching on the online client list
         for (Client client : this.clients)
-            if (client.id == id) 
+            if (client.getId() == id) 
                 return client;
         
         // Loading data from the storage
@@ -108,7 +108,7 @@ public class ClientC {
         
         // Searching on the online client list
         for (Client client : this.clients)
-            if ((client.slot) != null && (client.slot.equals(slot))) 
+            if ((client.getSlot()) != null && (client.getSlot().equals(slot))) 
                 return client;
         
         return null;
@@ -131,7 +131,7 @@ public class ClientC {
         
         // Searching on the online client list
         for (Client client : this.clients)
-            if ((client.name != null) && (client.name.toLowerCase().contains(name.toLowerCase())))
+            if ((client.getName() != null) && (client.getName().toLowerCase().contains(name.toLowerCase())))
                 collection.add(client);
         
         return collection;
@@ -186,7 +186,7 @@ public class ClientC {
             for (Client c : collection) {
                 // Appending all the client details to our collection
                 // using the following format: [slot] nickname
-                list.add("[" + Color.YELLOW + c.slot + Color.WHITE + "] " + c.name);
+                list.add("[" + Color.YELLOW + c.getSlot() + Color.WHITE + "] " + c.getName());
             }
 
             this.console.tell(client, "Do you mean: " + Joiner.on(", ").join(list) + "?");
@@ -267,7 +267,7 @@ public class ClientC {
             for (Client c : collection) {
                 // Appending all the client details to our collection
                 // using the following format: [slot] nickname
-                list.add("[" + Color.YELLOW + c.slot + Color.WHITE + "] " + c.name);
+                list.add("[" + Color.YELLOW + c.getSlot() + Color.WHITE + "] " + c.getName());
             }
 
             this.console.tell(client, "Do you mean: " + Joiner.on(", ").join(list) + "?");
@@ -329,7 +329,7 @@ public class ClientC {
         List<Client> collection = new LinkedList<Client>();
         
         for (Client client : this.clients)
-            if (client.group.level == level)
+            if (client.getGroup().getLevel() == level)
                 collection.add(client);
         
         return collection;
@@ -350,7 +350,7 @@ public class ClientC {
         List<Client> collection = new LinkedList<Client>();
         
         for (Client client : this.clients)
-            if (client.group.keyword.equals(keyword))
+            if (client.getGroup().getKeyword().equals(keyword))
                 collection.add(client);
         
         return collection;
@@ -404,7 +404,7 @@ public class ClientC {
         List<Client> collection = new LinkedList<Client>();
         
         for (Client client : this.clients)
-            if (client.group.level >= minLevel)
+            if (client.getGroup().getLevel() >= minLevel)
                 collection.add(client);
         
         return collection;
@@ -434,7 +434,7 @@ public class ClientC {
         List<Client> collection = new LinkedList<Client>();
         
         for (Client client : this.clients)
-            if (client.team == Team.RED)
+            if (client.getTeam() == Team.RED)
                 collection.add(client);
         
         return collection;
@@ -453,7 +453,7 @@ public class ClientC {
         List<Client> collection = new LinkedList<Client>();
         
         for (Client client : this.clients)
-            if (client.team == Team.BLUE)
+            if (client.getTeam() == Team.BLUE)
                 collection.add(client);
         
         return collection;
@@ -472,7 +472,7 @@ public class ClientC {
         List<Client> collection = new LinkedList<Client>();
         
         for (Client client : this.clients)
-            if (client.team == Team.SPECTATOR)
+            if (client.getTeam() == Team.SPECTATOR)
                 collection.add(client);
         
         return collection;
@@ -495,7 +495,7 @@ public class ClientC {
         
         while (i.hasNext()) { 
             client = i.next();
-            if (client.id == id) {
+            if (client.getId() == id) {
                 i.remove();
                 return client;
             }
@@ -521,7 +521,7 @@ public class ClientC {
         
         while (i.hasNext()) {
             client = i.next();
-            if (client.slot == slot) {
+            if (client.getSlot() == slot) {
                 i.remove();
                 return client;
             }
@@ -563,10 +563,10 @@ public class ClientC {
      **/
     public void insert(Client client) throws ClassNotFoundException, SQLException {
         
-        if (!client.bot) {
+        if (!client.isBot()) {
         	DateTime date = new DateTime(this.timezone);
-            client.time_add  = date;
-            client.time_edit = date;
+            client.setTimeAdd(date);
+            client.setTimeEdit(date);
             this.log.trace("[SQL] INSERT `clients`: " + client.toString());
             this.dao.insert(client);
         }
@@ -583,8 +583,8 @@ public class ClientC {
      **/
     public void update(Client client) throws ClassNotFoundException, SQLException {
         
-        if (!client.bot) {
-            client.time_edit = new DateTime(this.timezone);
+        if (!client.isBot()) {
+            client.setTimeEdit(new DateTime(this.timezone));
             this.log.trace("[SQL] UPDATE `clients`: " + client.toString());
             this.dao.update(client);
         }
@@ -602,7 +602,7 @@ public class ClientC {
      **/
     public void delete(Client client) throws ClassNotFoundException, SQLException {
         
-        if (!client.bot) {
+        if (!client.isBot()) {
             this.log.trace("[SQL] DELETE `clients`: " + client.toString());
             this.dao.delete(client);
         }
@@ -619,7 +619,7 @@ public class ClientC {
      * @throws SQLException If the load query fails somehow
      **/
     public void save(Client client) throws ClassNotFoundException, SQLException { 
-        if (client.id > 0) { this.update(client); } 
+        if (client.getId() > 0) { this.update(client); } 
         else { this.insert(client); }
     }
 
