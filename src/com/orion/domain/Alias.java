@@ -106,7 +106,7 @@ public class Alias {
     
     
     /**
-     * Tell the amount of this this alias has been used by the associated <tt>Client</tt>
+     * Tell the amount of time this alias has been used by the associated <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
      * @return The amount of time this alias has been used
