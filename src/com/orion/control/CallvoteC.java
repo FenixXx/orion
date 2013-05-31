@@ -113,10 +113,10 @@ public class CallvoteC {
      **/
     public void insert(Callvote callvote) throws ClassNotFoundException, SQLException {
         
-        if (!callvote.client.bot) {
+        if (!callvote.getClient().isBot()) {
             DateTime date = new DateTime(this.timezone);
-            callvote.time_add = date;
-            callvote.time_edit = date;
+            callvote.setTimeAdd(date);
+            callvote.setTimeEdit(date);
             this.log.trace("[SQL] INSERT `callvotes`: " + callvote.toString());
             this.dao.insert(callvote);
         }
@@ -134,8 +134,8 @@ public class CallvoteC {
      **/
     public void update(Callvote callvote) throws ClassNotFoundException, SQLException {
         
-        if (!callvote.client.bot) {
-            callvote.time_edit = new DateTime(this.timezone);
+        if (!callvote.getClient().isBot()) {
+            callvote.setTimeEdit(new DateTime(this.timezone));
             this.log.trace("[SQL] UPDATE `callvotes`: " + callvote.toString());
             this.dao.update(callvote);
         }
@@ -153,7 +153,7 @@ public class CallvoteC {
      **/
     public void delete(Callvote callvote) throws ClassNotFoundException, SQLException {
         
-        if (!callvote.client.bot) {
+        if (!callvote.getClient().isBot()) {
             this.log.trace("[SQL] DELETE `callvotes`: " + callvote.toString());
             this.dao.delete(callvote);
         }
@@ -170,7 +170,7 @@ public class CallvoteC {
      * @throws SQLException If the load query fails somehow
      **/
     public void save(Callvote callvote) throws ClassNotFoundException, SQLException { 
-        if (callvote.id > 0) { this.update(callvote); } 
+        if (callvote.getId() > 0) { this.update(callvote); } 
         else { this.insert(callvote); }
     }
 

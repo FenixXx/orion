@@ -138,10 +138,10 @@ public class PenaltyC {
      **/
     public void insert(Penalty penalty) throws ClassNotFoundException, SQLException {
         
-        if (!penalty.client.bot) {
+        if (!penalty.getClient().isBot()) {
         	DateTime date = new DateTime(this.timezone);
-            penalty.time_add  = date;
-            penalty.time_edit = date;
+            penalty.setTimeAdd(date);
+            penalty.setTimeEdit(date);
             this.log.trace("[SQL] INSERT `penalties`: " + penalty.toString());
             this.dao.insert(penalty);
         }
@@ -159,8 +159,8 @@ public class PenaltyC {
      **/
     public void update(Penalty penalty) throws ClassNotFoundException, SQLException {
         
-        if (!penalty.client.bot) {
-            penalty.time_edit = new DateTime(this.timezone);
+        if (!penalty.getClient().isBot()) {
+            penalty.setTimeEdit(new DateTime(this.timezone));
             this.log.trace("[SQL] UPDATE `penalties`: " + penalty.toString());
             this.dao.update(penalty);
         }
@@ -178,7 +178,7 @@ public class PenaltyC {
      **/
     public void delete(Penalty penalty) throws ClassNotFoundException, SQLException {
         
-        if (!penalty.client.bot) {
+        if (!penalty.getClient().isBot()) {
             this.log.trace("[SQL] DELETE `penalties`: " + penalty.toString());
             this.dao.delete(penalty);
         }
