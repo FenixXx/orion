@@ -41,8 +41,8 @@ public class ClientLevelComparator implements Comparator<Client> {
      **/
     public int compare(Client c1, Client c2) {
         return ComparisonChain.start()
-                 .compare(c1.group.level, c2.group.level)
-                 .compare(c1.name, c2.name)
+                 .compare(c1.getGroup().getLevel(), c2.getGroup().getLevel())
+                 .compare(c1.getName(), c2.getName())
                  .result();
     }
     

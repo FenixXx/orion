@@ -41,8 +41,8 @@ public class ClientSlotComparator implements Comparator<Client> {
      **/
     public int compare(Client c1, Client c2) {
         return ComparisonChain.start()
-                 .compare(c1.slot, c2.slot)
-                 .compare(c1.name, c2.name)
+                 .compare(c1.getSlot(), c2.getSlot())
+                 .compare(c1.getName(), c2.getName())
                  .result();
     }
     
