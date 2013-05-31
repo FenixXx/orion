@@ -10,7 +10,7 @@
  *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -20,7 +20,7 @@
  * @author      Daniele Pantaleone
  * @version     1.1
  * @copyright   Daniele Pantaleone, 08 October, 2012
- * @package     co.orion.domain
+ * @package     com.orion.domain
  **/
 
 package com.orion.domain;
@@ -267,6 +267,12 @@ public class Callvote {
         }
         
         
+        public Builder id(int value) {
+            this.id = value;
+            return this;
+        }
+        
+        
         public Builder data(String value) {
             this.data = value;
             return this;
@@ -281,12 +287,6 @@ public class Callvote {
         
         public Builder no(int value) {
             this.yes = value;
-            return this;
-        }
-        
-        
-        public Builder id(int value) {
-            this.id = value;
             return this;
         }
         
