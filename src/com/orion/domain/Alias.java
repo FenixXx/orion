@@ -167,7 +167,8 @@ public class Alias {
      * @param  name The alias name
      **/
     public void setName(String name) {
-        this.name = name;
+        // Remove color codes from the client name
+        this.name = name.replaceAll("\\^[0-9]{1}", "");
     }
     
 
