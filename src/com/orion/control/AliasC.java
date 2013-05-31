@@ -96,10 +96,10 @@ public class AliasC {
      **/
     public void insert(Alias alias) throws ClassNotFoundException, SQLException {
         
-        if (!alias.client.bot) {
+        if (!alias.getClient().isBot()) {
         	DateTime date = new DateTime(this.timezone);
-            alias.time_add  = date;
-            alias.time_edit = date;
+            alias.setTimeAdd(date);
+            alias.setTimeEdit(date);
             this.log.trace("[SQL] INSERT `aliases`: " + alias.toString());
             this.dao.insert(alias);
         }
@@ -117,8 +117,8 @@ public class AliasC {
      **/
     public void update(Alias alias) throws ClassNotFoundException, SQLException {
 
-        if (!alias.client.bot) {
-            alias.time_edit = new DateTime(this.timezone);
+        if (!alias.getClient().isBot()) {
+            alias.setTimeEdit(new DateTime(this.timezone));
             this.log.trace("[SQL] UPDATE `aliases`: " + alias.toString());
             this.dao.update(alias);
         }
@@ -135,7 +135,7 @@ public class AliasC {
      **/
     public void delete(Alias alias) throws ClassNotFoundException, SQLException {
         
-    	if (!alias.client.bot) {
+    	if (!alias.getClient().isBot()) {
     		this.log.trace("[SQL] DELETE `aliases`: " + alias.toString());
     		this.dao.delete(alias);
     	}
@@ -152,7 +152,7 @@ public class AliasC {
      * @throws SQLException If the load query fails somehow
      **/
     public void save(Alias alias) throws ClassNotFoundException, SQLException { 
-        if (alias.id > 0) { this.update(alias); } 
+        if (alias.getId() > 0) { this.update(alias); } 
         else { this.insert(alias); }
     }
     
