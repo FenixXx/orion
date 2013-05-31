@@ -540,7 +540,7 @@ public interface Console {
     
     
     /**
-     * Send a provate message to a player.
+     * Send a private message to a player.
      * 
      * @author Daniele Pantaleone
      * @param  client The client you want to send the message
@@ -550,7 +550,7 @@ public interface Console {
     
     
     /**
-     * Send a provate message to a player.
+     * Send a private message to a player.
      * 
      * @author Daniele Pantaleone
      * @param  slot The slot of the player you want to send the message
