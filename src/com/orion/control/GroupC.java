@@ -73,7 +73,7 @@ public class GroupC {
             this.groups = this.dao.loadAll();
         
         for (Group group : this.groups)
-            if (group.id == id)
+            if (group.getId() == id)
                 return group;
         
         return null;
@@ -98,7 +98,7 @@ public class GroupC {
             this.groups = this.dao.loadAll();
         
         for (Group group : this.groups)
-            if (group.name.equals(name))
+            if (group.getName().equals(name))
                 return group;
         
         return null;
@@ -126,7 +126,7 @@ public class GroupC {
         keyword = keyword.toLowerCase();
         
         for (Group group : this.groups)
-            if (group.keyword.equals(keyword))
+            if (group.getKeyword().equals(keyword))
                 return group;
         
         return null;
@@ -169,7 +169,7 @@ public class GroupC {
             this.groups = this.dao.loadAll();
         
         for (Group group : this.groups)
-            if (group.level == level)
+            if (group.getLevel() == level)
                 return group;
         
         return null;
