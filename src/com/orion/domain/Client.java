@@ -10,7 +10,7 @@
  *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -18,7 +18,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.1.1
  * @copyright   Daniele Pantaleone, 05 October, 2012
  * @package     com.orion.domain
  **/
@@ -60,130 +60,24 @@ public class Client {
      * 
      * @author Daniele Pantaleone
      **/
-    public Client() {
-        this.setName("EmptyNameDefault");
-        this.setTeam(Team.FREE);
-        this.setSlot(null);
-        this.setBot(false);
+    public Client(Builder builder) {
+        
+        this.setId(builder.id);
+        this.setGroup(builder.group);
+        this.setName(builder.name);
+        this.setConnections(builder.connections);
+        this.setIp(builder.ip);
+        this.setGuid(builder.guid);
+        this.setAuth(builder.auth);
+        this.setTimeAdd(builder.time_add);
+        this.setTimeEdit(builder.time_edit);
+        this.setSlot(builder.slot);
+        this.setGear(builder.gear);
+        this.setTeam(builder.team);
+        this.setBot(builder.bot);
+        
         this.vars = new HashMap<String, Object>();
-    }
     
-    
-    /**
-     * Object constructor
-     * 
-     * @author Daniele Pantaleone
-     * @param  ip The <tt>Client</tt> IP address
-     * @param  guid The <tt>Client</tt> GUID <tt>String</tt>
-     * @param  bot A <tt>boolean</tt> value which specify if this client is a bot
-     **/
-    public Client(InetAddress ip, String guid, boolean bot) {
-        this.setName("EmptyNameDefault");
-        this.setIp(ip);
-        this.setGuid(guid);
-        this.setBot(bot);
-        this.setTeam(Team.FREE);
-        this.setSlot(null);
-        this.vars = new HashMap<String, Object>();
-    }
-    
-    
-    /**
-     * Object constructor
-     * 
-     * @author Daniele Pantaleone
-     * @param  group The <tt>Group</tt> this <tt>Client</tt> belongs to
-     * @param  guid The <tt>Client</tt> GUID <tt>String</tt>
-     **/
-    public Client(Group group, String guid) {
-        this.setName("EmptyNameDefault");
-        this.setGroup(group);
-        this.setGuid(guid);
-        this.setTeam(Team.FREE);
-        this.setSlot(null);
-        this.setBot(false);
-        this.vars = new HashMap<String, Object>();
-    }
-    
-    
-    /**
-     * Object constructor
-     * 
-     * @author Daniele Pantaleone
-     * @param  group The <tt>Group</tt> this <tt>Client</tt> belongs to
-     * @param  guid The <tt>Client</tt> GUID <tt>String</tt>
-     * @param  auth The <tt>Client</tt> auth login
-     **/
-    public Client(Group group, String guid, String auth) {
-        this.setName("EmptyNameDefault");
-        this.setGroup(group);
-        this.setGuid(guid);
-        this.setAuth(auth);
-        this.setTeam(Team.FREE);
-        this.setSlot(null);
-        this.setBot(false);
-        this.vars = new HashMap<String, Object>();
-    }
- 
-    
-    /**
-     * Object constructor
-     * 
-     * @author Daniele Pantaleone
-     * @param  id The <tt>Client</tt> id
-     * @param  group The <tt>Group</tt> this <tt>Client</tt> belongs to
-     * @param  name The <tt>Client</tt> name
-     * @param  connections A counter which hold the number of time this <tt>Client</tt> connected to the game server
-     * @param  ip The <tt>Client</tt> IP address
-     * @param  guid The <tt>Client</tt> GUID <tt>String</tt>
-     * @param  time_add The <tt>DateTime</tt> when this <tt>Client</tt> has been created
-     * @param  time_edit The <tt>DateTime</tt> when this <tt>Client</tt> has been last edited
-     **/
-    public Client(int id, Group group, String name, int connections, InetAddress ip, String guid, DateTime time_add, DateTime time_edit) {
-        this.setId(id);
-        this.setGroup(group);
-        this.setName(name);
-        this.setConnections(connections);
-        this.setIp(ip);
-        this.setGuid(guid);
-        this.setTimeAdd(time_add);
-        this.setTimeEdit(time_edit);
-        this.setTeam(Team.FREE);
-        this.setAuth(null);
-        this.setSlot(null);
-        this.setBot(false);
-        this.vars = new HashMap<String, Object>();
-    }
-    
-    
-    /**
-     * Object constructor
-     * 
-     * @author Daniele Pantaleone
-     * @param  id The <tt>Client</tt> id
-     * @param  group The <tt>Group</tt> this client belongs to
-     * @param  name The <tt>Client</tt> name
-     * @param  connections A counter which hold the number of time this <tt>Client</tt> connected to the game server
-     * @param  ip The <tt>Client</tt> IP address
-     * @param  guid The <tt>Client</tt> GUID <tt>String</tt>
-     * @param  auth The <tt>Client</tt> auth login
-     * @param  time_add The <tt>DateTime</tt> when this <tt>Client</tt> has been created
-     * @param  time_edit The <tt>DateTime</tt> when this <tt>Client</tt> has been last edited
-     **/
-    public Client(int id, Group group, String name, int connections, InetAddress ip, String guid, String auth, DateTime time_add, DateTime time_edit) {
-        this.setId(id);
-        this.setGroup(group);
-        this.setName(name);
-        this.setConnections(connections);
-        this.setIp(ip);
-        this.setGuid(guid);
-        this.setAuth(auth);
-        this.setTimeAdd(time_add);
-        this.setTimeEdit(time_edit);
-        this.setTeam(Team.FREE);
-        this.setSlot(null);
-        this.setBot(false);
-        this.vars = new HashMap<String, Object>();
     }
     
     
@@ -348,6 +242,7 @@ public class Client {
      * @param  group The client <tt>Group</tt>
      **/
     public void setGroup(Group group) {
+        if (group == null) throw new NullPointerException("Client group can't be null");
         this.group = group;
     }
 
@@ -371,6 +266,7 @@ public class Client {
      * @param  connections Amount of time this client has connected
      **/
     public void setConnections(int connections) {
+        if (this.connections < 1) throw new IllegalArgumentException("Number of connections cannot be lower than 1");
         this.connections = connections;
     }
 
@@ -393,7 +289,8 @@ public class Client {
      * @param  guid The client GUID <tt>String</tt>
      **/
     public void setGuid(String guid) {
-        this.guid = guid;
+        if (guid.length() != 32) throw new IllegalArgumentException("Unpure GUID detected. Must be 32 characters long");
+        this.guid = guid.toUpperCase();
     }
 
     
@@ -437,6 +334,7 @@ public class Client {
      * @param  slot The client slot number
      **/
     public void setSlot(Integer slot) {
+        if (slot < 0) throw new IllegalArgumentException("The slot number must be positive");
         this.slot = slot;
     }
 
@@ -542,6 +440,106 @@ public class Client {
      **/
     public String toString() {    
         return "[ id : " + this.getId() + " | name : " + this.getName() + " | level : " + this.getGroup().getLevel() + " | ip : " + this.getIp().getHostAddress() + " | guid : " + this.getGuid() + " | auth : " + this.getAuth() + " | connections: " + this.getConnections() + " | time_add: " + this.getTimeAdd().toString() + " | time_edit: " + this.getTimeEdit().toString() + " ]";
+    }
+    
+    
+    public static class Builder {
+        
+        private final InetAddress ip;
+        private final String guid;
+        
+        private int id;
+        private Group group;
+        private String name;
+        private int connections;
+        private String auth;
+        
+        private DateTime time_add;
+        private DateTime time_edit;
+        
+        private Integer slot;
+        private String gear;
+        private Team team;
+        
+        private boolean bot = false;
+      
+        
+        public Builder(InetAddress ip, String guid) {
+            this.ip = ip;
+            this.guid = guid;
+        }
+        
+        
+        public Builder id(int value) {
+            this.id = value;
+            return this;
+        }
+        
+        
+        public Builder group(Group value) {
+            this.group = value;
+            return this;
+        }
+        
+        
+        public Builder name(String value) {
+            this.name = value;
+            return this;
+        }
+        
+        
+        public Builder connections(int value) {
+            this.connections = value;
+            return this;
+        }
+        
+        
+        public Builder auth(String value) {
+            this.auth = value;
+            return this;
+        }
+        
+        
+        public Builder timeAdd(DateTime value) {
+            this.time_add = value;
+            return this;
+        }
+        
+        
+        public Builder timeEdit(DateTime value) {
+            this.time_edit = value;
+            return this;
+        }
+        
+        
+        public Builder slot(Integer value) {
+            this.slot = value;
+            return this;
+        }
+        
+        
+        public Builder gear(String value) {
+            this.gear = value;
+            return this;
+        }
+        
+        
+        public Builder team(Team value) {
+            this.team = value;
+            return this;
+        }
+        
+        
+        public Builder bot(boolean value) {
+            this.bot = value;
+            return this;
+        }
+        
+        
+        public Client build() {
+            return new Client(this);
+        }
+        
     }
     
 }
