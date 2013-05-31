@@ -530,7 +530,7 @@ public class Client {
      * @return <tt>true</tt> if the <tt>Client</tt> belong to the specified <tt>Group</tt>, <tt>false</tt> otherwise
      **/
     public boolean inGroup(Group group) {
-        return this.group.level == group.level ? true : false;
+        return this.getGroup().getLevel() == group.getLevel() ? true : false;
     }
     
     
@@ -541,7 +541,7 @@ public class Client {
      * @return A <tt>String</tt> representing the content of this object
      **/
     public String toString() {    
-        return "[ id : " + this.id + " | name : " + this.name + " | level : " + this.group.level + " | ip : " + this.ip.getHostAddress() + " | guid : " + this.guid + " | auth : " + this.auth + " | connections: " + this.connections + " | time_add: " + this.time_add.toString() + " | time_edit: " + this.time_edit.toString() + " ]";
+        return "[ id : " + this.getId() + " | name : " + this.getName() + " | level : " + this.getGroup().getLevel() + " | ip : " + this.getIp().getHostAddress() + " | guid : " + this.getGuid() + " | auth : " + this.getAuth() + " | connections: " + this.getConnections() + " | time_add: " + this.getTimeAdd().toString() + " | time_edit: " + this.getTimeEdit().toString() + " ]";
     }
     
 }
