@@ -46,18 +46,18 @@ import com.google.common.collect.Multimap;
 import com.orion.bot.Orion;
 import com.orion.domain.Callvote;
 import com.orion.domain.Client;
-import com.orion.event.EventClientCallvote;
-import com.orion.event.EventClientConnect;
-import com.orion.event.EventClientGearChange;
-import com.orion.event.EventClientJumpRunCanceled;
-import com.orion.event.EventClientJumpRunStarted;
-import com.orion.event.EventClientJumpRunStopped;
-import com.orion.event.EventClientPositionLoad;
-import com.orion.event.EventClientPositionSave;
-import com.orion.event.EventClientRadio;
-import com.orion.event.EventClientVote;
-import com.orion.event.EventSurvivorWinner;
-import com.orion.event.EventTeamSurvivorWinner;
+import com.orion.event.ClientCallvoteEvent;
+import com.orion.event.ClientConnectEvent;
+import com.orion.event.ClientGearChangeEvent;
+import com.orion.event.ClientJumpRunCanceledEvent;
+import com.orion.event.ClientJumpRunStartedEvent;
+import com.orion.event.ClientJumpRunStoppedEvent;
+import com.orion.event.ClientPositionLoadEvent;
+import com.orion.event.ClientPositionSaveEvent;
+import com.orion.event.ClientRadioEvent;
+import com.orion.event.ClientVoteEvent;
+import com.orion.event.SurvivorWinnerEvent;
+import com.orion.event.TeamSurvivorWinnerEvent;
 import com.orion.exception.ClientNotFoundException;
 import com.orion.urt.Gametype;
 import com.orion.urt.Hitlocation;
@@ -537,7 +537,7 @@ public class UrT42Parser extends UrT41Parser implements Parser {
             if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
             
             Callvote callvote = new Callvote(client, matcher.group("type"), (((matcher.group("data") != null) && (!matcher.group("data").isEmpty())) ? matcher.group("data") : null));
-            EventClientCallvote event = new EventClientCallvote(client, callvote);
+            ClientCallvoteEvent event = new ClientCallvoteEvent(client, callvote);
             this.log.trace("EVT_CLIENT_CALLVOTE intercepted [ client : " + event.client.slot + " | type : " + event.callvote.type + " | data : " + event.callvote.data + " ]");     
             this.eventqueue.put(event);
             
@@ -567,7 +567,7 @@ public class UrT42Parser extends UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            EventClientJumpRunCanceled event = new EventClientJumpRunCanceled(client, Integer.parseInt(matcher.group("way")));
+            ClientJumpRunCanceledEvent event = new ClientJumpRunCanceledEvent(client, Integer.parseInt(matcher.group("way")));
             this.log.trace("EVT_CLIENT_JUMP_RUN_CANCELED intercepted [ client : " + event.client.slot + " | way : " + event.way + " ]");
             this.eventqueue.put(event);
             
@@ -597,7 +597,7 @@ public class UrT42Parser extends UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            EventClientJumpRunStarted event = new EventClientJumpRunStarted(client, Integer.parseInt(matcher.group("way")));
+            ClientJumpRunStartedEvent event = new ClientJumpRunStartedEvent(client, Integer.parseInt(matcher.group("way")));
             this.log.trace("EVT_CLIENT_JUMP_RUN_STARTED intercepted [ client : " + event.client.slot + " | way : " + event.way + " ]");
             this.eventqueue.put(event);
             
@@ -627,7 +627,7 @@ public class UrT42Parser extends UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            EventClientJumpRunStopped event = new EventClientJumpRunStopped(client, Integer.parseInt(matcher.group("way")), Integer.parseInt(matcher.group("time")));
+            ClientJumpRunStoppedEvent event = new ClientJumpRunStoppedEvent(client, Integer.parseInt(matcher.group("way")), Integer.parseInt(matcher.group("time")));
             this.log.trace("EVT_CLIENT_JUMP_RUN_STOPPED intercepted [ client : " + event.client.slot + " | way : " + event.way + " | millis : " + event.millis + " ]");
             this.eventqueue.put(event);
             
@@ -657,7 +657,7 @@ public class UrT42Parser extends UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            EventClientPositionLoad event = new EventClientPositionLoad(client, Float.parseFloat(matcher.group("x")), Float.parseFloat(matcher.group("y")), Float.parseFloat(matcher.group("z")), matcher.group("location"));
+            ClientPositionLoadEvent event = new ClientPositionLoadEvent(client, Float.parseFloat(matcher.group("x")), Float.parseFloat(matcher.group("y")), Float.parseFloat(matcher.group("z")), matcher.group("location"));
             this.log.trace("EVT_CLIENT_POSITION_LOAD intercepted [ client : " + event.client.slot + " | x : " + event.x + " | y : " + event.y + " | z : " + event.z + " | location : " + event.location + " ]");
             this.eventqueue.put(event);
             
@@ -687,7 +687,7 @@ public class UrT42Parser extends UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            EventClientPositionSave event = new EventClientPositionSave(client, Float.parseFloat(matcher.group("x")), Float.parseFloat(matcher.group("y")), Float.parseFloat(matcher.group("z")), matcher.group("location"));
+            ClientPositionSaveEvent event = new ClientPositionSaveEvent(client, Float.parseFloat(matcher.group("x")), Float.parseFloat(matcher.group("y")), Float.parseFloat(matcher.group("z")), matcher.group("location"));
             this.log.trace("EVT_CLIENT_POSITION_SAVE intercepted [ client : " + event.client.slot + " | x : " + event.x + " | y : " + event.y + " | z : " + event.z + " | location : " + event.location + " ]");
             this.eventqueue.put(event);
             
@@ -901,7 +901,7 @@ public class UrT42Parser extends UrT41Parser implements Parser {
                 this.clients.add(client);
                 this.clients.save(client);
                 
-                EventClientConnect event = new EventClientConnect(client);
+                ClientConnectEvent event = new ClientConnectEvent(client);
                 this.log.trace("EVT_CLIENT_CONNECT intercepted [ client : " + event.client.slot + " ]");
                 this.eventqueue.put(event);
                 
@@ -924,7 +924,7 @@ public class UrT42Parser extends UrT41Parser implements Parser {
                     try {
                         
                         client.gear = gear;
-                        EventClientGearChange event = new EventClientGearChange(client);
+                        ClientGearChangeEvent event = new ClientGearChangeEvent(client);
                         this.log.trace("EVT_CLIENT_GEAR_CHANGE intercepted [ client : " + event.client.slot + " | gear : " + event.client.gear + " ]");
                         this.eventqueue.put(event);
                         
@@ -960,7 +960,7 @@ public class UrT42Parser extends UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            EventClientRadio event = new EventClientRadio(client, Integer.parseInt(matcher.group("group")), Integer.parseInt(matcher.group("id")), matcher.group("location"), matcher.group("message"));
+            ClientRadioEvent event = new ClientRadioEvent(client, Integer.parseInt(matcher.group("group")), Integer.parseInt(matcher.group("id")), matcher.group("location"), matcher.group("message"));
             this.log.trace("EVT_CLIENT_RADIO intercepted [ client : " + client.slot + " | msg_group : " + event.msg_group + " | msg_id : " + event.msg_id + " | location : " + event.location + " | message : " + event.message + " ]");
             this.eventqueue.put(event);
             
@@ -992,7 +992,7 @@ public class UrT42Parser extends UrT41Parser implements Parser {
                 
                 Client client = this.clients.getBySlot(Integer.parseInt(matcher.group("data")));
                 if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("data"));
-                EventSurvivorWinner event = new EventSurvivorWinner(client);
+                SurvivorWinnerEvent event = new SurvivorWinnerEvent(client);
                 this.log.trace("EVT_SURVIVOR_WINNER intercepted [ client : " + event.client.slot + " ]");
                 this.eventqueue.put(event);
                 
@@ -1009,7 +1009,7 @@ public class UrT42Parser extends UrT41Parser implements Parser {
             try {
             
                 Team team = getTeamByName(matcher.group("data"));
-                EventTeamSurvivorWinner event = new EventTeamSurvivorWinner(team);
+                TeamSurvivorWinnerEvent event = new TeamSurvivorWinnerEvent(team);
                 this.log.trace("EVT_TEAM_SURVIVOR_WINNER intercepted [ team : " + event.team.name() + " ]");
                 this.eventqueue.put(event);
             
@@ -1041,7 +1041,7 @@ public class UrT42Parser extends UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            EventClientVote event = new EventClientVote(client, Integer.parseInt(matcher.group("data")));
+            ClientVoteEvent event = new ClientVoteEvent(client, Integer.parseInt(matcher.group("data")));
             this.log.trace("EVT_CLIENT_VOTE intercepted [ client : " + event.client.slot + " | data : " + event.data + " ]");
             this.eventqueue.put(event);
             

@@ -10,44 +10,47 @@
  *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with Orion. If not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  * 
- * @author      Daniele Pantaleone, Mathias Van Malderen
+ * @author      Daniele Pantaleone
  * @version     1.1
- * @copyright   Daniele Pantaleone, Mathias Van Malderen, 02 July, 2012
+ * @copyright   Daniele Pantaleone, 13 February, 2013
  * @package     com.orion.event
  **/
 
 package com.orion.event;
 
-public abstract class Event {
-    
-    private final EventType type;
+import com.orion.domain.Client;
+
+public class ClientFlagDroppedEvent extends Event {
+
+    private final Client client;
     
     /**
      * Object constructor
      * 
-     * @author Daniele Pantaleone 
-     * @param  type The <tt>EventType</tt>
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> who dropped the flag
      **/
-    public Event(EventType type) {
-        this.type = type;
+    public ClientFlagDroppedEvent(Client client) {  
+        super(EventType.EVT_CLIENT_FLAG_DROPPED);
+        this.client = client;
     }
     
     
     /**
-     * Return the type of the <tt>Event</tt>
+     * Return the <tt>Client</tt> who dropped the flag
      * 
      * @author Daniele Pantaleone
-     * @return The type of the <tt>Event</tt>
+     * @return The <tt>Client</tt> who dropped the flag
      **/
-    public EventType getType() {
-        return this.type;
+    public Client getClient() {
+        return this.client;
     }
-      
+    
 }

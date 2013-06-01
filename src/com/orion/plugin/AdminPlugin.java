@@ -51,9 +51,9 @@ import com.orion.domain.Client;
 import com.orion.domain.Group;
 import com.orion.domain.IpAlias;
 import com.orion.domain.Penalty;
-import com.orion.event.EventClientConnect;
-import com.orion.event.EventClientNameChange;
-import com.orion.event.EventClientTeamChange;
+import com.orion.event.ClientConnectEvent;
+import com.orion.event.ClientNameChangeEvent;
+import com.orion.event.ClientTeamChangeEvent;
 import com.orion.event.EventType;
 import com.orion.exception.CommandRuntimeException;
 import com.orion.exception.CommandSyntaxException;
@@ -164,9 +164,9 @@ public class AdminPlugin extends Plugin {
         }
         
         // Registering our specific events
-        this.registerEvent(EventType.EVT_CLIENT_CONNECT, "onClientConnect", EventClientConnect.class);
-        this.registerEvent(EventType.EVT_CLIENT_NAME_CHANGE, "onClientNameChange", EventClientNameChange.class);
-        this.registerEvent(EventType.EVT_CLIENT_TEAM_CHANGE, "onClientTeamChange", EventClientTeamChange.class);
+        this.registerEvent(EventType.EVT_CLIENT_CONNECT, "onClientConnect", ClientConnectEvent.class);
+        this.registerEvent(EventType.EVT_CLIENT_NAME_CHANGE, "onClientNameChange", ClientNameChangeEvent.class);
+        this.registerEvent(EventType.EVT_CLIENT_TEAM_CHANGE, "onClientTeamChange", ClientTeamChangeEvent.class);
            
     }
     
@@ -183,7 +183,7 @@ public class AdminPlugin extends Plugin {
      * @param  event The generated <tt>Event</tt>
      * @throws EventInterruptedException If the connecting <tt>Client</tt> is banned
      **/
-    public void onClientConnect(EventClientConnect event) throws EventInterruptedException {
+    public void onClientConnect(ClientConnectEvent event) throws EventInterruptedException {
     
         // Copying the client reference
         Client client = event.client;
@@ -281,7 +281,7 @@ public class AdminPlugin extends Plugin {
      * @author Daniele Pantaleone
      * @param  event The generated <tt>Event</tt>
      **/
-    public void onClientNameChange(EventClientNameChange event) {
+    public void onClientNameChange(ClientNameChangeEvent event) {
         
         // Copying the client reference
         Client client = event.client;
@@ -319,7 +319,7 @@ public class AdminPlugin extends Plugin {
      * @author Daniele Pantaleone
      * @param  event The generated <tt>Event</tt>
      **/
-    public void onClientTeamChange(EventClientTeamChange event) {
+    public void onClientTeamChange(ClientTeamChangeEvent event) {
     	
     	// Copying the client reference
         Client client = event.client;

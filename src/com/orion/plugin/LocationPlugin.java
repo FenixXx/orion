@@ -35,7 +35,7 @@ import com.orion.annotation.Usage;
 import com.orion.bot.Orion;
 import com.orion.command.Command;
 import com.orion.domain.Client;
-import com.orion.event.EventClientConnect;
+import com.orion.event.ClientConnectEvent;
 import com.orion.event.EventType;
 import com.orion.exception.CommandRuntimeException;
 import com.orion.exception.CommandSyntaxException;
@@ -139,7 +139,7 @@ public class LocationPlugin extends Plugin {
         }
         
         // Registering our specific events
-        this.registerEvent(EventType.EVT_CLIENT_CONNECT, "onClientConnect", EventClientConnect.class);
+        this.registerEvent(EventType.EVT_CLIENT_CONNECT, "onClientConnect", ClientConnectEvent.class);
            
     }
     
@@ -156,7 +156,7 @@ public class LocationPlugin extends Plugin {
      * @param  event The generated <tt>Event</tt>
      * @throws EventInterruptedException If the connecting <tt>Client</tt> is banned
      **/
-    public void onClientConnect(EventClientConnect event) throws EventInterruptedException {
+    public void onClientConnect(ClientConnectEvent event) throws EventInterruptedException {
     
         // Copying the client reference
         Client client = event.client;

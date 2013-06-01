@@ -17,37 +17,23 @@
  * along with Orion. If not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  * 
- * @author      Daniele Pantaleone, Mathias Van Malderen
+ * @author      Daniele Pantaleone
  * @version     1.1
- * @copyright   Daniele Pantaleone, Mathias Van Malderen, 02 July, 2012
+ * @copyright   Daniele Pantaleone, 02 July, 2012
  * @package     com.orion.event
  **/
 
 package com.orion.event;
 
-public abstract class Event {
-    
-    private final EventType type;
-    
+public class GameWarmupEvent extends Event {
+
     /**
      * Object constructor
      * 
      * @author Daniele Pantaleone 
-     * @param  type The <tt>EventType</tt>
      **/
-    public Event(EventType type) {
-        this.type = type;
+    public GameWarmupEvent() {
+        super(EventType.EVT_GAME_WARMUP);
     }
     
-    
-    /**
-     * Return the type of the <tt>Event</tt>
-     * 
-     * @author Daniele Pantaleone
-     * @return The type of the <tt>Event</tt>
-     **/
-    public EventType getType() {
-        return this.type;
-    }
-      
 }

@@ -52,30 +52,30 @@ import com.orion.control.ClientC;
 import com.orion.control.GroupC;
 import com.orion.domain.Client;
 import com.orion.event.Event;
-import com.orion.event.EventClientBombHolder;
-import com.orion.event.EventClientBombPlanted;
-import com.orion.event.EventClientConnect;
-import com.orion.event.EventClientDamage;
-import com.orion.event.EventClientDamageSelf;
-import com.orion.event.EventClientDamageTeam;
-import com.orion.event.EventClientDisconnect;
-import com.orion.event.EventClientFlagCaptured;
-import com.orion.event.EventClientFlagDropped;
-import com.orion.event.EventClientFlagReturned;
-import com.orion.event.EventClientGearChange;
-import com.orion.event.EventClientItemPickup;
-import com.orion.event.EventClientJoin;
-import com.orion.event.EventClientKill;
-import com.orion.event.EventClientKillSelf;
-import com.orion.event.EventClientKillTeam;
-import com.orion.event.EventClientNameChange;
-import com.orion.event.EventClientSay;
-import com.orion.event.EventClientSayPrivate;
-import com.orion.event.EventClientSayTeam;
-import com.orion.event.EventClientTeamChange;
-import com.orion.event.EventGameRoundStart;
-import com.orion.event.EventGameWarmup;
-import com.orion.event.EventTeamFlagReturn;
+import com.orion.event.ClientBombHolderEvent;
+import com.orion.event.ClientBombPlantedEvent;
+import com.orion.event.ClientConnectEvent;
+import com.orion.event.ClientDamageEvent;
+import com.orion.event.ClientDamageSelfEvent;
+import com.orion.event.ClientDamageTeamEvent;
+import com.orion.event.ClientDisconnectEvent;
+import com.orion.event.ClientFlagCapturedEvent;
+import com.orion.event.ClientFlagDroppedEvent;
+import com.orion.event.ClientFlagReturnedEvent;
+import com.orion.event.ClientGearChangeEvent;
+import com.orion.event.ClientItemPickupEvent;
+import com.orion.event.ClientJoinEvent;
+import com.orion.event.ClientKillEvent;
+import com.orion.event.ClientKillSelfEvent;
+import com.orion.event.ClientKillTeamEvent;
+import com.orion.event.ClientNameChangeEvent;
+import com.orion.event.ClientSayEvent;
+import com.orion.event.ClientSayPrivateEvent;
+import com.orion.event.ClientSayTeamEvent;
+import com.orion.event.ClientTeamChangeEvent;
+import com.orion.event.GameRoundStartEvent;
+import com.orion.event.GameWarmupEvent;
+import com.orion.event.TeamFlagReturnEvent;
 import com.orion.exception.ClientNotFoundException;
 import com.orion.exception.ExpectedParameterException;
 import com.orion.urt.Game;
@@ -547,7 +547,7 @@ public class UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
-            EventClientBombHolder event = new EventClientBombHolder(client);
+            ClientBombHolderEvent event = new ClientBombHolderEvent(client);
             this.log.trace("EVT_CLIENT_BOMB_DEFUSED intercepted [ client : " + event.client.slot + " ]");
             this.eventqueue.put(event);
             
@@ -577,7 +577,7 @@ public class UrT41Parser implements Parser {
              
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
-            EventClientBombHolder event = new EventClientBombHolder(client);
+            ClientBombHolderEvent event = new ClientBombHolderEvent(client);
             this.log.trace("EVT_CLIENT_BOMB_HOLDER intercepted [ client : " + event.client.slot + " ]");        
             this.eventqueue.put(event);
             
@@ -607,7 +607,7 @@ public class UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
-            EventClientBombPlanted event = new EventClientBombPlanted(client);
+            ClientBombPlantedEvent event = new ClientBombPlantedEvent(client);
             this.log.trace("EVT_CLIENT_BOMB_PLANTED intercepted [ client : " + event.client.slot + " ]");
             this.eventqueue.put(event);
             
@@ -637,7 +637,7 @@ public class UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
-            EventClientJoin event = new EventClientJoin(client);
+            ClientJoinEvent event = new ClientJoinEvent(client);
             this.log.trace("EVT_CLIENT_JOIN intercepted [ client : " + event.client.slot + " ]");     
             this.eventqueue.put(event);
             
@@ -684,7 +684,7 @@ public class UrT41Parser implements Parser {
             
             Client client = this.clients.removeBySlot(Integer.parseInt(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
-            EventClientDisconnect event = new EventClientDisconnect(client);
+            ClientDisconnectEvent event = new ClientDisconnectEvent(client);
             this.log.trace("EVT_CLIENT_DISCONNECT intercepted [ client : " + event.client.slot + " ]");   
             this.eventqueue.put(event);
             
@@ -792,7 +792,7 @@ public class UrT41Parser implements Parser {
                 this.clients.add(client);
                 this.clients.save(client);
                 
-                EventClientConnect event = new EventClientConnect(client);
+                ClientConnectEvent event = new ClientConnectEvent(client);
                 this.log.trace("EVT_CLIENT_CONNECT intercepted [ client : " + event.client.slot + " ]");
                 this.eventqueue.put(event);
             
@@ -815,7 +815,7 @@ public class UrT41Parser implements Parser {
                     try {
                         
                         client.gear = gear;
-                        EventClientGearChange event = new EventClientGearChange(client);
+                        ClientGearChangeEvent event = new ClientGearChangeEvent(client);
                         this.log.trace("EVT_CLIENT_GEAR_CHANGE intercepted [ client : " + event.client.slot + " | gear : " + event.client.gear + " ]");
                         this.eventqueue.put(event);
                     
@@ -864,7 +864,7 @@ public class UrT41Parser implements Parser {
                     try {
                         
                         client.name = name;
-                        EventClientNameChange event = new EventClientNameChange(client);
+                        ClientNameChangeEvent event = new ClientNameChangeEvent(client);
                         this.log.trace("EVT_CLIENT_NAME_CHANGE intercepted [ client : " + event.client.slot + " | name : " + event.client.name + " ]");
                         this.eventqueue.put(event);
                     
@@ -888,7 +888,7 @@ public class UrT41Parser implements Parser {
                     if (client.team != team) {
                     
                         client.team = team;
-                        EventClientTeamChange event = new EventClientTeamChange(client);
+                        ClientTeamChangeEvent event = new ClientTeamChangeEvent(client);
                         this.log.trace("EVT_CLIENT_TEAM_CHANGE intercepted [ client : " + event.client.slot + " | team : " + event.client.team + " ]");
                         this.eventqueue.put(event);
                         
@@ -934,19 +934,19 @@ public class UrT41Parser implements Parser {
             switch (Integer.parseInt(matcher.group("action"))) {
                 
                 case 0:
-                    EventClientFlagDropped event1 = new EventClientFlagDropped(client);
+                    ClientFlagDroppedEvent event1 = new ClientFlagDroppedEvent(client);
                     this.log.trace("EVT_CLIENT_FLAG_DROPPED intercepted [ client : " + event1.client.slot + " ]");
                     this.eventqueue.put(event1);
                     break;
                     
                 case 1:
-                    EventClientFlagReturned event2 = new EventClientFlagReturned(client);
+                    ClientFlagReturnedEvent event2 = new ClientFlagReturnedEvent(client);
                     this.log.trace("EVT_CLIENT_FLAG_RETURNED intercepted [ client : " + event2.client.slot + " ]");
                     this.eventqueue.put(event2);
                     break;
                     
                 case 2:
-                    EventClientFlagCaptured event3 = new EventClientFlagCaptured(client);
+                    ClientFlagCapturedEvent event3 = new ClientFlagCapturedEvent(client);
                     this.log.trace("EVT_CLIENT_FLAG_CAPTURED intercepted [ client : " + event3.client.slot + " ]");
                     this.eventqueue.put(event3);
                     break;
@@ -976,7 +976,7 @@ public class UrT41Parser implements Parser {
         
         try {
             
-            EventTeamFlagReturn event = new EventTeamFlagReturn(getTeamByName(matcher.group("team")));
+            TeamFlagReturnEvent event = new TeamFlagReturnEvent(getTeamByName(matcher.group("team")));
             this.log.trace("EVT_TEAM_FLAG_RETURN intercepted [ team : " + event.team.name() + " ]");
             this.eventqueue.put(event);
         
@@ -1011,19 +1011,19 @@ public class UrT41Parser implements Parser {
             
             if (attacker == victim) {
                 
-                EventClientDamageSelf event = new EventClientDamageSelf(victim, getModByHitCode(Integer.parseInt(matcher.group("weapon"))), getHitlocationByCode(Integer.parseInt(matcher.group("hitlocation"))));
+                ClientDamageSelfEvent event = new ClientDamageSelfEvent(victim, getModByHitCode(Integer.parseInt(matcher.group("weapon"))), getHitlocationByCode(Integer.parseInt(matcher.group("hitlocation"))));
                 this.log.trace("EVT_CLIENT_DAMAGE_SELF intercepted [ client : " + event.client.slot + " | mod : " + event.mod.name() + " | hitlocation : " + event.location.name() + " ]");
                 this.eventqueue.put(event);
                 
             } else if ((attacker.team == victim.team) && (attacker.team != Team.SPECTATOR) && (attacker.team != Team.FREE)) {
 
-                EventClientDamageTeam event = new EventClientDamageTeam(attacker, victim, getModByHitCode(Integer.parseInt(matcher.group("weapon"))), getHitlocationByCode(Integer.parseInt(matcher.group("hitlocation"))));
+                ClientDamageTeamEvent event = new ClientDamageTeamEvent(attacker, victim, getModByHitCode(Integer.parseInt(matcher.group("weapon"))), getHitlocationByCode(Integer.parseInt(matcher.group("hitlocation"))));
                 this.log.trace("EVT_CLIENT_DAMAGE_TEAM intercepted [ attacker : " + event.attacker.slot + " | victim : " + event.victim.slot + " | mod : " + event.mod.name() + " | hitlocation : " + event.location.name() + " ]");
                 this.eventqueue.put(event);
                 
             } else {
                 
-                EventClientDamage event = new EventClientDamage(attacker, victim, getModByHitCode(Integer.parseInt(matcher.group("weapon"))), getHitlocationByCode(Integer.parseInt(matcher.group("hitlocation"))));
+                ClientDamageEvent event = new ClientDamageEvent(attacker, victim, getModByHitCode(Integer.parseInt(matcher.group("weapon"))), getHitlocationByCode(Integer.parseInt(matcher.group("hitlocation"))));
                 this.log.trace("EVT_CLIENT_DAMAGE intercepted [ attacker : " + event.attacker.slot + " | victim : " + event.victim.slot + " | mod : " + event.mod.name() + " | hitlocation : " + event.location.name() + " ]");
                 this.eventqueue.put(event);
                 
@@ -1061,7 +1061,7 @@ public class UrT41Parser implements Parser {
         
         try {
             
-            EventGameRoundStart event = new EventGameRoundStart();
+            GameRoundStartEvent event = new GameRoundStartEvent();
             this.log.trace("EVT_GAME_ROUND_START intercepted [ infostring : " + matcher.group("infostring") + " ]");
             this.eventqueue.put(event);
             
@@ -1098,7 +1098,7 @@ public class UrT41Parser implements Parser {
 
         try {
             
-            EventGameRoundStart event = new EventGameRoundStart();
+            GameRoundStartEvent event = new GameRoundStartEvent();
             this.log.trace("EVT_GAME_ROUND_START intercepted [ infostring : " + matcher.group("infostring") + " ]");
             this.eventqueue.put(event);
             
@@ -1128,7 +1128,7 @@ public class UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            EventClientItemPickup event = new EventClientItemPickup(client, getItemByName(matcher.group("item")));
+            ClientItemPickupEvent event = new ClientItemPickupEvent(client, getItemByName(matcher.group("item")));
             this.log.trace("EVT_CLIENT_ITEM_PICKUP intercepted [ client : " + event.client.slot + " | item : " + event.item.name() + " ]");
             this.eventqueue.put(event);
             
@@ -1174,7 +1174,7 @@ public class UrT41Parser implements Parser {
                         
                     Client client = this.clients.getBySlot(Integer.parseInt(matcher.group("victim")));
                     if (client == null) throw new ClientNotFoundException("Cannot retrieve victim client on slot " + matcher.group("victim"));
-                    EventClientKillSelf event1 = new EventClientKillSelf(client, mod);
+                    ClientKillSelfEvent event1 = new ClientKillSelfEvent(client, mod);
                     this.log.trace("EVT_CLIENT_KILL_SELF intercepted [ client : " + event1.client.slot + " | mod : " + event1.mod.name() + " ]");
                     this.eventqueue.put(event1);
                     
@@ -1190,19 +1190,19 @@ public class UrT41Parser implements Parser {
                     
                     if ((attacker == victim) && (attacker.team != Team.SPECTATOR)) {
                         
-                        EventClientKillSelf event2 = new EventClientKillSelf(victim, mod);
+                        ClientKillSelfEvent event2 = new ClientKillSelfEvent(victim, mod);
                         this.log.trace("EVT_CLIENT_KILL_SELF intercepted [ client : " + event2.client.slot + " | mod : " + event2.mod.name() + " ]");
                         this.eventqueue.put(event2);
                         
                     } else if ((attacker.team == victim.team) && (attacker.team != Team.SPECTATOR) && (attacker.team != Team.FREE)) {
                         
-                        EventClientKillTeam event2 = new EventClientKillTeam(attacker, victim, mod); 
+                        ClientKillTeamEvent event2 = new ClientKillTeamEvent(attacker, victim, mod); 
                         this.log.trace("EVT_CLIENT_KILL_TEAM intercepted [ attacker : " + event2.attacker.slot + " | victim : " + event2.victim.slot + " | mod : " + event2.mod.name() + " ]");
                         this.eventqueue.put(event2);
                        
                     } else {
                          
-                        EventClientKill event2 = new EventClientKill(attacker, victim, mod);
+                        ClientKillEvent event2 = new ClientKillEvent(attacker, victim, mod);
                         this.log.trace("EVT_CLIENT_KILL intercepted [ attacker : " + event2.attacker.slot + " | victim : " + event2.victim.slot + " | mod : " + event2.mod.name() + " ]");
                         this.eventqueue.put(event2);
                         
@@ -1273,7 +1273,7 @@ public class UrT41Parser implements Parser {
             } else {
                 
                 // Normal EVT_CLIENT_SAY event
-                EventClientSay event = new EventClientSay(client, message);
+                ClientSayEvent event = new ClientSayEvent(client, message);
                 this.log.trace("EVT_CLIENT_SAY intercepted [ client : " + event.client.slot + " | message : " + event.message + " ]");
                 this.eventqueue.put(event);
                 
@@ -1342,7 +1342,7 @@ public class UrT41Parser implements Parser {
             } else {
                 
                 // Normal EVT_CLIENT_SAY_PRIVATE event
-                EventClientSayPrivate event = new EventClientSayPrivate(client, target, message);
+                ClientSayPrivateEvent event = new ClientSayPrivateEvent(client, target, message);
                 this.log.trace("EVT_CLIENT_SAY_PRIVATE intercepted [ client : " + event.client.slot + " | target : " + event.target.slot + " | message : " + event.message + " ]");
                 this.eventqueue.put(event);
                 
@@ -1407,7 +1407,7 @@ public class UrT41Parser implements Parser {
             } else {
                 
                 // Normal EVT_CLIENT_SAY_TEAM event
-                EventClientSayTeam event = new EventClientSayTeam(client, message);
+                ClientSayTeamEvent event = new ClientSayTeamEvent(client, message);
                 this.log.trace("EVT_CLIENT_SAY_TEAM intercepted [ client : " + event.client.slot + " | message : " + event.message + " ]");
                 this.eventqueue.put(event);
                 
@@ -1445,7 +1445,7 @@ public class UrT41Parser implements Parser {
             this.game.maxPing     = -1;
             this.game.minPing     = -1;
             
-            EventGameWarmup event = new EventGameWarmup();
+            GameWarmupEvent event = new GameWarmupEvent();
             this.log.trace("EVT_GAME_EXIT intercepted");
             this.eventqueue.put(event);
         
@@ -1473,7 +1473,7 @@ public class UrT41Parser implements Parser {
         
         try {
             
-            EventGameWarmup event = new EventGameWarmup();
+            GameWarmupEvent event = new GameWarmupEvent();
             this.log.trace("EVT_GAME_WARMUP intercepted");
             this.eventqueue.put(event);
             

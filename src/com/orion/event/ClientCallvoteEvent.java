@@ -17,37 +17,55 @@
  * along with Orion. If not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  * 
- * @author      Daniele Pantaleone, Mathias Van Malderen
+ * @author      Daniele Pantaleone
  * @version     1.1
- * @copyright   Daniele Pantaleone, Mathias Van Malderen, 02 July, 2012
+ * @copyright   Daniele Pantaleone, 8 September, 2012
  * @package     com.orion.event
  **/
 
 package com.orion.event;
 
-public abstract class Event {
-    
-    private final EventType type;
+import com.orion.domain.Callvote;
+import com.orion.domain.Client;
+
+public class ClientCallvoteEvent extends Event {
+
+    private final Client client;
+    private final Callvote callvote;
     
     /**
      * Object constructor
      * 
-     * @author Daniele Pantaleone 
-     * @param  type The <tt>EventType</tt>
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> who issued the vote
+     * @param  callvote The <tt>Callvote</tt> object
      **/
-    public Event(EventType type) {
-        this.type = type;
+    public ClientCallvoteEvent(Client client, Callvote callvote) {  
+        super(EventType.EVT_CLIENT_CALLVOTE);
+        this.client = client;
+        this.callvote = callvote;
     }
     
     
     /**
-     * Return the type of the <tt>Event</tt>
+     * Return the <tt>Client</tt> who issued the vote
      * 
      * @author Daniele Pantaleone
-     * @return The type of the <tt>Event</tt>
+     * @return The <tt>Client</tt> who issued the vote
      **/
-    public EventType getType() {
-        return this.type;
+    public Client getClient() {
+        return this.client;
     }
-      
+    
+    
+    /**
+     * Return the <tt>Callvote</tt> object
+     * 
+     * @author Daniele Pantaleone
+     * @return The <tt>Callvote</tt> object
+     **/
+    public Callvote getCallvote() {
+        return this.callvote;
+    }
+    
 }

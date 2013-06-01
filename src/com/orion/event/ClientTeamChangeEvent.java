@@ -17,37 +17,41 @@
  * along with Orion. If not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  * 
- * @author      Daniele Pantaleone, Mathias Van Malderen
+ * @author      Daniele Pantaleone
  * @version     1.1
- * @copyright   Daniele Pantaleone, Mathias Van Malderen, 02 July, 2012
+ * @copyright   Daniele Pantaleone, 15 July, 2012
  * @package     com.orion.event
  **/
 
 package com.orion.event;
 
-public abstract class Event {
+import com.orion.domain.Client;
+
+public class ClientTeamChangeEvent extends Event {
+
+    private final Client client;
     
-    private final EventType type;
     
     /**
      * Object constructor
      * 
      * @author Daniele Pantaleone 
-     * @param  type The <tt>EventType</tt>
+     * @param  client The <tt>Client</tt> who changed team
      **/
-    public Event(EventType type) {
-        this.type = type;
+    public ClientTeamChangeEvent(Client client) {
+        super(EventType.EVT_CLIENT_TEAM_CHANGE);
+        this.client = client;
     }
     
     
     /**
-     * Return the type of the <tt>Event</tt>
+     * Return the <tt>Client</tt> who changed team
      * 
      * @author Daniele Pantaleone
-     * @return The type of the <tt>Event</tt>
+     * @return The <tt>Client</tt> who changed team
      **/
-    public EventType getType() {
-        return this.type;
+    public Client getClient() {
+        return this.client;
     }
-      
+    
 }
