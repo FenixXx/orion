@@ -10,14 +10,14 @@
  *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with Orion. If not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  * 
- * @author      Daniele Pantaleone
+ * @author      Daniele Pantaleone, Mathias Van Malderen
  * @version     1.1.1
  * @copyright   Daniele Pantaleone, 05 October, 2012
  * @package     com.orion.domain
@@ -62,146 +62,68 @@ public class Penalty {
     
     
     /**
-     * Set the <tt>Penalty</tt> id
-     * 
-     * @author Mathias Van Malderen
-     * @param id The <tt>Penalty</tt> id
-     **/
-    public void setId(int id) {
-        this.id = id;
-    }
-    
-    
-    /**
      * Return the <tt>Penalty</tt> id
      * 
      * @author Mathias Van Malderen
      * @return The <tt>Penalty</tt> id
      **/
     public int getId() {
-        return id;
-    }
-
-
-    /**
-     * Set the <tt>Client</tt> target of this <tt>Penalty</tt>
-     * 
-     * @author Mathias Van Malderen
-     * @param  client The <tt>Client</tt> who is subject to this <tt>Penalty</tt>
-     */
-    public void setClient(Client client) {
-        this.client = client;
+        return this.id;
     }
     
     
     /**
-     * Get the <tt>Client</tt> target of this <tt>Penalty</tt>
+     * Return the <tt>Client</tt> target of this <tt>Penalty</tt>
      * 
      * @author Mathias Van Malderen
      * @return The <tt>Client</tt> who is subject to this <tt>Penalty</tt>
-     */
+     **/
     public Client getClient() {
-        return client;
-    }
-
-
-    /**
-     * Set the admin <tt>Client</tt> who issued this <tt>Penalty</tt>
-     * 
-     * @author Mathias Van Malderen
-     * @param  admin The admin <tt>Client</tt> who issued this <tt>Penalty</tt>
-     */
-    public void setAdmin(Client admin) {
-        this.admin = admin;
+        return this.client;
     }
     
     
     /**
-     * Get the admin <tt>Client</tt> who issued this <tt>Penalty</tt>
+     * Return the admin <tt>Client</tt> who issued this <tt>Penalty</tt>
      * 
      * @author Mathias Van Malderen
      * @return The admin <tt>Client</tt> by whom this <tt>Penalty</tt> was issued
-     */
+     **/
     public Client getAdmin() {
-        return admin;
-    }
-
-
-    /**
-     * Set the <tt>PenaltyType</tt> type of this <tt>Penalty</tt>
-     * 
-     * @author Mathias Van Malderen
-     * @param type The <tt>PenaltyType</tt> type of this <tt>Penalty</tt>
-     */
-    public void setType(PenaltyType type) {
-        this.type = type;
+        return this.admin;
     }
     
     
     /**
-     * Get the <tt>PenaltyType</tt> type of this <tt>Penalty</tt>
+     * Return the <tt>PenaltyType</tt> type of this <tt>Penalty</tt>
      * 
      * @author Mathias Van Malderen
      * @return The <tt>PenaltyType</tt> type of this <tt>Penalty</tt>
-     */
+     **/
     public PenaltyType getType() {
-        return type;
-    }
-
-
-    /**
-     * Set the active state of this <tt>Penalty</tt>
-     * Penalties can be deactivated by calling <tt>setActive(false)</tt>
-     * 
-     * @author Mathias Van Malderen
-     * @param active true to activate this <tt>Penalty</tt>, false to deactivate
-     */
-    public void setActive(boolean active) {
-        this.active = active;
+        return this.type;
     }
     
     
     /**
-     * Get the whether this <tt>Penalty</tt> is active or not
+     * Tells the whether this <tt>Penalty</tt> is active or not
      * 
      * @author Mathias Van Malderen
-     * @return true if this <tt>Penalty</tt> is active, false if this <tt>Penalty</tt> is inactive
-     */
+     * @return <tt>true</tt> if this <tt>Penalty</tt> is active, <tt>false</tt> otherwise
+     **/
     public boolean isActive() {
         return this.active;
     }
     
     
     /**
-     * Set the reason for why this <tt>Penalty</tt> was issued
+     * Return the reason for why this <tt>Penalty</tt> was issued
      * 
      * @author Mathias Van Malderen
-     * @param reason The the reason for why this <tt>Penalty</tt> was issued
-     */
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
-    
-    
-    /**
-     * Get the reason for why this <tt>Penalty</tt> was issued
-     * 
-     * @author Mathias Van Malderen
-     * @return The the reason for why this <tt>Penalty</tt> was issued
-     */
+     * @return The reason why this <tt>Penalty</tt> was issued
+     **/
     public String getReason() {
         return this.reason;
-    }
-    
-    
-    /**
-     * Return a <tt>DateTime</tt> object representing the time when the <tt>Penalty</tt> has been created
-     * 
-     * @author Mathias Van Malderen
-     * @return A <tt>DateTime</tt> object representing the time when the <tt>Penalty</tt> has been created
-     **/
-    public void setTimeAdd(DateTime time_add) {
-        this.time_add = time_add;
     }
     
     
@@ -217,17 +139,6 @@ public class Penalty {
     
     
     /**
-     * Set the penalty's last time edit.
-     * 
-     * @author Mathias Van Malderen
-     * @param  time_edit A <tt>DateTime</tt> object representing the <tt>Penalty</tt> last time edit
-     **/
-    public void setTimeEdit(DateTime time_edit) {
-        this.time_edit = time_edit;
-    }
-    
-    
-    /**
      * Return a <tt>DateTime</tt> object representing the <tt>Penalty</tt> last time edit
      * 
      * @author Mathias Van Malderen
@@ -236,27 +147,118 @@ public class Penalty {
     public DateTime getTimeEdit() {
         return this.time_edit;
     }
-
+    
     
     /**
-     * Set the <tt>Penalty</tt> expiry time.
+     * Set the <tt>Penalty</tt> expire time
      * 
      * @author Mathias Van Malderen
-     * @param  time_expire A <tt>DateTime</tt> object representing the <tt>Penalty</tt> expiry time
-     **/
-    public void setTimeExpire(DateTime time_expire) {
-        this.time_expire = time_expire;
-    }
-
-    
-    /**
-     * Set the <tt>Penalty</tt> expiry time.
-     * 
-     * @author Mathias Van Malderen
-     * @return The <tt>Penalty</tt> expiry time.
+     * @return The <tt>Penalty</tt> expire time
      **/
     public DateTime getTimeExpire() {
         return time_expire;
+    }
+    
+    
+    /**
+     * Set the <tt>Penalty</tt> id
+     * 
+     * @author Mathias Van Malderen
+     * @param id The <tt>Penalty</tt> id
+     **/
+    public void setId(int id) {
+        this.id = id;
+    }
+
+
+    /**
+     * Set the <tt>Client</tt> target of this <tt>Penalty</tt>
+     * 
+     * @author Mathias Van Malderen
+     * @param  client The <tt>Client</tt> who is subject to this <tt>Penalty</tt>
+     **/
+    public void setClient(Client client) {
+        if (client == null) throw new NullPointerException("Client cannot be null");
+        this.client = client;
+    }
+    
+
+    /**
+     * Set the admin <tt>Client</tt> who issued this <tt>Penalty</tt>
+     * 
+     * @author Mathias Van Malderen
+     * @param  admin The admin <tt>Client</tt> who issued this <tt>Penalty</tt>
+     **/
+    public void setAdmin(Client admin) {
+        this.admin = admin;
+    }
+    
+
+    /**
+     * Set the <tt>PenaltyType</tt> type of this <tt>Penalty</tt>
+     * 
+     * @author Mathias Van Malderen
+     * @param type The <tt>PenaltyType</tt> type of this <tt>Penalty</tt>
+     **/
+    public void setType(PenaltyType type) {
+        if (type == null) throw new NullPointerException("The penalty type cannot be null");
+        this.type = type;
+    }
+    
+
+    /**
+     * Set the active state of this <tt>Penalty</tt>
+     * Penalties can be deactivated by calling <tt>setActive(false)</tt>
+     * 
+     * @author Mathias Van Malderen
+     * @param active <tt>true</tt> to activate this <tt>Penalty</tt>, <tt>false</tt> to deactivate
+     **/
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+    
+    
+    /**
+     * Set the reason for why this <tt>Penalty</tt> was issued
+     * 
+     * @author Mathias Van Malderen
+     * @param reason The the reason for why this <tt>Penalty</tt> was issued
+     **/
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+    
+    
+    /**
+     * Set the <tt>Penalty</tt> time add
+     * 
+     * @author Mathias Van Malderen
+     * @param  time_add A <tt>DateTime</tt> object representing the time when the <tt>Penalty</tt> has been issued
+     **/
+    public void setTimeAdd(DateTime time_add) {
+        this.time_add = time_add;
+    }
+    
+    
+    /**
+     * Set the <tt>Penalty</tt> last time edit
+     * 
+     * @author Mathias Van Malderen
+     * @param  time_edit A <tt>DateTime</tt> object representing the <tt>Penalty</tt> last time edit
+     **/
+    public void setTimeEdit(DateTime time_edit) {
+        this.time_edit = time_edit;
+    }
+   
+    
+    /**
+     * Set the <tt>Penalty</tt> expire time
+     * 
+     * @author Mathias Van Malderen
+     * @param  time_expire A <tt>DateTime</tt> object representing the <tt>Penalty</tt> expire time
+     **/
+    public void setTimeExpire(DateTime time_expire) {
+        this.time_expire = time_expire;
     }
 
 
@@ -267,35 +269,39 @@ public class Penalty {
      * @return A <tt>String</tt> representing the content of this object
      **/
     public String toString() {
-        return "[ id : " + this.id + " | client : " + this.client.getId() + " | admin : " + this.admin.getId() + " | type : " + this.type.name() + " | active : " + this.active + " | reason: " + this.reason + " | time_add : " + this.time_add.toString() + " | time_edit : " + this.time_edit.toString() + " | time_expire : " + ((this.time_expire != null) ? this.time_expire.toString() : "PERMANENT") + " ]";
+        return "[ id : " + this.getId() + " | client : " + this.getClient().getId() + " | admin : " + ((this.getAdmin() != null) ? this.getAdmin().getId() : null) + " | type : " + this.getType().name() + " | active : " + this.isActive() + " | reason: " + this.getReason() + " | time_add : " + this.getTimeAdd().toString() + " | time_edit : " + this.getTimeEdit().toString() + " | time_expire : " + ((this.getTimeExpire() != null) ? this.getTimeExpire().toString() : "PERMANENT") + " ]";
     }
     
     
     public static class Builder {
         
-        private final PenaltyType type;
         private final Client client;
-        private final Client admin;
-        
-        private boolean active = true;
-        private String reason = "";
+        private final PenaltyType type;
         
         private int id;
+        private Client admin;
+        private boolean active = true;
+        private String reason;
         private DateTime time_add;
         private DateTime time_edit;
         private DateTime time_expire;
         
         
-        public Builder(Client client, Client admin, PenaltyType type) {
-            
-            if (client == null) throw new NullPointerException("client cannot be null");
-            if (admin == null) throw new NullPointerException("admin cannot be null");
-            if (type == null) throw new NullPointerException("type cannot be null");
-            
+        public Builder(Client client, PenaltyType type) {
             this.client = client;
-            this.admin = admin;
-            this.type = type;
-            
+            this.type = type;   
+        }
+        
+        
+        public Builder id(int value) {
+            this.id = value;
+            return this;
+        }
+        
+        
+        public Builder admin(Client value) {
+            this.admin = value;
+            return this;
         }
         
         
@@ -307,12 +313,6 @@ public class Penalty {
         
         public Builder reason(String value) {
             this.reason = value;
-            return this;
-        }
-        
-        
-        public Builder id(int value) {
-            this.id = value;
             return this;
         }
         
