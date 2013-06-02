@@ -10,7 +10,7 @@
  *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -18,7 +18,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     0.2
  * @copyright   Daniele Pantaleone, 07 February, 2013
  * @package     com.orion.bot
  **/
@@ -45,8 +45,7 @@ import org.apache.log4j.PatternLayout;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.eventbus.EventBus;
 import com.orion.command.Command;
 import com.orion.command.RegisteredCommand;
 import com.orion.console.Console;
@@ -56,9 +55,6 @@ import com.orion.control.ClientC;
 import com.orion.control.GroupC;
 import com.orion.control.IpAliasC;
 import com.orion.control.PenaltyC;
-import com.orion.event.Event;
-import com.orion.event.EventType;
-import com.orion.event.RegisteredEvent;
 import com.orion.exception.ParserException;
 import com.orion.parser.Parser;
 import com.orion.plugin.Plugin;
@@ -68,7 +64,6 @@ import com.orion.urt.Color;
 import com.orion.urt.Game;
 import com.orion.utility.CommandProcessor;
 import com.orion.utility.Configuration;
-import com.orion.utility.EventProcessor;
 import com.orion.utility.MultiKeyHashMap;
 import com.orion.utility.MultiKeyMap;
 import com.orion.utility.Reader;
@@ -90,7 +85,6 @@ public class Orion {
     public DataSourceManager storage;
     
     public Thread reader;
-    public Thread eventproc;
     public Thread commandproc;
     
     public AliasC aliases;
@@ -100,13 +94,13 @@ public class Orion {
     public IpAliasC ipaliases;
     public PenaltyC penalties;
     
-    public BlockingQueue<Event> eventqueue;
     public BlockingQueue<Command> commandqueue;
     
     public Map<String, Timer> schedule;
     public Map<String, Plugin> plugins;
     public MultiKeyMap<String, String, RegisteredCommand> regcommands;
-    public Multimap<EventType, RegisteredEvent> regevents;
+    
+    public EventBus eventBus;
     
     public Locale locale;
     public String timeformat;
@@ -177,6 +171,7 @@ public class Orion {
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////// PRE INITIALIZED OBJECTS ////////////////////////////////////////////////////
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            this.eventBus = new EventBus("events");
             this.schedule = new LinkedHashMap<String, Timer>();
             this.game = new Game();
             
@@ -194,9 +189,7 @@ public class Orion {
             //////////////////////////////////////////////////// BUFFERS SETUP ////////////////////////////////////////////////////////
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             this.commandqueue = new ArrayBlockingQueue<Command>(this.config.getInt("orion", "commandqueue", 100));
-            this.eventqueue = new ArrayBlockingQueue<Event>(this.config.getInt("orion", "eventqueue", 100));
             this.regcommands = new MultiKeyHashMap<String, String, RegisteredCommand>();
-            this.regevents = LinkedListMultimap.create();
             
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -313,17 +306,14 @@ public class Orion {
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             this.reader = new Thread(new Reader(this.config.getString("server", "logfile"), this.config.getInt("server", "logdelay"), this));
             this.commandproc = new Thread(new CommandProcessor(this));
-            this.eventproc = new Thread(new EventProcessor(this));
             this.reader.setName("READER");
             this.commandproc.setName("COMMAND");
-            this.eventproc.setName("EVENT");
             
             
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////// THREADS STARTUP ////////////////////////////////////////////////////
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             this.commandproc.start();
-            this.eventproc.start();
             this.reader.start();
             
 			///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -336,7 +326,6 @@ public class Orion {
             
         	// Stopping Threads if they are alive
         	if ((this.commandproc != null) && (this.commandproc.isAlive())) this.commandproc.interrupt();
-        	if ((this.eventproc != null) && (this.eventproc.isAlive())) this.eventproc.interrupt();
         	if ((this.reader != null) && (this.reader.isAlive())) this.reader.interrupt();
         	
             // Logging the Exception. Orion is not going to work if an Exception is catched at startup time

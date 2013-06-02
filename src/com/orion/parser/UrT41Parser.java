@@ -10,7 +10,7 @@
  *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -18,7 +18,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 12 February, 2013
  * @package     com.orion.parser
  **/
@@ -44,14 +44,14 @@ import org.joda.time.Hours;
 
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.eventbus.EventBus;
 import com.orion.bot.Orion;
 import com.orion.command.Command;
-import com.orion.command.Prefix;
 import com.orion.console.Console;
 import com.orion.control.ClientC;
 import com.orion.control.GroupC;
 import com.orion.domain.Client;
-import com.orion.event.Event;
+import com.orion.event.ClientBombDefusedEvent;
 import com.orion.event.ClientBombHolderEvent;
 import com.orion.event.ClientBombPlantedEvent;
 import com.orion.event.ClientConnectEvent;
@@ -73,6 +73,7 @@ import com.orion.event.ClientSayEvent;
 import com.orion.event.ClientSayPrivateEvent;
 import com.orion.event.ClientSayTeamEvent;
 import com.orion.event.ClientTeamChangeEvent;
+import com.orion.event.GameExitEvent;
 import com.orion.event.GameRoundStartEvent;
 import com.orion.event.GameWarmupEvent;
 import com.orion.event.TeamFlagReturnEvent;
@@ -99,12 +100,13 @@ public class UrT41Parser implements Parser {
     private static final Multimap<Gametype, Team>   teamsByGametype    = LinkedListMultimap.create();
     
     protected final Orion orion;
-    protected final Log log;
     protected final Console console;
     protected final ClientC clients;
     protected final GroupC groups;
+    protected final Log log;
     
-    protected BlockingQueue<Event> eventqueue;
+    protected EventBus eventBus;
+    
     protected BlockingQueue<Command> commandqueue;
     
     protected Game game;
@@ -170,7 +172,7 @@ public class UrT41Parser implements Parser {
         itemByCode.put('e', Item.UT_WP_M4);
         
         itemByName.put("team_CTF_redflag",        Item.ITEM_CTF_RED_FLAG);
-        itemByName.put("team_CTF_blueflag",       Item.ITEM_CTF_RED_FLAG);
+        itemByName.put("team_CTF_blueflag",       Item.ITEM_CTF_BLUE_FLAG);
         itemByName.put("team_CTF_neutralflag",    Item.ITEM_CTF_NEUTRAL_FLAG);
         itemByName.put("ut_item_vest",            Item.ITEM_VEST);
         itemByName.put("ut_item_nvg",             Item.ITEM_NVG);
@@ -333,7 +335,6 @@ public class UrT41Parser implements Parser {
     }
     
     
-    
     /**
      * Object constructor
      * 
@@ -346,13 +347,13 @@ public class UrT41Parser implements Parser {
         this.console = orion.console;
         this.clients = orion.clients;
         this.groups = orion.groups;
-        this.eventqueue = orion.eventqueue;
+        this.eventBus = orion.eventBus;
         this.commandqueue = orion.commandqueue;
         this.game = orion.game;
         this.log = orion.log;
         
         // Printing a log message so the user can check if he's using the correct parser
-        this.log.debug("Parser initialized [ class : com.orion.parser." + orion.config.getString("orion", "game") + "Parser ]");
+        this.log.debug("Parser initialized: com.orion.parser." + orion.config.getString("orion", "game") + "Parser");
         
     }
      
@@ -517,12 +518,12 @@ public class UrT41Parser implements Parser {
      **/
     public List<Team> getAvailableTeams() {
         
-        if (this.game.gametype == null) {
+        if (this.game.getGametype() == null) {
             // Retrieve the current g_gametype before returning the collection
-            this.game.gametype = this.getGametypeByCode(this.console.getCvar("g_gametype", Integer.class));
+            this.game.setGametype(this.getGametypeByCode(this.console.getCvar("g_gametype", Integer.class)));
         }
         
-        return new LinkedList<Team>(teamsByGametype.get(this.game.gametype));
+        return new LinkedList<Team>(teamsByGametype.get(this.game.getGametype()));
     
     }
         
@@ -547,14 +548,13 @@ public class UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
-            ClientBombHolderEvent event = new ClientBombHolderEvent(client);
-            this.log.trace("EVT_CLIENT_BOMB_DEFUSED intercepted [ client : " + event.client.slot + " ]");
-            this.eventqueue.put(event);
+            this.log.trace("[EVENT] EVT_CLIENT_BOMB_DEFUSED [ client : " + client.getSlot() + " ]");
+            this.eventBus.post(new ClientBombDefusedEvent(client));
             
-        } catch (ClientNotFoundException | InterruptedException e) {        
+        } catch (ClientNotFoundException e) {        
             
             // Logging the Exception
-            this.log.error("Unable to generate EVT_CLIENT_BOMB_DEFUSED", e);   
+            this.log.error("[EVENT] EVT_CLIENT_BOMB_DEFUSED", e);   
             return;
             
         }
@@ -577,14 +577,13 @@ public class UrT41Parser implements Parser {
              
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
-            ClientBombHolderEvent event = new ClientBombHolderEvent(client);
-            this.log.trace("EVT_CLIENT_BOMB_HOLDER intercepted [ client : " + event.client.slot + " ]");        
-            this.eventqueue.put(event);
+            this.log.trace("[EVENT] EVT_CLIENT_BOMB_HOLDER [ client : " + client.getSlot() + " ]");
+            this.eventBus.post(new ClientBombHolderEvent(client));
             
-         } catch (ClientNotFoundException | InterruptedException e) {            
+         } catch (ClientNotFoundException e) {            
             
             // Logging the Exception
-            this.log.error("Unable to generate EVT_CLIENT_BOMB_HOLDER", e);
+            this.log.error("[EVENT] EVT_CLIENT_BOMB_HOLDER", e);
             return;
             
          }
@@ -607,14 +606,13 @@ public class UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
-            ClientBombPlantedEvent event = new ClientBombPlantedEvent(client);
-            this.log.trace("EVT_CLIENT_BOMB_PLANTED intercepted [ client : " + event.client.slot + " ]");
-            this.eventqueue.put(event);
+            this.log.trace("[EVENT] EVT_CLIENT_BOMB_PLANTED [ client : " + client.getSlot() + " ]");
+            this.eventBus.post(new ClientBombPlantedEvent(client));
             
-        } catch (ClientNotFoundException | InterruptedException e) {
+        } catch (ClientNotFoundException e) {
             
             // Logging the Exception
-            this.log.error("Unable to generate EVT_CLIENT_BOMB_PLANTED", e);
+            this.log.error("[EVENT] EVT_CLIENT_BOMB_PLANTED", e);
             return;
             
         }
@@ -637,14 +635,13 @@ public class UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
-            ClientJoinEvent event = new ClientJoinEvent(client);
-            this.log.trace("EVT_CLIENT_JOIN intercepted [ client : " + event.client.slot + " ]");     
-            this.eventqueue.put(event);
+            this.log.trace("[EVENT] EVT_CLIENT_JOIN [ client : " + client.getSlot() + " ]");
+            this.eventBus.post(new ClientJoinEvent(client));
             
-        } catch (ClientNotFoundException | InterruptedException e)  {
+        } catch (ClientNotFoundException e)  {
             
             // Logging the Exception
-            this.log.error("Unable to generate EVT_CLIENT_JOIN", e);
+            this.log.error("[EVENT] EVT_CLIENT_JOIN", e);
             return;
         
         }
@@ -663,8 +660,8 @@ public class UrT41Parser implements Parser {
         // 0:00 ClientConnect: 0
         // 0:00 ClientConnect: 4
         
-        // Just log print a message in the log for debug purpose. We'll handle this somewhere else.
-        this.log.debug("Client connecting on slot " + matcher.group("slot") + ". Ready to parse infostring...");
+        // Just log the new client connection. We'll handle this somewhere else...
+        this.log.debug("Client connecting on slot " + matcher.group("slot") + ". Ready to parse userinfo string...");
 
     }
     
@@ -684,14 +681,13 @@ public class UrT41Parser implements Parser {
             
             Client client = this.clients.removeBySlot(Integer.parseInt(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
-            ClientDisconnectEvent event = new ClientDisconnectEvent(client);
-            this.log.trace("EVT_CLIENT_DISCONNECT intercepted [ client : " + event.client.slot + " ]");   
-            this.eventqueue.put(event);
+            this.log.trace("[EVENT] EVT_CLIENT_DISCONNECT [ client : " + client.getSlot() + " ]");
+            this.eventBus.post(new ClientDisconnectEvent(client));
             
-        } catch (ClientNotFoundException | InterruptedException e)  {
+        } catch (ClientNotFoundException e)  {
             
             // Logging the Exception
-            this.log.error("Unable to generate EVT_CLIENT_DISCONNECT", e);
+            this.log.error("[EVENT] EVT_CLIENT_DISCONNECT", e);
             return;
         
         }
@@ -720,14 +716,17 @@ public class UrT41Parser implements Parser {
                 
                 try {
                     
-                    // We have a BOT connecting to the server. We need to handle this in a different way
-                    client = new Client(InetAddress.getByName("0.0.0.0"), "BOT_" + matcher.group("slot"), true);
-                    this.log.debug("Client connecting on slot " + matcher.group("slot") + " detected as a BOT");
+                    // We have a BOT connecting. We need to handle this in a different way...
+                    client = new Client.Builder(InetAddress.getByName("0.0.0.0"), "BOT_" + matcher.group("slot"))
+                                       .bot(true)
+                                       .build();
+                    
+                    this.log.debug("Client connecting on slot " + matcher.group("slot") + " has been detected as a BOT");
                     
                 } catch (UnknownHostException e) {
                     
                     // Logging the Exception
-                    this.log.error("Unable to generate EVT_CLIENT_CONNECT", e);
+                    this.log.error("[EVENT] EVT_CLIENT_CONNECT", e);
                     return;
                 
                 }
@@ -736,21 +735,23 @@ public class UrT41Parser implements Parser {
                 
                 try {
                     
-                    this.log.debug("Trying to authenticate client on slot " + matcher.group("slot") + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
+                    this.log.debug("Attempt to authenticate client on slot " + matcher.group("slot") + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
                     client = this.clients.getByGuid(userinfo.get("cl_guid"));
                     
                     if (client != null) {
-                        // Found a match for the connecting client in the storage
+                        // We got already informations for this client
+                        // We'll use such info for the authentication and we'll updated the client object with some new ones
                         this.log.debug("Client connecting on slot " + matcher.group("slot") + " authenticated " + client.toString());
                     } else {
-                        // Unable to find a match. Will be handled as a new client
-                        this.log.debug("Unable to find a match in the storage for client connecting on slot " + matcher.group("slot") + ". Will be handled as a new client " + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
+                        // Unable to find a match in the storage for the connecting client
+                        // We'll handle this as a new client connection on this game server
+                        this.log.debug("No match found in the storage for client connecting on slot " + matcher.group("slot") + ". We'll be handled as a new client" + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
                     }
                     
                 } catch (ClassNotFoundException | UnknownHostException | SQLException e) {
                     
                     // Logging the Exception
-                    this.log.error("Unable to generate EVT_CLIENT_CONNECT", e);
+                    this.log.error("[EVENT] EVT_CLIENT_CONNECT", e);
                     return;
                     
                 }
@@ -765,41 +766,39 @@ public class UrT41Parser implements Parser {
                     // We didn't managed to find a match in our database for the connecting client
                     // More over the connecting client is not a bot, otherwise we would have generated the object
                     // We will generate a new client object for the client and save it into our database
-                    client = new Client(this.groups.getByKeyword("guest"), userinfo.get("cl_guid"));
+                    client = new Client.Builder(InetAddress.getByName(userinfo.get("ip").split(":", 2)[0]), userinfo.get("cl_guid"))
+                                       .group(this.groups.getByKeyword("guest"))
+                                       .build();
                     
                 }
                 
-                client.slot = Integer.valueOf(matcher.group("slot"));
+                client.setSlot(Integer.valueOf(matcher.group("slot")));
                 
-                // Update the client number of connections just if the client is a new client of if disconnected at last one hour ago
-                if ((client.time_edit == null) || (Hours.hoursBetween(client.time_edit, new DateTime(this.orion.timezone)).getHours() > 1)) {
-                    client.connections = client.connections + 1;
+                // Update the client number of connections just if the client is a new client or if disconnected at last one hour ago
+                if ((client.getTimeEdit() == null) || (Hours.hoursBetween(client.getTimeEdit(), new DateTime(this.orion.timezone)).getHours() > 1)) {
+                    client.setConnections(client.getConnections() + 1);
                 } 
                 
                 if (userinfo.containsKey("name"))
-                    client.name = userinfo.get("name").replaceAll("\\^[0-9]{1}", "");
-                
-                if (!client.bot && userinfo.containsKey("ip"))
-                    client.ip = InetAddress.getByName(userinfo.get("ip").split(":", 2)[0]);
+                    client.setName(userinfo.get("name"));
      
                 if (userinfo.containsKey("gear"))
-                    client.gear = userinfo.get("gear");
+                    client.setGear(userinfo.get("gear"));
                 
                 if (userinfo.containsKey("team"))    
-                    client.team = getTeamByName(userinfo.get("team"));
+                    client.setTeam(getTeamByName(userinfo.get("team")));
                 
                 // Saving the client
                 this.clients.add(client);
                 this.clients.save(client);
                 
-                ClientConnectEvent event = new ClientConnectEvent(client);
-                this.log.trace("EVT_CLIENT_CONNECT intercepted [ client : " + event.client.slot + " ]");
-                this.eventqueue.put(event);
+                this.log.trace("[EVENT] EVT_CLIENT_CONNECT [ client : " + client.getSlot() + " ]");
+                this.eventBus.post(new ClientConnectEvent(client));
             
-            } catch (UnknownHostException | ClassNotFoundException | SQLException | InterruptedException e) {
+            } catch (UnknownHostException | ClassNotFoundException | SQLException e) {
                 
                 // Logging the Exception
-                this.log.error("Unable to generate EVT_CLIENT_CONNECT", e);
+                this.log.error("[EVENT] EVT_CLIENT_CONNECT", e);
                 return;
                 
             }
@@ -810,23 +809,12 @@ public class UrT41Parser implements Parser {
             if (userinfo.containsKey("gear")) {
                 
                 String gear = userinfo.get("gear");
-                if ((client.gear == null) || (!client.gear.equals(gear))) {
-                    
-                    try {
-                        
-                        client.gear = gear;
-                        ClientGearChangeEvent event = new ClientGearChangeEvent(client);
-                        this.log.trace("EVT_CLIENT_GEAR_CHANGE intercepted [ client : " + event.client.slot + " | gear : " + event.client.gear + " ]");
-                        this.eventqueue.put(event);
-                    
-                    } catch (InterruptedException e) {
-                        
-                        // Logging the Exception
-                        this.log.error(e);
-                        return;
-                    
-                    }
-                
+                if ((client.getGear() == null) || (!client.getGear().equals(gear))) {
+               
+                    client.setGear(gear);
+                    this.log.trace("[EVENT] EVT_CLIENT_GEAR_CHANGE [ client : " + client.getSlot() + " ]");
+                    this.eventBus.post(new ClientGearChangeEvent(client));
+               
                 }
             
             }
@@ -859,22 +847,12 @@ public class UrT41Parser implements Parser {
             if (userinfo.containsKey("n")) {
                 
                 String name = userinfo.get("n").replaceAll("\\^[0-9]{1}", "");
-                if (!client.name.toLowerCase().equals(name.toLowerCase())) {
+                if (!client.getName().toLowerCase().equals(name.toLowerCase())) {
                     
-                    try {
-                        
-                        client.name = name;
-                        ClientNameChangeEvent event = new ClientNameChangeEvent(client);
-                        this.log.trace("EVT_CLIENT_NAME_CHANGE intercepted [ client : " + event.client.slot + " | name : " + event.client.name + " ]");
-                        this.eventqueue.put(event);
+                    client.setName(name);
+                    this.log.trace("[EVENT] EVT_CLIENT_NAME_CHANGE [ client : " + client.getSlot() + " ]");
+                    this.eventBus.post(new ClientNameChangeEvent(client));
                     
-                    } catch (InterruptedException e) {
-                        
-                        // Logging the Exception
-                        this.log.error("Unable to generate EVT_CLIENT_NAME_CHANGE", e);
-                        return;
-                        
-                    }
                 }
             }
             
@@ -885,19 +863,18 @@ public class UrT41Parser implements Parser {
                     
                     Team team = getTeamByCode(Integer.parseInt(userinfo.get("t")));
                     
-                    if (client.team != team) {
+                    if (client.getTeam() != team) {
                     
-                        client.team = team;
-                        ClientTeamChangeEvent event = new ClientTeamChangeEvent(client);
-                        this.log.trace("EVT_CLIENT_TEAM_CHANGE intercepted [ client : " + event.client.slot + " | team : " + event.client.team + " ]");
-                        this.eventqueue.put(event);
+                        client.setTeam(team);
+                        this.log.trace("[EVENT] EVT_CLIENT_TEAM_CHANGE [ client : " + client.getSlot() + " ]");
+                        this.eventBus.post(new ClientTeamChangeEvent(client));
                         
                     }
                     
-                } catch (InterruptedException | IndexOutOfBoundsException e) {
+                } catch (IndexOutOfBoundsException e) {
                     
                     // Logging the Exception
-                    this.log.error("Unable to generate EVT_CLIENT_TEAM_CHANGE", e);
+                    this.log.error("[EVENT] EVT_CLIENT_TEAM_CHANGE", e);
                     return;
                 
                 }
@@ -907,7 +884,7 @@ public class UrT41Parser implements Parser {
         } catch (ClientNotFoundException e) {
             
             // Logging the Exception
-            this.log.error("Exception launched while parsing ClientUserinfoChanged", e);
+            this.log.error("[EVENT] EVT_CLIENT_NAME_CHANGE | EVT_CLIENT_TEAM_CHANGE", e);
             return;
             
         }
@@ -934,29 +911,26 @@ public class UrT41Parser implements Parser {
             switch (Integer.parseInt(matcher.group("action"))) {
                 
                 case 0:
-                    ClientFlagDroppedEvent event1 = new ClientFlagDroppedEvent(client);
-                    this.log.trace("EVT_CLIENT_FLAG_DROPPED intercepted [ client : " + event1.client.slot + " ]");
-                    this.eventqueue.put(event1);
+                    this.log.trace("[EVENT] EVT_CLIENT_FLAG_DROPPED [ client : " + client.getSlot() + " ]");
+                    this.eventBus.post(new ClientFlagDroppedEvent(client));
                     break;
                     
                 case 1:
-                    ClientFlagReturnedEvent event2 = new ClientFlagReturnedEvent(client);
-                    this.log.trace("EVT_CLIENT_FLAG_RETURNED intercepted [ client : " + event2.client.slot + " ]");
-                    this.eventqueue.put(event2);
+                    this.log.trace("[EVENT] EVT_CLIENT_FLAG_RETURNED [ client : " + client.getSlot() + " ]");
+                    this.eventBus.post(new ClientFlagReturnedEvent(client));
                     break;
                     
                 case 2:
-                    ClientFlagCapturedEvent event3 = new ClientFlagCapturedEvent(client);
-                    this.log.trace("EVT_CLIENT_FLAG_CAPTURED intercepted [ client : " + event3.client.slot + " ]");
-                    this.eventqueue.put(event3);
+                    this.log.trace("[EVENT] EVT_CLIENT_FLAG_CAPTURED [ client : " + client.getSlot() + " ]");
+                    this.eventBus.post(new ClientFlagCapturedEvent(client));
                     break;
             
             }
         
-        } catch (ClientNotFoundException | InterruptedException | IndexOutOfBoundsException e) {
+        } catch (ClientNotFoundException | IndexOutOfBoundsException e) {
            
             // Logging the Exception
-            this.log.error("Exception launched while parsing: " + matcher.group(0), e);
+            this.log.error("[EVENT] EVT_CLIENT_FLAG_DROPPED | EVT_CLIENT_FLAG_RETURNED | EVT_CLIENT_FLAG_CAPTURED", e);
             return;
         
         }
@@ -976,14 +950,13 @@ public class UrT41Parser implements Parser {
         
         try {
             
-            TeamFlagReturnEvent event = new TeamFlagReturnEvent(getTeamByName(matcher.group("team")));
-            this.log.trace("EVT_TEAM_FLAG_RETURN intercepted [ team : " + event.team.name() + " ]");
-            this.eventqueue.put(event);
+            this.log.trace("[EVENT] EVT_TEAM_FLAG_RETURN [ team : " + matcher.group("team") + " ]");
+            this.eventBus.post(new TeamFlagReturnEvent(getTeamByName(matcher.group("team"))));
         
-        } catch (InterruptedException | IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             
             // Logging the Exception
-            this.log.error("Unable to generate EVT_TEAM_FLAG_RETURN", e);
+            this.log.error("[EVENT] EVT_TEAM_FLAG_RETURN", e);
             return;
         
         }
@@ -1012,27 +985,27 @@ public class UrT41Parser implements Parser {
             if (attacker == victim) {
                 
                 ClientDamageSelfEvent event = new ClientDamageSelfEvent(victim, getModByHitCode(Integer.parseInt(matcher.group("weapon"))), getHitlocationByCode(Integer.parseInt(matcher.group("hitlocation"))));
-                this.log.trace("EVT_CLIENT_DAMAGE_SELF intercepted [ client : " + event.client.slot + " | mod : " + event.mod.name() + " | hitlocation : " + event.location.name() + " ]");
-                this.eventqueue.put(event);
+                this.log.trace("[EVENT] EVT_CLIENT_DAMAGE_SELF [ client : " + event.getClient().getSlot() + " | mod : " + event.getMod().name() + " | hitlocation : " + event.getHitLocation().name() + " ]");
+                this.eventBus.post(event);
                 
-            } else if ((attacker.team == victim.team) && (attacker.team != Team.SPECTATOR) && (attacker.team != Team.FREE)) {
+            } else if ((attacker.getTeam() == victim.getTeam()) && (attacker.getTeam() != Team.SPECTATOR) && (attacker.getTeam() != Team.FREE)) {
 
                 ClientDamageTeamEvent event = new ClientDamageTeamEvent(attacker, victim, getModByHitCode(Integer.parseInt(matcher.group("weapon"))), getHitlocationByCode(Integer.parseInt(matcher.group("hitlocation"))));
-                this.log.trace("EVT_CLIENT_DAMAGE_TEAM intercepted [ attacker : " + event.attacker.slot + " | victim : " + event.victim.slot + " | mod : " + event.mod.name() + " | hitlocation : " + event.location.name() + " ]");
-                this.eventqueue.put(event);
+                this.log.trace("[EVENT] EVT_CLIENT_DAMAGE_TEAM [ client : " + event.getClient().getSlot() + " | victim : " + event.getVictim().getSlot() + " | mod : " + event.getMod().name() + " | hitlocation : " + event.getHitLocation().name() + " ]");
+                this.eventBus.post(event);
                 
             } else {
                 
                 ClientDamageEvent event = new ClientDamageEvent(attacker, victim, getModByHitCode(Integer.parseInt(matcher.group("weapon"))), getHitlocationByCode(Integer.parseInt(matcher.group("hitlocation"))));
-                this.log.trace("EVT_CLIENT_DAMAGE intercepted [ attacker : " + event.attacker.slot + " | victim : " + event.victim.slot + " | mod : " + event.mod.name() + " | hitlocation : " + event.location.name() + " ]");
-                this.eventqueue.put(event);
+                this.log.trace("[EVENT] EVT_CLIENT_DAMAGE [ client : " + event.getClient().getSlot() + " | victim : " + event.getVictim().getSlot() + " | mod : " + event.getMod().name() + " | hitlocation : " + event.getHitLocation().name() + " ]");
+                this.eventBus.post(event);
                 
             }
             
-        } catch (ClientNotFoundException | InterruptedException | IndexOutOfBoundsException e) {
+        } catch (ClientNotFoundException | IndexOutOfBoundsException e) {
             
             // Logging the Exception
-            this.log.error("Exception launched while parsing: " + matcher.group(0), e);
+            this.log.error("[EVENT] EVT_CLIENT_DAMAGE_SELF | EVT_CLIENT_DAMAGE_TEAM | EVT_CLIENT_DAMAGE", e);
             return;
         
         }
@@ -1052,27 +1025,17 @@ public class UrT41Parser implements Parser {
         // 0:00 InitGame: \sv_allowdownload\0\g_matchmode\1\g_gametype\4\sv_maxclients\20\sv_floodprotect\0...
         Map<String, String> userinfo = this.parseInfoString(matcher.group("infostring")); 
         
-        if (userinfo.containsKey("g_gametype"))      this.game.gametype = getGametypeByCode(Integer.parseInt(userinfo.get("g_gametype")));  
-        if (userinfo.containsKey("g_mapcycle"))      this.game.mapcycle = userinfo.get("g_mapcycle");  
-        if (userinfo.containsKey("mapname"))         this.game.mapname = userinfo.get("mapname");  
-        if (userinfo.containsKey("sv_minPing"))      this.game.minPing = Integer.parseInt(userinfo.get("sv_minPing"));  
-        if (userinfo.containsKey("sv_maxPing"))      this.game.maxPing = Integer.parseInt(userinfo.get("sv_maxPing"));  
-        if (userinfo.containsKey("sv_maxclients"))   this.game.maxClients = Integer.parseInt(userinfo.get("sv_maxclients"));
-        
-        try {
-            
-            GameRoundStartEvent event = new GameRoundStartEvent();
-            this.log.trace("EVT_GAME_ROUND_START intercepted [ infostring : " + matcher.group("infostring") + " ]");
-            this.eventqueue.put(event);
-            
-        } catch (InterruptedException e) {
-            
-            // Logging the Exception
-            this.log.error("Unable to generate EVT_GAME_ROUND_START", e);
-            return;
-        
-        }
+        // Update game variables in order to have always updated informations in plugins
+        if (userinfo.containsKey("g_gametype"))    this.game.setGametype(this.getGametypeByCode(Integer.parseInt(userinfo.get("g_gametype"))));  
+        if (userinfo.containsKey("g_mapcycle"))    this.game.setMapcycle(userinfo.get("g_mapcycle"));  
+        if (userinfo.containsKey("mapname"))       this.game.setMapName(userinfo.get("mapname"));  
+        if (userinfo.containsKey("sv_minping"))    this.game.setMinPing(Integer.parseInt(userinfo.get("sv_minping")));  
+        if (userinfo.containsKey("sv_maxping"))    this.game.setMaxPing(Integer.parseInt(userinfo.get("sv_maxping")));  
+        if (userinfo.containsKey("sv_maxclients")) this.game.setMaxClients(Integer.parseInt(userinfo.get("sv_maxclients")));
 
+        this.log.trace("[EVENT] EVT_GAME_ROUND_START [ infostring : " + matcher.group("infostring") + " ]");
+        this.eventBus.post(new GameRoundStartEvent());
+            
     }
     
     
@@ -1086,29 +1049,18 @@ public class UrT41Parser implements Parser {
         
         // 0:00 InitRound: \sv_allowdownload\0\g_matchmode\1\g_gametype\4\sv_maxclients\20\sv_floodprotect\0...
         // 0:00 InitRound: \sv_allowdownload\0\g_matchmode\1\g_gametype\4\sv_maxclients\20\sv_floodprotect\0...
+        Map<String, String> userinfo = this.parseInfoString(matcher.group("infostring")); 
         
-        Map<String, String> userinfo = this.parseInfoString(matcher.group("infostring"));  
-        
-        if (userinfo.containsKey("g_gametype"))      this.game.gametype = getGametypeByCode(Integer.parseInt(userinfo.get("g_gametype")));  
-        if (userinfo.containsKey("g_mapcycle"))      this.game.mapcycle = userinfo.get("g_mapcycle");  
-        if (userinfo.containsKey("mapname"))         this.game.mapname = userinfo.get("mapname");  
-        if (userinfo.containsKey("sv_minPing"))      this.game.minPing = Integer.parseInt(userinfo.get("sv_minPing"));  
-        if (userinfo.containsKey("sv_maxPing"))      this.game.maxPing = Integer.parseInt(userinfo.get("sv_maxPing"));  
-        if (userinfo.containsKey("sv_maxclients"))   this.game.maxClients = Integer.parseInt(userinfo.get("sv_maxclients"));
+        // Update game variables in order to have always updated informations in plugins
+        if (userinfo.containsKey("g_gametype"))    this.game.setGametype(this.getGametypeByCode(Integer.parseInt(userinfo.get("g_gametype"))));  
+        if (userinfo.containsKey("g_mapcycle"))    this.game.setMapcycle(userinfo.get("g_mapcycle"));  
+        if (userinfo.containsKey("mapname"))       this.game.setMapName(userinfo.get("mapname"));  
+        if (userinfo.containsKey("sv_minping"))    this.game.setMinPing(Integer.parseInt(userinfo.get("sv_minping")));  
+        if (userinfo.containsKey("sv_maxping"))    this.game.setMaxPing(Integer.parseInt(userinfo.get("sv_maxping")));  
+        if (userinfo.containsKey("sv_maxclients")) this.game.setMaxClients(Integer.parseInt(userinfo.get("sv_maxclients")));
 
-        try {
-            
-            GameRoundStartEvent event = new GameRoundStartEvent();
-            this.log.trace("EVT_GAME_ROUND_START intercepted [ infostring : " + matcher.group("infostring") + " ]");
-            this.eventqueue.put(event);
-            
-        } catch (InterruptedException e) {
-            
-            // Logging the Exception
-            this.log.error("Unable to generate EVT_GAME_ROUND_START", e);
-            return;
-        
-        }
+        this.log.trace("[EVENT] EVT_GAME_ROUND_START [ infostring : " + matcher.group("infostring") + " ]");
+        this.eventBus.post(new GameRoundStartEvent());
 
     }
     
@@ -1127,15 +1079,15 @@ public class UrT41Parser implements Parser {
         try {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
-            if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
+            if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
             ClientItemPickupEvent event = new ClientItemPickupEvent(client, getItemByName(matcher.group("item")));
-            this.log.trace("EVT_CLIENT_ITEM_PICKUP intercepted [ client : " + event.client.slot + " | item : " + event.item.name() + " ]");
-            this.eventqueue.put(event);
+            this.log.trace("[EVENT] EVT_CLIENT_ITEM_PICKUP [ client : " + event.getClient().getSlot() + " | item : " + event.getItem().name() + " ]");
+            this.eventBus.post(event);
             
-        } catch (ClientNotFoundException | InterruptedException | IndexOutOfBoundsException e) {
+        } catch (ClientNotFoundException | IndexOutOfBoundsException e) {
             
             // Logging the Exception
-            this.log.error("Unable to generate EVT_CLIENT_ITEM_PICKUP", e);
+            this.log.error("[EVENT] EVT_CLIENT_ITEM_PICKUP", e);
             return;
             
         }
@@ -1151,12 +1103,12 @@ public class UrT41Parser implements Parser {
      **/
     public void onKill(Matcher matcher) { 
         
-        // 0:00 Kill: 0 1 16: XLR8or killed =lvl1=Cheetah by UT_MOD_SPAS
-        // 0:00 Kill: 14 4 21: Qst killed Leftovercrack by UT_MOD_PSG1
+        // 0:00 Kill: 0 1 16: Fenix killed WizardOfGore by UT_MOD_SPAS
+        // 0:00 Kill: 14 4 21: Fenix killed Fapking by UT_MOD_PSG1
         
         try {
             
-            Mod mod = getModByKillCode(Integer.parseInt(matcher.group("weapon")));
+            Mod mod = this.getModByKillCode(Integer.parseInt(matcher.group("weapon")));
             
             switch (mod) {
             
@@ -1172,40 +1124,31 @@ public class UrT41Parser implements Parser {
                 case MOD_TRIGGER_HURT:
                 case UT_MOD_SPLODED:
                         
+                    
                     Client client = this.clients.getBySlot(Integer.parseInt(matcher.group("victim")));
-                    if (client == null) throw new ClientNotFoundException("Cannot retrieve victim client on slot " + matcher.group("victim"));
-                    ClientKillSelfEvent event1 = new ClientKillSelfEvent(client, mod);
-                    this.log.trace("EVT_CLIENT_KILL_SELF intercepted [ client : " + event1.client.slot + " | mod : " + event1.mod.name() + " ]");
-                    this.eventqueue.put(event1);
+                    if (client == null) throw new ClientNotFoundException("cannot retrieve victim client on slot " + matcher.group("victim"));
+                    this.log.trace("[EVENT] EVT_CLIENT_KILL_SELF [ client : " + client.getSlot() + " | mod : " + mod.name() + " ]");
+                    this.eventBus.post(new ClientKillSelfEvent(client, mod));
                     
                     break;
     
                 default:
                     
                     Client attacker = this.clients.getBySlot(Integer.parseInt(matcher.group("attacker")));
-                    if (attacker == null) throw new ClientNotFoundException("Cannot retrieve attacker client on slot " + matcher.group("attacker"));
+                    if (attacker == null) throw new ClientNotFoundException("cannot retrieve attacker client on slot " + matcher.group("attacker"));
                     
                     Client victim = this.clients.getBySlot(Integer.parseInt(matcher.group("victim")));
-                    if (victim == null) throw new ClientNotFoundException("Cannot retrieve victim client on slot " + matcher.group("victim"));
+                    if (victim == null) throw new ClientNotFoundException("cannot retrieve victim client on slot " + matcher.group("victim"));
                     
-                    if ((attacker == victim) && (attacker.team != Team.SPECTATOR)) {
-                        
-                        ClientKillSelfEvent event2 = new ClientKillSelfEvent(victim, mod);
-                        this.log.trace("EVT_CLIENT_KILL_SELF intercepted [ client : " + event2.client.slot + " | mod : " + event2.mod.name() + " ]");
-                        this.eventqueue.put(event2);
-                        
-                    } else if ((attacker.team == victim.team) && (attacker.team != Team.SPECTATOR) && (attacker.team != Team.FREE)) {
-                        
-                        ClientKillTeamEvent event2 = new ClientKillTeamEvent(attacker, victim, mod); 
-                        this.log.trace("EVT_CLIENT_KILL_TEAM intercepted [ attacker : " + event2.attacker.slot + " | victim : " + event2.victim.slot + " | mod : " + event2.mod.name() + " ]");
-                        this.eventqueue.put(event2);
-                       
+                    if ((attacker == victim) && (attacker.getTeam() != Team.SPECTATOR)) {
+                        this.log.trace("[EVENT] EVT_CLIENT_KILL_SELF [ client : " + attacker.getSlot() + " | mod : " + mod.name() + " ]");
+                        this.eventBus.post(new ClientKillSelfEvent(attacker, mod));
+                    } else if ((attacker.getTeam() == victim.getTeam()) && (attacker.getTeam() != Team.SPECTATOR) && (attacker.getTeam() != Team.FREE)) {
+                        this.log.trace("[EVENT] EVT_CLIENT_KILL_TEAM intercepted [ client : " + attacker.getSlot() + " | victim : " + victim.getSlot() + " | mod : " + mod.name() + " ]");
+                        this.eventBus.post(new ClientKillTeamEvent(attacker, victim, mod));
                     } else {
-                         
-                        ClientKillEvent event2 = new ClientKillEvent(attacker, victim, mod);
-                        this.log.trace("EVT_CLIENT_KILL intercepted [ attacker : " + event2.attacker.slot + " | victim : " + event2.victim.slot + " | mod : " + event2.mod.name() + " ]");
-                        this.eventqueue.put(event2);
-                        
+                        this.log.trace("[EVENT] EVT_CLIENT_KILL intercepted [ client : " + attacker.getSlot() + " | victim : " + victim.getSlot() + " | mod : " + mod.name() + " ]");
+                        this.eventBus.post(new ClientKillEvent(attacker, victim, mod));
                     }
                     
                     break;
@@ -1213,10 +1156,10 @@ public class UrT41Parser implements Parser {
             }
             
             
-        } catch (ClientNotFoundException | InterruptedException | IndexOutOfBoundsException e) {
+        } catch (ClientNotFoundException | IndexOutOfBoundsException e) {
             
             // Logging the Exception
-            this.log.error("Exception launched while parsing: " + matcher.group(0), e);
+            this.log.error("[EVENT] EVT_CLIENT_KILL_SELF | EVT_CLIENT_KILL_TEAM | EVT_CLIENT_KILL", e);
             return;
             
         } 
@@ -1239,50 +1182,48 @@ public class UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             
-            if ((client == null) || (!client.name.equals(matcher.group("name")))) {
+            if ((client == null) || (!client.getName().equals(matcher.group("name")))) {
                 
                 // This bug usually happen when running the bot on a server which is not com_dedicated
-                this.log.debug("Bug spotted while trying to generate EVT_CLIENT_SAY: Trying to get the client using his name...");
-                
+                // It's a well known bug. We'll try to get the client object by matching the client name              
                 List<Client> collection = this.clients.getByName(matcher.group("name"));
-                if (collection.size() == 0) throw new ClientNotFoundException("Cannot retrieve client with name " + matcher.group("name"));
-                if (collection.size() > 1) throw new ClientNotFoundException("Multiple clients matching name " + matcher.group("name"));
+                if (collection.size() == 0) throw new ClientNotFoundException("cannot retrieve client with name " + matcher.group("name"));
+                if (collection.size() > 1) throw new ClientNotFoundException("multiple clients matching name " + matcher.group("name"));
                 
+                // We got it
                 client = collection.get(0);   
             
             }
             
             String message = matcher.group("message").trim();
-            if (message.isEmpty()) throw new ExpectedParameterException("Message is empty");
+            if (message.isEmpty()) throw new ExpectedParameterException("message is empty");
             
             // Check if an Orion command has been issued
             if ((message.startsWith("!")) || (message.startsWith("@")) || (message.startsWith("&"))) {
                 
-                if (message.substring(0, 2).equals("!!")) {
-                    // Ugly hack to make !! an alias for !say
-                    // Used for b3 command syntax compatibility
-                    message = "!say "+ (message.substring(2));
-                }
+                //if (message.substring(0, 2).equals("!!")) {
+                //    // Ugly hack to make !! an alias for !say
+                //    // Used for b3 command syntax compatibility
+                //    message = "!say "+ (message.substring(2));
+                //}
                 
-                // Orion command intercepted
-                String data[] = message.substring(1).split(" ", 2);  
-                Command command = new Command(client, Prefix.getByChar(message.charAt(0)), data[0].toLowerCase(), (data.length > 1) ? data[1].toLowerCase() : null);
-                this.log.trace("Orion command intercepted [ client : " + command.client.slot + " | prefix : " + command.prefix + " | handle : " + command.handle + " | params : " + command.params + " ]");
-                this.commandqueue.put(command);
+                //// Orion command intercepted
+                //String data[] = message.substring(1).split(" ", 2);  
+                //Command command = new Command(client, Prefix.getByChar(message.charAt(0)), data[0].toLowerCase(), (data.length > 1) ? data[1].toLowerCase() : null);
+                //this.log.trace("Orion command intercepted [ client : " + command.client.slot + " | prefix : " + command.prefix + " | handle : " + command.handle + " | params : " + command.params + " ]");
+                //this.commandqueue.put(command);
                 
             } else {
                 
-                // Normal EVT_CLIENT_SAY event
-                ClientSayEvent event = new ClientSayEvent(client, message);
-                this.log.trace("EVT_CLIENT_SAY intercepted [ client : " + event.client.slot + " | message : " + event.message + " ]");
-                this.eventqueue.put(event);
+                this.log.trace("[EVENT] EVT_CLIENT_SAY [ client : " + client.getSlot() + " | message : " + message + " ]");
+                this.eventBus.post(new ClientSayEvent(client, message));
                 
             }
             
-        } catch (ClientNotFoundException | ExpectedParameterException | InterruptedException e) {
+        } catch (ClientNotFoundException | ExpectedParameterException e) {
             
             // Logging the Exception
-            this.log.error("Exception launched while parsing: " + matcher.group(0), e);
+            this.log.error("[EVENT] EVT_CLIENT_SAY", e);
             return;
         
         }
@@ -1305,53 +1246,51 @@ public class UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             
-            if ((client == null) || (!client.name.equals(matcher.group("name")))) {
+            if ((client == null) || (!client.getName().equals(matcher.group("name")))) {
                 
                 // This bug usually happen when running the bot on a server which is not com_dedicated
-                this.log.debug("Bug spotted while trying to generate EVT_CLIENT_SAY_PRIVATE: Trying to get the client using his name...");
-                
+                // It's a well known bug. We'll try to get the client object by matching the client name              
                 List<Client> collection = this.clients.getByName(matcher.group("name"));
+                if (collection.size() == 0) throw new ClientNotFoundException("cannot retrieve client with name " + matcher.group("name"));
+                if (collection.size() > 1) throw new ClientNotFoundException("multiple clients matching name " + matcher.group("name"));
                 
-                if (collection.size() == 0) throw new ClientNotFoundException("Cannot retrieve client with name " + matcher.group("name"));
-                if (collection.size() > 1) throw new ClientNotFoundException("Multiple clients matching name " + matcher.group("name"));
-                
+                // We got it
                 client = collection.get(0);   
             
             }
             
             Client target = this.clients.getBySlot(Integer.parseInt(matcher.group("target")));
-            if (target == null) throw new ClientNotFoundException("Cannot retrieve target client on slot " + matcher.group("target"));
+            if (target == null) throw new ClientNotFoundException("cannot retrieve target client on slot " + matcher.group("target"));
             
             String message = matcher.group("message").trim();
-            if (message.isEmpty()) throw new ExpectedParameterException("Message is empty");
+            if (message.isEmpty()) throw new ExpectedParameterException("message is empty");
             
             // Check if an Orion command has been issued
             if ((message.startsWith("!")) || (message.startsWith("@")) || (message.startsWith("&"))) {
                 
-                if (message.substring(0, 2).equals("!!")) {
-                    // Ugly hack to make !! an alias for !say
-                    // Used for b3 command syntax compatibility
-                    message = "!say "+ (message.substring(2));
-                }
+                //if (message.substring(0, 2).equals("!!")) {
+                //    // Ugly hack to make !! an alias for !say
+                //    // Used for b3 command syntax compatibility
+                //    message = "!say "+ (message.substring(2));
+                //}
                 
-                String data[] = message.substring(1).split(" ", 2);  
-                Command command = new Command(client, Prefix.getByChar(message.charAt(0)), data[0].toLowerCase(), (data.length > 1) ? data[1].toLowerCase() : null);
-                this.log.trace("Orion command intercepted [ client : " + command.client.slot + " | prefix : " + command.prefix + " | handle : " + command.handle + " | params : " + command.params + " ]");
-                this.commandqueue.put(command);
+                //// Orion command intercepted
+                //String data[] = message.substring(1).split(" ", 2);  
+                //Command command = new Command(client, Prefix.getByChar(message.charAt(0)), data[0].toLowerCase(), (data.length > 1) ? data[1].toLowerCase() : null);
+                //this.log.trace("Orion command intercepted [ client : " + command.client.slot + " | prefix : " + command.prefix + " | handle : " + command.handle + " | params : " + command.params + " ]");
+                //this.commandqueue.put(command);
                 
             } else {
                 
-                // Normal EVT_CLIENT_SAY_PRIVATE event
-                ClientSayPrivateEvent event = new ClientSayPrivateEvent(client, target, message);
-                this.log.trace("EVT_CLIENT_SAY_PRIVATE intercepted [ client : " + event.client.slot + " | target : " + event.target.slot + " | message : " + event.message + " ]");
-                this.eventqueue.put(event);
+                this.log.trace("[EVENT] EVT_CLIENT_SAY_PRIVATE [ client : " + client.getSlot() + " | target : " + target.getSlot() + " | message : " + message + " ]");
+                this.eventBus.post(new ClientSayPrivateEvent(client, target, message));
                 
             }
-                 
-        } catch (ClientNotFoundException | ExpectedParameterException | InterruptedException e) {
+            
+        } catch (ClientNotFoundException | ExpectedParameterException e) {
             
             // Logging the Exception
-            this.log.error("Exception launched while parsing: " + matcher.group(0), e);
+            this.log.error("[EVENT] EVT_CLIENT_SAY_PRIVATE", e);
             return;
         
         }
@@ -1374,49 +1313,48 @@ public class UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             
-            if ((client == null) || (!client.name.equals(matcher.group("name")))) {
+            if ((client == null) || (!client.getName().equals(matcher.group("name")))) {
                 
                 // This bug usually happen when running the bot on a server which is not com_dedicated
-                this.log.debug("Bug spotted while trying to generate EVT_CLIENT_SAY_TEAM: Trying to get the client using his name...");
-                
+                // It's a well known bug. We'll try to get the client object by matching the client name              
                 List<Client> collection = this.clients.getByName(matcher.group("name"));
-                if (collection.size() == 0) throw new ClientNotFoundException("Cannot retrieve client with name " + matcher.group("name"));
-                if (collection.size() > 1) throw new ClientNotFoundException("Multiple clients matching name " + matcher.group("name"));
+                if (collection.size() == 0) throw new ClientNotFoundException("cannot retrieve client with name " + matcher.group("name"));
+                if (collection.size() > 1) throw new ClientNotFoundException("multiple clients matching name " + matcher.group("name"));
                 
+                // We got it
                 client = collection.get(0);   
             
             }
             
             String message = matcher.group("message").trim();
-            if (message.isEmpty()) throw new ExpectedParameterException("Message is empty");
+            if (message.isEmpty()) throw new ExpectedParameterException("message is empty");
             
             // Check if an Orion command has been issued
             if ((message.startsWith("!")) || (message.startsWith("@")) || (message.startsWith("&"))) {
                 
-                if (message.substring(0, 2).equals("!!")) {
-                    // Ugly hack to make !! an alias for !say
-                    // Used for b3 command syntax compatibility
-                    message = "!say "+ (message.substring(2));
-                }
+                //if (message.substring(0, 2).equals("!!")) {
+                //    // Ugly hack to make !! an alias for !say
+                //    // Used for b3 command syntax compatibility
+                //    message = "!say "+ (message.substring(2));
+                //}
                 
-                String data[] = message.substring(1).split(" ", 2);  
-                Command command = new Command(client, Prefix.getByChar(message.charAt(0)), data[0].toLowerCase(), (data.length > 1) ? data[1].toLowerCase() : null);
-                this.log.trace("Orion command intercepted [ client : " + command.client.slot + " | prefix : " + command.prefix + " | handle : " + command.handle + " | params : " + command.params + " ]");
-                this.commandqueue.put(command);
+                //// Orion command intercepted
+                //String data[] = message.substring(1).split(" ", 2);  
+                //Command command = new Command(client, Prefix.getByChar(message.charAt(0)), data[0].toLowerCase(), (data.length > 1) ? data[1].toLowerCase() : null);
+                //this.log.trace("Orion command intercepted [ client : " + command.client.slot + " | prefix : " + command.prefix + " | handle : " + command.handle + " | params : " + command.params + " ]");
+                //this.commandqueue.put(command);
                 
             } else {
                 
-                // Normal EVT_CLIENT_SAY_TEAM event
-                ClientSayTeamEvent event = new ClientSayTeamEvent(client, message);
-                this.log.trace("EVT_CLIENT_SAY_TEAM intercepted [ client : " + event.client.slot + " | message : " + event.message + " ]");
-                this.eventqueue.put(event);
+                this.log.trace("[EVENT] EVT_CLIENT_SAY_TEAM [ client : " + client.getSlot() + " | message : " + message + " ]");
+                this.eventBus.post(new ClientSayTeamEvent(client, message));
                 
             }
             
-        } catch (ClientNotFoundException | ExpectedParameterException | InterruptedException e) {
+        } catch (ClientNotFoundException | ExpectedParameterException e) {
             
             // Logging the Exception
-            this.log.error("Exception launched while parsing: " + matcher.group(0), e);
+            this.log.error("[EVENT] EVT_CLIENT_SAY_TEAM", e);
             return;
         
         }
@@ -1435,27 +1373,16 @@ public class UrT41Parser implements Parser {
         // 0:00 ShutdownGame:
         // 0:00 ShutdownGame:
         
-        try {
-            
-            this.game.mapList     = null;
-            this.game.mapname     = null;
-            this.game.gametype    = null;
-            this.game.mapcycle    = null;
-            this.game.maxClients  = -1;
-            this.game.maxPing     = -1;
-            this.game.minPing     = -1;
-            
-            GameWarmupEvent event = new GameWarmupEvent();
-            this.log.trace("EVT_GAME_EXIT intercepted");
-            this.eventqueue.put(event);
+        this.game.setMapList(null);
+        this.game.setMapName(null);
+        this.game.setGametype(null);
+        this.game.setMapcycle(null);
+        this.game.setMaxClients(-1);
+        this.game.setMaxPing(-1);
+        this.game.setMinPing(-1);
         
-        } catch (InterruptedException e) {
-            
-            // Logging the Exception
-            this.log.error("Unable to generate EVT_GAME_EXIT", e);
-            return;
-        
-        }
+        this.log.trace("[EVENT] EVT_GAME_EXIT");
+        this.eventBus.post(new GameExitEvent());
     
     }
     
@@ -1471,19 +1398,8 @@ public class UrT41Parser implements Parser {
         // 0:00 Warmup:
         // 0:00 Warmup:
         
-        try {
-            
-            GameWarmupEvent event = new GameWarmupEvent();
-            this.log.trace("EVT_GAME_WARMUP intercepted");
-            this.eventqueue.put(event);
-            
-        } catch (InterruptedException e) {
-            
-            // Logging the Exception
-            this.log.error("Unable to generate EVT_GAME_WARMUP", e);
-            return;
-            
-        }
+        this.log.trace("[EVENT] EVT_GAME_WARMUP");
+        this.eventBus.post(new GameWarmupEvent());
 
     }
     
@@ -1499,11 +1415,11 @@ public class UrT41Parser implements Parser {
      * 
      * @author Daniele Pantaleone
      * @param  info The infostring to be parsed 
-     * @return A <tt>LinkedHashMap</tt> with the result of the dumped userinfo
+     * @return A <tt>HashMap</tt> with the result of the dumped userinfo
      **/
     public Map<String,String> parseInfoString(String info) {
         
-        Map<String, String> userinfo = new LinkedHashMap<String, String>();
+        Map<String, String> userinfo = new HashMap<String, String>();
         
         if (info.charAt(0) == '\\')
             info = info.substring(1);
@@ -1512,8 +1428,8 @@ public class UrT41Parser implements Parser {
         String lines[] = info.split("\\\\");
         
         for (int i = 0; i < lines.length; i += 2 ) {
-            // Adding all the matches in our Map
-            userinfo.put(lines[i], lines[i+1]);
+            // Adding all the matches in our map
+            userinfo.put(lines[i].toLowerCase(), lines[i+1]);
         }
 
         return userinfo;
