@@ -745,7 +745,7 @@ public class UrT41Parser implements Parser {
                     } else {
                         // Unable to find a match in the storage for the connecting client
                         // We'll handle this as a new client connection on this game server
-                        this.log.debug("No match found in the storage for client connecting on slot " + matcher.group("slot") + ". We'll be handled as a new client" + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
+                        this.log.debug("No match found in the storage for client connecting on slot " + matcher.group("slot") + ". We'll be handled as a new client " + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
                     }
                     
                 } catch (ClassNotFoundException | UnknownHostException | SQLException e) {
