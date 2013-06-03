@@ -18,7 +18,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.1.1
  * @copyright   Daniele Pantaleone, 12 February, 2013
  * @package     com.orion.parser
  **/
@@ -77,6 +77,7 @@ import com.orion.event.GameExitEvent;
 import com.orion.event.GameRoundStartEvent;
 import com.orion.event.GameWarmupEvent;
 import com.orion.event.TeamFlagReturnEvent;
+import com.orion.event.TeamSurvivorWinnerEvent;
 import com.orion.exception.ClientNotFoundException;
 import com.orion.exception.ExpectedParameterException;
 import com.orion.urt.Game;
@@ -326,6 +327,7 @@ public class UrT41Parser implements Parser {
         patterns.put("Say",                     Pattern.compile("^\\s*\\d+:\\d+\\s?say:\\s(?<slot>\\d+)\\s(?<name>.*):\\s?(?<message>.*)$", Pattern.CASE_INSENSITIVE));
         patterns.put("SayTell",                 Pattern.compile("^\\s*\\d+:\\d+\\s?saytell:\\s(?<slot>\\d+)\\s(?<target>\\d+)\\s(?<name>.*):\\s?(?<message>.*)$", Pattern.CASE_INSENSITIVE));
         patterns.put("SayTeam",                 Pattern.compile("^\\s*\\d+:\\d+\\s?sayteam:\\s(?<slot>\\d+)\\s(?<name>.*):\\s?(?<message>.*)$", Pattern.CASE_INSENSITIVE));
+        patterns.put("SurvivorWinner",          Pattern.compile("^\\s*\\d+:\\d+\\s?SurvivorWinner:\\s(?<data>.*)$", Pattern.CASE_INSENSITIVE));
         patterns.put("ShutdownGame",            Pattern.compile("^\\s*\\d+:\\d+\\s?ShutdownGame:$", Pattern.CASE_INSENSITIVE));
         patterns.put("Warmup",                  Pattern.compile("^\\s*\\d+:\\d+\\s?Warmup:$", Pattern.CASE_INSENSITIVE));
         ////////////////////////////////
@@ -1384,6 +1386,34 @@ public class UrT41Parser implements Parser {
         this.log.trace("[EVENT] EVT_GAME_EXIT");
         this.eventBus.post(new GameExitEvent());
     
+    }
+    
+    
+    /**
+     * Helper method for SurvivorWinner
+     * 
+     * @author Daniele Pantaleone
+     * @param  matcher A <tt>Matcher</tt> object matching the log line
+     **/
+    public void onSurvivorWinner(Matcher matcher) { 
+        
+        // 0:00 SurvivorWinner: Red
+        // 0:00 SurvivorWinner: Blue
+        
+        try {
+            
+            Team team = this.getTeamByName(matcher.group("data"));
+            this.log.trace("[EVENT] EVT_TEAM_SURVIVOR_WINNER [ team : " + team.name() + " ]");
+            this.eventBus.post(new TeamSurvivorWinnerEvent(team));
+        
+        } catch (IndexOutOfBoundsException e) {
+                
+            // Logging the Exception
+            this.log.error("[EVENT] EVT_TEAM_SURVIVOR_WINNER", e);
+            return;
+            
+       }
+          
     }
     
     
