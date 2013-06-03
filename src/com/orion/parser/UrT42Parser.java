@@ -10,7 +10,7 @@
  *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -18,7 +18,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 12 February, 2013
  * @package     com.orion.parser
  **/
@@ -505,12 +505,12 @@ public class UrT42Parser extends UrT41Parser implements Parser {
     @Override
     public List<Team> getAvailableTeams() {
         
-        if (this.game.gametype == null) {
+        if (this.game.getGametype() == null) {
             // Retrieve the current g_gametype before returning the collection
-            this.game.gametype = this.getGametypeByCode(this.console.getCvar("g_gametype", Integer.class));
+            this.game.setGametype(this.getGametypeByCode(this.console.getCvar("g_gametype", Integer.class)));
         }
         
-        return new LinkedList<Team>(teamsByGametype.get(this.game.gametype));
+        return new LinkedList<Team>(teamsByGametype.get(this.game.getGametype()));
     
     }
     
@@ -534,17 +534,19 @@ public class UrT42Parser extends UrT41Parser implements Parser {
         try {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
-            if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
+            if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
             
-            Callvote callvote = new Callvote(client, matcher.group("type"), (((matcher.group("data") != null) && (!matcher.group("data").isEmpty())) ? matcher.group("data") : null));
-            ClientCallvoteEvent event = new ClientCallvoteEvent(client, callvote);
-            this.log.trace("EVT_CLIENT_CALLVOTE intercepted [ client : " + event.client.slot + " | type : " + event.callvote.type + " | data : " + event.callvote.data + " ]");     
-            this.eventqueue.put(event);
+            Callvote callvote = new Callvote.Builder(client, matcher.group("type"))
+                                            .data(((matcher.group("data") != null) && (!matcher.group("data").isEmpty())) ? matcher.group("data") : null)
+                                            .build();
             
-        } catch (ClientNotFoundException | InterruptedException e) {
+            this.log.trace("[EVENT] EVT_CLIENT_CALLVOTE [ client : " + client.getSlot() + " | type : " + matcher.group("type") + " | data : " + matcher.group("data") + " ]");
+            this.eventBus.post(new ClientCallvoteEvent(client, callvote));
+            
+        } catch (ClientNotFoundException e) {
             
             // Logging the Exception
-            this.log.error(e);
+            this.log.error("[EVENT] EVT_CLIENT_CALLVOTE", e);
             return;
         
         }
@@ -566,15 +568,14 @@ public class UrT42Parser extends UrT41Parser implements Parser {
         try {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
-            if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            ClientJumpRunCanceledEvent event = new ClientJumpRunCanceledEvent(client, Integer.parseInt(matcher.group("way")));
-            this.log.trace("EVT_CLIENT_JUMP_RUN_CANCELED intercepted [ client : " + event.client.slot + " | way : " + event.way + " ]");
-            this.eventqueue.put(event);
+            if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
+            this.log.trace("[EVENT] EVT_CLIENT_JUMP_RUN_CANCELED [ client : " + client.getSlot() + " | way : " + matcher.group("way") + " ]");
+            this.eventBus.post(new ClientJumpRunCanceledEvent(client, Integer.parseInt(matcher.group("way"))));
             
-        } catch (ClientNotFoundException | InterruptedException e)  {
+        } catch (ClientNotFoundException e)  {
             
             // Logging the Exception
-            this.log.error("Unable to generate EVT_CLIENT_JUMP_RUN_CANCELED", e);
+            this.log.error("[EVENT] EVT_CLIENT_JUMP_RUN_CANCELED", e);
             return;
         
         }
@@ -596,15 +597,14 @@ public class UrT42Parser extends UrT41Parser implements Parser {
         try {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
-            if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            ClientJumpRunStartedEvent event = new ClientJumpRunStartedEvent(client, Integer.parseInt(matcher.group("way")));
-            this.log.trace("EVT_CLIENT_JUMP_RUN_STARTED intercepted [ client : " + event.client.slot + " | way : " + event.way + " ]");
-            this.eventqueue.put(event);
+            if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
+            this.log.trace("[EVENT] EVT_CLIENT_JUMP_RUN_STARTED [ client : " + client.getSlot() + " | way : " + matcher.group("way") + " ]");
+            this.eventBus.post(new ClientJumpRunStartedEvent(client, Integer.parseInt(matcher.group("way"))));
             
-        } catch (ClientNotFoundException | InterruptedException e)  {
+        } catch (ClientNotFoundException e)  {
             
             // Logging the Exception
-            this.log.error("Unable to generate EVT_CLIENT_JUMP_RUN_STARTED", e);
+            this.log.error("[EVENT] EVT_CLIENT_JUMP_RUN_STARTED", e);
             return;
         
         }
@@ -626,15 +626,14 @@ public class UrT42Parser extends UrT41Parser implements Parser {
         try {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
-            if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            ClientJumpRunStoppedEvent event = new ClientJumpRunStoppedEvent(client, Integer.parseInt(matcher.group("way")), Integer.parseInt(matcher.group("time")));
-            this.log.trace("EVT_CLIENT_JUMP_RUN_STOPPED intercepted [ client : " + event.client.slot + " | way : " + event.way + " | millis : " + event.millis + " ]");
-            this.eventqueue.put(event);
+            if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
+            this.log.trace("[EVENT] EVT_CLIENT_JUMP_RUN_STOPPED [ client : " + client.getSlot() + " | way : " + matcher.group("way") + " | millis : " + matcher.group("time") + " ]");
+            this.eventBus.post(new ClientJumpRunStoppedEvent(client, Integer.parseInt(matcher.group("way")), Integer.parseInt(matcher.group("time"))));
             
-        } catch (ClientNotFoundException | InterruptedException e)  {
+        } catch (ClientNotFoundException e)  {
             
             // Logging the Exception
-            this.log.error("Unable to generate EVT_CLIENT_JUMP_RUN_STOPPED", e);
+            this.log.error("[EVENT] EVT_CLIENT_JUMP_RUN_STOPPED", e);
             return;
         
         }
@@ -656,15 +655,14 @@ public class UrT42Parser extends UrT41Parser implements Parser {
         try {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
-            if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            ClientPositionLoadEvent event = new ClientPositionLoadEvent(client, Float.parseFloat(matcher.group("x")), Float.parseFloat(matcher.group("y")), Float.parseFloat(matcher.group("z")), matcher.group("location"));
-            this.log.trace("EVT_CLIENT_POSITION_LOAD intercepted [ client : " + event.client.slot + " | x : " + event.x + " | y : " + event.y + " | z : " + event.z + " | location : " + event.location + " ]");
-            this.eventqueue.put(event);
+            if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
+            this.log.trace("[EVENT] EVT_CLIENT_POSITION_LOAD [ client : " + client.getSlot() + " | x : " + matcher.group("x") + " | y : " + matcher.group("y") + " | z : " + matcher.group("z") + " | location : " + matcher.group("location") + " ]");
+            this.eventBus.post(new ClientPositionLoadEvent(client, Float.parseFloat(matcher.group("x")), Float.parseFloat(matcher.group("y")), Float.parseFloat(matcher.group("z")), matcher.group("location")));
             
-        } catch (ClientNotFoundException | InterruptedException e)  {
+        } catch (ClientNotFoundException e)  {
             
             // Logging the Exception
-            this.log.error("Unable to generate EVT_CLIENT_POSITION_LOAD", e);
+            this.log.error("[EVENT] EVT_CLIENT_POSITION_LOAD", e);
             return;
         
         }
@@ -687,14 +685,13 @@ public class UrT42Parser extends UrT41Parser implements Parser {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
             if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            ClientPositionSaveEvent event = new ClientPositionSaveEvent(client, Float.parseFloat(matcher.group("x")), Float.parseFloat(matcher.group("y")), Float.parseFloat(matcher.group("z")), matcher.group("location"));
-            this.log.trace("EVT_CLIENT_POSITION_SAVE intercepted [ client : " + event.client.slot + " | x : " + event.x + " | y : " + event.y + " | z : " + event.z + " | location : " + event.location + " ]");
-            this.eventqueue.put(event);
+            this.log.trace("[EVENT] EVT_CLIENT_POSITION_SAVE [ client : " + client.getSlot() + " | x : " + matcher.group("x") + " | y : " + matcher.group("y") + " | z : " + matcher.group("z") + " | location : " + matcher.group("location") + " ]");
+            this.eventBus.post(new ClientPositionSaveEvent(client, Float.parseFloat(matcher.group("x")), Float.parseFloat(matcher.group("y")), Float.parseFloat(matcher.group("z")), matcher.group("location")));
             
-        } catch (ClientNotFoundException | InterruptedException e)  {
+        } catch (ClientNotFoundException e)  {
             
             // Logging the Exception
-            this.log.error("Unable to generate EVT_CLIENT_POSITION_SAVE", e);
+            this.log.error("[EVENT] EVT_CLIENT_POSITION_SAVE", e);
             return;
         
         }
@@ -725,38 +722,42 @@ public class UrT42Parser extends UrT41Parser implements Parser {
                 
                 try {
                     
-                    // We have a BOT connecting to the server. We need to handle this in a different way
-                    client = new Client(InetAddress.getByName("0.0.0.0"), "BOT_" + matcher.group("slot"), true);
-                    this.log.debug("Client connecting on slot " + matcher.group("slot") + " detected as a BOT");
+                    // We have a BOT connecting. We need to handle this in a different way...
+                    client = new Client.Builder(InetAddress.getByName("0.0.0.0"), "BOT_" + matcher.group("slot"))
+                                       .bot(true)
+                                       .build();
+                    
+                    this.log.debug("Client connecting on slot " + matcher.group("slot") + " has been detected as a BOT");
                     
                 } catch (UnknownHostException e) {
                     
                     // Logging the Exception
-                    this.log.error("Unable to generate EVT_CLIENT_CONNECT", e);
+                    this.log.error("[EVENT] EVT_CLIENT_CONNECT", e);
                     return;
                 
                 }
                 
             } else {
                 
-                // Authentication using Frozen Sand Auth System
-                if ((this.game.auth_enable != null) && (this.game.auth_enable == true)) {
+                // If the Frozen Sand auth system is enabled attempt to
+                // authenticate the client using data retrieved from the auth system
+                if (this.game.isAuthEnabled()) {
                     
                     // Querying Frozen Sand Auth Server to obtain client auth_login
                     authinfo = this.console.authwhois(Integer.parseInt(matcher.group("slot")));
                     
+                    // Check if we got a proper auth login returned by the auth system
                     if ((authinfo != null) && (authinfo.get("login") != null)) {
                         
                         try {
                             
-                            // Authenticating the player using the Frozen Sand auth system if available on this server
-                            this.log.debug("Trying to authenticate client on slot " + matcher.group("slot") + " [ auth : " + authinfo.get("login") + " ]");
+                            this.log.debug("Attempt to authenticate client on slot " + matcher.group("slot") + " [ auth : " + authinfo.get("login") + " ]");
                             client = this.clients.getByAuth(authinfo.get("login"));
                             
                         } catch (ClassNotFoundException | UnknownHostException | SQLException e) {
                             
                             // Logging the Exception
-                            this.log.error("Unable to generate EVT_CLIENT_CONNECT", e);
+                            this.log.error("[EVENT] EVT_CLIENT_CONNECT", e);
                             return;
                             
                         }
@@ -766,12 +767,12 @@ public class UrT42Parser extends UrT41Parser implements Parser {
                             // We got a proper client object. Double check the client guid and if it doesn't match update the guid value
                             this.log.debug("Client connecting on slot " + matcher.group("slot") + " authenticated " + client.toString());
                             
-                            if (!client.guid.equals(userinfo.get("cl_guid"))) {
+                            if (!client.getGuid().equals(userinfo.get("cl_guid"))) {
                                 
-                                // authkey/cl_guid mismatch. Updating!
-                                this.log.warn("Stored client cl_guid doesn't match retrieved userinfo guid for client on slot " + matcher.group("slot") + " { " + client.guid + " -> " + userinfo.get("cl_guid") + " ]");
-                                this.log.warn("Updating client on slot " + matcher.group("slot") + " cl_guid with the new value: " + userinfo.get("cl_guid"));
-                                client.guid = userinfo.get("cl_guid");
+                                // auth_login/cl_guid mismatch. Updating!
+                                this.log.warn("Stored client GUID doesn't match retrieved userinfo GUID for client on slot " + matcher.group("slot") + " [ " + client.getGuid() + " -> " + userinfo.get("cl_guid") + " ]");
+                                this.log.warn("Updating client on slot " + matcher.group("slot") + " GUID with the new value: " + userinfo.get("cl_guid"));
+                                client.setGuid(userinfo.get("cl_guid"));
                             
                             }
                             
@@ -781,26 +782,27 @@ public class UrT42Parser extends UrT41Parser implements Parser {
                                 
                                 // Authenticating the client using the normal cl_guid
                                 this.log.debug("Unable to authenticate client on slot " + matcher.group("slot") + " [ auth : " + authinfo.get("login") + " ]");
-                                this.log.debug("Trying to authenticate client on slot " + matcher.group("slot") + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
+                                this.log.debug("Attempt to authenticate client on slot " + matcher.group("slot") + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
                                 client = this.clients.getByGuid(userinfo.get("cl_guid"));
                                 
                                 if (client != null) {
-                                    // Found a match for the connecting client in the storage
+                                    // Found a match for the connecting client in the storage. Update the AUTH login value
+                                    // so upon a new connection, that field will be used for the client authentication
                                     this.log.debug("Client connecting on slot " + matcher.group("slot") + " authenticated " + client.toString());
-                                    this.log.debug("Updating client on slot " + matcher.group("slot") + " auth_login with the value retrieved by the Frozen Sand Auth System [ auth : " + authinfo.get("login") + " ]");
-                                    client.auth = authinfo.get("login");
+                                    this.log.debug("Updating client on slot " + matcher.group("slot") + " AUTH with the value retrieved from the Frozen Sand auth system [ auth : " + authinfo.get("login") + " ]");
+                                    client.setAuth(authinfo.get("login"));
                                 } else {
-                                    // Unable to find a match. Will be handled as a new client
-                                    this.log.debug("Unable to find a match in the storage for client connecting on slot " + matcher.group("slot") + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
-                                    this.log.debug("Client connecting on slot " + matcher.group("slot") + " will be handled as a new client on this server");
+                                    // Unable to find a match in the storage for the connecting client
+                                    // We'll handle this as a new client connection on this game server
+                                    this.log.debug("No match found in the storage for client connecting on slot " + matcher.group("slot") + ". We'll be handled as a new client " + " [ cl_guid : " + userinfo.get("cl_guid") + " | auth : " + authinfo.get("login") + " ]");
                                 }
                             
                             } catch (ClassNotFoundException | UnknownHostException | SQLException e) {
-                               
+                                
                                 // Logging the Exception
-                                this.log.error("Unable to generate EVT_CLIENT_CONNECT", e);
+                                this.log.error("[EVENT] EVT_CLIENT_CONNECT", e);
                                 return;
-                            
+                                
                             }
                             
                         }
@@ -808,30 +810,31 @@ public class UrT42Parser extends UrT41Parser implements Parser {
                     } else {
                         
                         if (authinfo != null) {
-                            // We got a server response to the RCON command.
-                            // However we were not be able to retrieve the client auth-login
-                            // Means that the server accept auth_notoriety 0 and the client has not a proper
-                            // account on urbanterror.info. We'll backup anyway using the client cl_guid.
-                            this.log.debug("Client connecting on slot " + matcher.group("slot") + " is not authenticated by the Frozen Sand Auth System");
+                            // We got a server response to the RCON command. However we were not be able to retrieve the client auth_login.
+                            // Means that the server accept auth_notoriety 0 and the client is not authed using his account on urbanterror.info. 
+                            // We'll backup by authenticating the client using his cl_guid.
+                            this.log.debug("Client connecting on slot " + matcher.group("slot") + " is not authenticated by the Frozen Sand auth system");
                         }
                         
                         try {
                             
-                            this.log.debug("Trying to authenticate client on slot " + matcher.group("slot") + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
+                            this.log.debug("Attempt to authenticate client on slot " + matcher.group("slot") + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
                             client = this.clients.getByGuid(userinfo.get("cl_guid"));
                             
                             if (client != null) {
-                                // Found a match for the connecting client in the storage
+                                // We got already informations for this client
+                                // We'll use such info for the authentication and we'll updated the client object with some new ones
                                 this.log.debug("Client connecting on slot " + matcher.group("slot") + " authenticated " + client.toString());
                             } else {
-                                // Unable to find a match. Will be handled as a new client
-                                this.log.debug("Unable to find a match in the storage for client connecting on slot " + matcher.group("slot") + ". Will be handled as a new client " + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
+                                // Unable to find a match in the storage for the connecting client
+                                // We'll handle this as a new client connection on this game server
+                                this.log.debug("No match found in the storage for client connecting on slot " + matcher.group("slot") + ". We'll be handled as a new client " + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
                             }
                             
                         } catch (ClassNotFoundException | UnknownHostException | SQLException e) {
                             
                             // Logging the Exception
-                            this.log.error("Unable to generate EVT_CLIENT_CONNECT", e);
+                            this.log.error("[EVENT] EVT_CLIENT_CONNECT", e);
                             return;
                             
                         }
@@ -842,22 +845,23 @@ public class UrT42Parser extends UrT41Parser implements Parser {
                     
                     try {
                         
-                        this.log.debug("Trying to authenticate client on slot " + matcher.group("slot") + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
+                        this.log.debug("Attempt to authenticate client on slot " + matcher.group("slot") + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
                         client = this.clients.getByGuid(userinfo.get("cl_guid"));
                         
                         if (client != null) {
-                            // Found a match for the connecting client in the storage
+                            // We got already informations for this client
+                            // We'll use such info for the authentication and we'll updated the client object with some new ones
                             this.log.debug("Client connecting on slot " + matcher.group("slot") + " authenticated " + client.toString());
                         } else {
-                            // Unable to find a match. Will be handled as a new client
-                            this.log.debug("Unable to find a match in the storage for client connecting on slot " + matcher.group("slot") + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
-                            this.log.debug("Client connecting on slot " + matcher.group("slot") + " will be handled as a new client on this server");
+                            // Unable to find a match in the storage for the connecting client
+                            // We'll handle this as a new client connection on this game server
+                            this.log.debug("No match found in the storage for client connecting on slot " + matcher.group("slot") + ". We'll be handled as a new client " + " [ cl_guid : " + userinfo.get("cl_guid") + " ]");
                         }
                         
                     } catch (ClassNotFoundException | UnknownHostException | SQLException e) {
                         
                         // Logging the Exception
-                        this.log.error("Unable to generate EVT_CLIENT_CONNECT", e);
+                        this.log.error("[EVENT] EVT_CLIENT_CONNECT", e);
                         return;
                         
                     }
@@ -868,47 +872,46 @@ public class UrT42Parser extends UrT41Parser implements Parser {
             
             
             try {
-                    
+                
                 if (client == null) {   
                     
                     // We didn't managed to find a match in our database for the connecting client
                     // More over the connecting client is not a bot, otherwise we would have generated the object
                     // We will generate a new client object for the client and save it into our database
-                    client = new Client(this.groups.getByKeyword("guest"), userinfo.get("cl_guid"), ((authinfo != null) && (authinfo.get("login") != null)) ? authinfo.get("login") : null);
+                    client = new Client.Builder(InetAddress.getByName(userinfo.get("ip").split(":", 2)[0]), userinfo.get("cl_guid"))
+                                       .auth(((authinfo != null) && (authinfo.get("login") != null)) ? authinfo.get("login") : null)
+                                       .group(this.groups.getByKeyword("guest"))
+                                       .build();
                     
                 }
                 
-                client.slot = Integer.valueOf(matcher.group("slot"));
+                client.setSlot(Integer.valueOf(matcher.group("slot")));
                 
-                // Update the client number of connections just if the client is a new client of if disconnected at last one hour ago
-                if ((client.time_edit == null) || (Hours.hoursBetween(client.time_edit, new DateTime(this.orion.timezone)).getHours() > 1)) {
-                    client.connections = client.connections + 1;
+                // Update the client number of connections just if the client is a new client or if disconnected at last one hour ago
+                if ((client.getTimeEdit() == null) || (Hours.hoursBetween(client.getTimeEdit(), new DateTime(this.orion.timezone)).getHours() > 1)) {
+                    client.setConnections(client.getConnections() + 1);
                 } 
                 
                 if (userinfo.containsKey("name"))
-                    client.name = userinfo.get("name").replaceAll("\\^[0-9]{1}", "");
-                
-                if (!client.bot && userinfo.containsKey("ip"))
-                    client.ip = InetAddress.getByName(userinfo.get("ip").split(":", 2)[0]);
+                    client.setName(userinfo.get("name"));
      
                 if (userinfo.containsKey("gear"))
-                    client.gear = userinfo.get("gear");
+                    client.setGear(userinfo.get("gear"));
                 
                 if (userinfo.containsKey("team"))    
-                    client.team = getTeamByName(userinfo.get("team"));
+                    client.setTeam(getTeamByName(userinfo.get("team")));
                 
                 // Saving the client
                 this.clients.add(client);
                 this.clients.save(client);
                 
-                ClientConnectEvent event = new ClientConnectEvent(client);
-                this.log.trace("EVT_CLIENT_CONNECT intercepted [ client : " + event.client.slot + " ]");
-                this.eventqueue.put(event);
+                this.log.trace("[EVENT] EVT_CLIENT_CONNECT [ client : " + client.getSlot() + " ]");
+                this.eventBus.post(new ClientConnectEvent(client));
                 
-            } catch (UnknownHostException | ClassNotFoundException | SQLException | InterruptedException e) {
+            } catch (UnknownHostException | ClassNotFoundException | SQLException e) {
                 
                 // Logging the Exception
-                this.log.error("Unable to generate EVT_CLIENT_CONNECT", e);
+                this.log.error("[EVENT] EVT_CLIENT_CONNECT", e);
                 return;
                 
             }
@@ -919,23 +922,12 @@ public class UrT42Parser extends UrT41Parser implements Parser {
             if (userinfo.containsKey("gear")) {
                 
                 String gear = userinfo.get("gear");
-                if ((client.gear == null) || (!client.gear.equals(gear))) {
-                    
-                    try {
-                        
-                        client.gear = gear;
-                        ClientGearChangeEvent event = new ClientGearChangeEvent(client);
-                        this.log.trace("EVT_CLIENT_GEAR_CHANGE intercepted [ client : " + event.client.slot + " | gear : " + event.client.gear + " ]");
-                        this.eventqueue.put(event);
-                        
-                    } catch (InterruptedException e) {
-                        
-                        // Logging the Exception
-                        this.log.error("Unable to generate EVT_CLIENT_GEAR_CHANGE", e);
-                        return;
-                    
-                    }
-                
+                if ((client.getGear() == null) || (!client.getGear().equals(gear))) {
+               
+                    client.setGear(gear);
+                    this.log.trace("[EVENT] EVT_CLIENT_GEAR_CHANGE [ client : " + client.getSlot() + " ]");
+                    this.eventBus.post(new ClientGearChangeEvent(client));
+               
                 }
             
             }
@@ -959,15 +951,14 @@ public class UrT42Parser extends UrT41Parser implements Parser {
         try {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
-            if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            ClientRadioEvent event = new ClientRadioEvent(client, Integer.parseInt(matcher.group("group")), Integer.parseInt(matcher.group("id")), matcher.group("location"), matcher.group("message"));
-            this.log.trace("EVT_CLIENT_RADIO intercepted [ client : " + client.slot + " | msg_group : " + event.msg_group + " | msg_id : " + event.msg_id + " | location : " + event.location + " | message : " + event.message + " ]");
-            this.eventqueue.put(event);
+            if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
+            this.log.trace("EVT_CLIENT_RADIO intercepted [ client : " + client.getSlot() + " | msg_group : " + matcher.group("group") + " | msg_id : " + matcher.group("id") + " | location : " + matcher.group("location") + " | message : " + matcher.group("message") + " ]");
+            this.eventBus.post(new ClientRadioEvent(client, Integer.parseInt(matcher.group("group")), Integer.parseInt(matcher.group("id")), matcher.group("location"), matcher.group("message")));
             
-        } catch (ClientNotFoundException | InterruptedException e) {
+        } catch (ClientNotFoundException e) {
             
             // Logging the Exception
-            this.log.error("Unable to generate EVT_CLIENT_RADIO", e);
+            this.log.error("[EVENT] EVT_CLIENT_RADIO", e);
             return;
         
         }
@@ -981,6 +972,7 @@ public class UrT42Parser extends UrT41Parser implements Parser {
      * @author Daniele Pantaleone
      * @param  matcher A <tt>Matcher</tt> object matching the log line
      **/
+    @Override
     public void onSurvivorWinner(Matcher matcher) { 
         
         // 0:00 SurvivorWinner: Red
@@ -991,15 +983,14 @@ public class UrT42Parser extends UrT41Parser implements Parser {
             try {
                 
                 Client client = this.clients.getBySlot(Integer.parseInt(matcher.group("data")));
-                if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("data"));
-                SurvivorWinnerEvent event = new SurvivorWinnerEvent(client);
-                this.log.trace("EVT_SURVIVOR_WINNER intercepted [ client : " + event.client.slot + " ]");
-                this.eventqueue.put(event);
+                if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("data"));
+                this.log.trace("[EVENT] EVT_SURVIVOR_WINNER [ client : " + client.getSlot() + " ]");
+                this.eventBus.post(new SurvivorWinnerEvent(client));
                 
-            } catch (ClientNotFoundException | InterruptedException | IndexOutOfBoundsException e) {
+            } catch (ClientNotFoundException e) {
                 
                 // Logging the Exception
-                this.log.error("Unable to generate EVT_SURVIVOR_WINNER", e);
+                this.log.error("[EVENT] EVT_SURVIVOR_WINNER", e);
                 return;
             
             }
@@ -1007,16 +998,15 @@ public class UrT42Parser extends UrT41Parser implements Parser {
         } else {
             
             try {
+
+                Team team = this.getTeamByName(matcher.group("data"));
+                this.log.trace("[EVENT] EVT_TEAM_SURVIVOR_WINNER [ team : " + team.name() + " ]");
+                this.eventBus.post(new TeamSurvivorWinnerEvent(team));
             
-                Team team = getTeamByName(matcher.group("data"));
-                TeamSurvivorWinnerEvent event = new TeamSurvivorWinnerEvent(team);
-                this.log.trace("EVT_TEAM_SURVIVOR_WINNER intercepted [ team : " + event.team.name() + " ]");
-                this.eventqueue.put(event);
-            
-            } catch (ClientNotFoundException | InterruptedException | IndexOutOfBoundsException e) {
+            } catch (IndexOutOfBoundsException e) {
                     
                 // Logging the Exception
-                this.log.error("Unable to generate EVT_TEAM_SURVIVOR_WINNER", e);
+                this.log.error("[EVENT] EVT_TEAM_SURVIVOR_WINNER", e);
                 return;
                 
            }
@@ -1040,15 +1030,15 @@ public class UrT42Parser extends UrT41Parser implements Parser {
         try {
             
             Client client = this.clients.getBySlot(Integer.valueOf(matcher.group("slot")));
-            if (client == null) throw new ClientNotFoundException("Cannot retrieve client on slot " + matcher.group("slot"));
-            ClientVoteEvent event = new ClientVoteEvent(client, Integer.parseInt(matcher.group("data")));
-            this.log.trace("EVT_CLIENT_VOTE intercepted [ client : " + event.client.slot + " | data : " + event.data + " ]");
-            this.eventqueue.put(event);
+            if (client == null) throw new ClientNotFoundException("cannot retrieve client on slot " + matcher.group("slot"));
             
-        } catch (InterruptedException e) {
+            this.log.trace("[EVENT] EVT_CLIENT_VOTE [ client : " + client.getSlot() + " | data : " + matcher.group("data") + " ]");
+            this.eventBus.post(new ClientVoteEvent(client, Integer.parseInt(matcher.group("data"))));
+            
+        } catch (ClientNotFoundException e) {
             
             // Logging the Exception
-            this.log.error("Unable to generate EVT_CLIENT_VOTE", e);
+            this.log.error("[EVENT] EVT_CLIENT_VOTE", e);
             return;
         
         }
