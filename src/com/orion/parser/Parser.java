@@ -138,12 +138,12 @@ public interface Parser {
     
     
     /**
-     * Return an <tt>LinkedHashMap</tt> containing the informations of the info string provided.
+     * Return a <tt>HashMap</tt> containing the informations of the info string provided.
      * InfoString format: \ip\110.143.73.144:27960\challenge\1052098110\qport\51418\protocol\68...
      * 
      * @author Daniele Pantaleone
      * @param  info The infostring to be parsed 
-     * @return A <tt>LinkedHashMap</tt> with the result of the dumped userinfo
+     * @return A <tt>HashMap</tt> with the result of the dumped userinfo
      **/
     public abstract Map<String,String> parseInfoString(String info);
     
