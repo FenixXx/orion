@@ -33,7 +33,7 @@ public class Game {
     private String fs_basepath;
     private String fs_homepath;
     
-    private Boolean auth_enable;
+    private boolean auth_enable;
     private Integer auth_owners;
     
     private String mapname;
@@ -86,7 +86,7 @@ public class Game {
      * @author Daniele Pantaleone
      * @return <tt>true</tt> if the auth system is enabled, <tt>false</tt> otherwise
      **/
-    public Boolean isAuthEnabled() {
+    public boolean isAuthEnabled() {
         return this.auth_enable;
     }
     
@@ -218,7 +218,7 @@ public class Game {
      * @author Daniele Pantaleone
      * @param  auth_enable The auth_enable CVAR value converted as a <tt>boolean</tt>
      **/
-    public void setAuthEnable(Boolean auth_enable) {
+    public void setAuthEnable(boolean auth_enable) {
         this.auth_enable = auth_enable;
     }
 
