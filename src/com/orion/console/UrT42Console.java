@@ -10,7 +10,7 @@
  *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -18,7 +18,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 10 February, 2013
  * @package     com.orion.console
  **/
@@ -26,7 +26,7 @@
 package com.orion.console;
 
 import java.net.UnknownHostException;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,12 +49,13 @@ public class UrT42Console extends UrT41Console implements Console {
      * @throws RconException If the RCON utility object fails in being initialized
      **/
     public UrT42Console(String address, int port, String password, Orion orion) throws UnknownHostException, RconException {
-    	
+        
         super(address, port, password, orion);
     
         // Retrieve Urban Terror 4.2 specific CVARs
-        this.game.auth_enable = this.getCvar("auth_enable", boolean.class);
-        this.game.auth_owners = this.getCvar("auth_owners", int.class);
+        this.game.setAuthEnable(this.getCvar("auth_enable", boolean.class));
+        this.game.setAuthOwners(this.getCvar("auth_owners", int.class));
+        
     }
     
     
@@ -70,7 +71,17 @@ public class UrT42Console extends UrT41Console implements Console {
      **/
     @Override
     public void authban(Client client, int days, int hours, int mins) throws UnsupportedOperationException {
+        
+        if (!this.game.isAuthEnabled()) {
+            throw new UnsupportedOperationException("Unable to execute auth-ban RCON command. Auth system is disabled");
+        }
+        
+        if (this.game.getAuthOwners() == null) {
+            throw new UnsupportedOperationException("Unable to execute auth-ban RCON command. Auth owners has not been set");
+        }
+        
         this.rcon.sendNoRead("auth-ban " + client.getSlot() + " " + days + " " + hours + " " + mins);
+        
     }
     
     
@@ -86,7 +97,17 @@ public class UrT42Console extends UrT41Console implements Console {
      **/
     @Override
     public void authban(int slot, int days, int hours, int mins) throws UnsupportedOperationException {
+        
+        if (!this.game.isAuthEnabled()) {
+            throw new UnsupportedOperationException("Unable to execute auth-ban RCON command. Auth system is disabled");
+        }
+        
+        if (this.game.getAuthOwners() == null) {
+            throw new UnsupportedOperationException("Unable to execute auth-ban RCON command. Auth owners has not been set");
+        }
+        
         this.rcon.sendNoRead("auth-ban " + slot + " " + days + " " + hours + " " + mins);
+    
     }
     
     
@@ -101,34 +122,36 @@ public class UrT42Console extends UrT41Console implements Console {
     @Override
     public Map<String, String> authwhois(Client client) throws UnsupportedOperationException {
         
-        Map<String, String> data = new LinkedHashMap<String, String>();
+        if (!this.game.isAuthEnabled()) {
+            throw new UnsupportedOperationException("Unable to execute auth-whois RCON command. Auth system is disabled");
+        }
+        
+        Map<String, String> data = new HashMap<String, String>();
         String result = this.rcon.sendRead("auth-whois " + client.getSlot());
         
         if (result == null) {
-            this.log.debug("Unable to parse auth info for client " + client.getSlot() + ": RCON response is NULL");
+            this.log.debug("Unable to parse auth-whois command response for client " + client.getSlot() + ": RCON UDP socket returned NULL");
             return null;
         }
         
-        // Quake3 color notations can be boring sometime.
-        // We are going to remove all the Quake3 color codes (^[0-9]) from the string
-        // returned by the server engine. We do not want to bother ourselves ^^.
-        result.replaceAll("\\^[0-9]{1}", "");
+        // Remove color codes from the obtained string
+        result = result.replaceAll("\\^[0-9]{1}", "");
         
         // Collecting FS Auth System informations
         Pattern pattern = Pattern.compile("^auth:\\s*id:\\s*(?<slot>\\d+)\\s*-\\s*name:\\s*(?<name>\\w+)\\s*-\\s*login:\\s*(?<login>\\w*)\\s*-\\s*notoriety:\\s*(?<notoriety>.*)\\s*-\\s*level:\\s*(?<level>\\d+)\\s*-\\s*(?<rank>.*)$", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(result);
         
         if (!matcher.matches()) {
-            this.log.debug("Unable to execute auth-whois command on client " + client.getSlot() + ". Auth system is disabled");
+            this.log.debug("Unable to parse auth-whois command response for client " + client.getSlot() + ": declared pattern doesn't match RCON response");
             return null;
         }
         
         data.put("slot",        matcher.group("slot"));
         data.put("name",        matcher.group("name"));
-        data.put("login",       (matcher.group("login").isEmpty() ? null : matcher.group("login")));
-        data.put("notoriety",   (matcher.group("login").isEmpty() ? null : matcher.group("notoriety")));
-        data.put("level",       (matcher.group("login").isEmpty() ? null : matcher.group("level")));
-        data.put("rank",        (matcher.group("login").isEmpty() ? null : matcher.group("rank")));
+        data.put("login",       matcher.group("login").isEmpty() ? null : matcher.group("login"));
+        data.put("notoriety",   matcher.group("login").isEmpty() ? null : matcher.group("notoriety"));
+        data.put("level",       matcher.group("login").isEmpty() ? null : matcher.group("level"));
+        data.put("rank",        matcher.group("login").isEmpty() ? null : matcher.group("rank"));
         
         return data;
         
@@ -146,34 +169,36 @@ public class UrT42Console extends UrT41Console implements Console {
     @Override
     public Map<String, String> authwhois(int slot) throws UnsupportedOperationException {
         
-        Map<String, String> data = new LinkedHashMap<String, String>();
+        if (!this.game.isAuthEnabled()) {
+            throw new UnsupportedOperationException("Unable to execute auth-whois RCON command. Auth system is disabled");
+        }
+        
+        Map<String, String> data = new HashMap<String, String>();
         String result = this.rcon.sendRead("auth-whois " + slot);
         
         if (result == null) {
-            this.log.debug("Unable to parse auth info for client " + slot + ": RCON response is NULL");
+            this.log.debug("Unable to parse auth-whois command response for client " + slot + ": RCON UDP socket returned NULL");
             return null;
         }
         
-        // Quake3 color notations can be boring sometime.
-        // We are going to remove all the Quake3 color codes (^[0-9]) from the string
-        // returned by the server engine. We do not want to bother ourselves ^^.
-        result.replaceAll("\\^[0-9]{1}", "");            
+        // Remove color codes from the obtained string
+        result = result.replaceAll("\\^[0-9]{1}", "");
         
         // Collecting FS Auth System informations
         Pattern pattern = Pattern.compile("^auth:\\s*id:\\s*(?<slot>\\d+)\\s*-\\s*name:\\s*(?<name>\\w+)\\s*-\\s*login:\\s*(?<login>\\w*)\\s*-\\s*notoriety:\\s*(?<notoriety>.*)\\s*-\\s*level:\\s*(?<level>\\d+)\\s*-\\s*(?<rank>.*)$", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(result);
         
         if (!matcher.matches()) {
-            this.log.debug("Unable to execute auth-whois command on client " + slot + ". Auth system is disabled");
+            this.log.debug("Unable to parse auth-whois command response for client " + slot + ": declared pattern doesn't match RCON response");
             return null;
         }
         
         data.put("slot",        matcher.group("slot"));
         data.put("name",        matcher.group("name"));
-        data.put("login",       (matcher.group("login").isEmpty() ? null : matcher.group("login")));
-        data.put("notoriety",   (matcher.group("login").isEmpty() ? null : matcher.group("notoriety")));
-        data.put("level",       (matcher.group("login").isEmpty() ? null : matcher.group("level")));
-        data.put("rank",        (matcher.group("login").isEmpty() ? null : matcher.group("rank")));
+        data.put("login",       matcher.group("login").isEmpty() ? null : matcher.group("login"));
+        data.put("notoriety",   matcher.group("login").isEmpty() ? null : matcher.group("notoriety"));
+        data.put("level",       matcher.group("login").isEmpty() ? null : matcher.group("level"));
+        data.put("rank",        matcher.group("login").isEmpty() ? null : matcher.group("rank"));
         
         return data;
         
@@ -181,7 +206,7 @@ public class UrT42Console extends UrT41Console implements Console {
     
     
     /**
-     * Kick the specified client from the server by specifying a reason.
+     * Kick the specified client from the server by specifying a reason
      * 
      * @author Daniele Pantaleone
      * @param  client The client who is going to be kicked from the server
@@ -189,13 +214,13 @@ public class UrT42Console extends UrT41Console implements Console {
      **/
     @Override
     public void kick(Client client, String reason) {
-    	if (reason == null) this.kick(client);
-    	else this.rcon.sendNoRead("kick " + client.getSlot() + " " + reason);
+        if (reason == null) this.kick(client);
+        else this.rcon.sendNoRead("kick " + client.getSlot() + " " + reason);
     }
     
     
     /**
-     * Kick the specified client from the server by specifying a reason.
+     * Kick the specified client from the server by specifying a reason
      * 
      * @author Daniele Pantaleone
      * @param  slot The slot of the player who is going to be kicked from the server
@@ -209,7 +234,7 @@ public class UrT42Console extends UrT41Console implements Console {
     
     
     /**
-     * Instantly kill a player.
+     * Instantly kill a player
      * 
      * @author Daniele Pantaleone
      * @param  client The client who is going to be killed
@@ -222,7 +247,7 @@ public class UrT42Console extends UrT41Console implements Console {
     
     
     /**
-     * Instantly kill a player.
+     * Instantly kill a player
      * 
      * @author Daniele Pantaleone
      * @param  slot The slot of the player who is going to be killed

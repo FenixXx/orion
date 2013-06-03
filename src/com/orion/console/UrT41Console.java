@@ -10,7 +10,7 @@
  *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -18,7 +18,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 10 February, 2013
  * @package     com.orion.console
  **/
@@ -77,12 +77,12 @@ public class UrT41Console implements Console {
         this.log = orion.log;
         
         // Printing a log message so the user can check if he's using the correct console
-        this.log.debug("Console initialized [ class : com.orion.console." + orion.config.getString("orion", "game") + "Console ]");
+        this.log.debug("Console initialized: com.orion.console." + orion.config.getString("orion", "game") + "Console");
         
         // Retrieve Urban Terror 4.1/4.2 specific CVARs
-        this.game.fs_game = this.getCvar("fs_game");
-        this.game.fs_basepath = this.getCvar("fs_basepath");
-        this.game.fs_homepath = this.getCvar("fs_homepath");
+        this.game.setFsGame(this.getCvar("fs_game"));
+        this.game.setFsBasePath(this.getCvar("fs_basepath"));
+        this.game.setFsHomePath(this.getCvar("fs_homepath"));
         
     }
     
@@ -98,7 +98,7 @@ public class UrT41Console implements Console {
      * @throws UnsupportedOperationException If the RCON command is not supported by the console implementation
      **/
     public void authban(Client client, int days, int hours, int mins) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("/rcon auth-ban <slot> <days> <hours> <mins> command is only available as from Urban Terror 4.2 version");
+        throw new UnsupportedOperationException("Unable to execute auth-ban RCON command: such command is only available as from Urban Terror 4.2 version");
     }
     
     
@@ -113,7 +113,7 @@ public class UrT41Console implements Console {
      * @throws UnsupportedOperationException If the RCON command is not supported by the console implementation
      **/
     public void authban(int slot, int days, int hours, int mins) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("/rcon auth-ban <slot> <days> <hours> <mins> command is only available as from Urban Terror 4.2 version");
+        throw new UnsupportedOperationException("Unable to execute auth-ban RCON command: such command is only available as from Urban Terror 4.2 version");
     }
     
     
@@ -126,7 +126,7 @@ public class UrT41Console implements Console {
      * @return A Map<String, String> containing the auth-whois command result
      **/
     public Map<String, String> authwhois(Client client) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("/rcon auth-whois <slot> command is only available as from Urban Terror 4.2 version");
+        throw new UnsupportedOperationException("Unable to execute auth-whois RCON command: such command is only available as from Urban Terror 4.2 version");
     }
     
     
@@ -139,12 +139,12 @@ public class UrT41Console implements Console {
      * @return A Map<String, String> containing the auth-whois command result
      **/
     public Map<String, String> authwhois(int slot) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("/rcon auth-whois <slot> command is only available as from Urban Terror 4.2 version");
+        throw new UnsupportedOperationException("Unable to execute auth-whois RCON command: such command is only available as from Urban Terror 4.2 version");
     }
     
     
     /**
-     * Ban a player from the server permanently.
+     * Ban a player from the server permanently
      * 
      * @author Daniele Pantaleone
      * @param  client The client to ban from the server
@@ -155,7 +155,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Ban an ip address from the server permanently.
+     * Ban an ip address from the server permanently
      * 
      * @author Daniele Pantaleone
      * @param  ip The IP address to ban from the server
@@ -166,8 +166,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Write a bold message in the middle of the screen of all players.
-     * The message is going to disappear in few seconds (almost 3).
+     * Write a bold message in the middle of the screen of all players
      * 
      * @author Daniele Pantaleone
      * @param  message The message to be printed
@@ -196,7 +195,7 @@ public class UrT41Console implements Console {
     		
     	} else {
     		
-    		// Normal bigtext.
+    		// Normal bigtext
     		this.rcon.sendNoRead("bigtext \"" + Color.WHITE + message + "\"");
     		
     	}
@@ -205,7 +204,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Broadcast a message in the top-left screen.
+     * Broadcast a message in the top-left screen
      * 
      * @author Daniele Pantaleone
      * @param  message The message to be sent
@@ -252,7 +251,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Dump user information for the specified client.
+     * Dump user information for the specified client
      * 
      * @author Daniele Pantaleone
      * @param  client The client you want to retrieve informations
@@ -263,7 +262,7 @@ public class UrT41Console implements Console {
         String result = this.rcon.sendRead("dumpuser " + client.getSlot());
         
         if (result == null) {
-            this.log.debug("Unable to parse dumped info for client " + client.getSlot() + ": RCON response is NULL");
+            this.log.debug("Unable to parse dumpuser command response for client " + client.getSlot() + ": RCON UDP socket returned NULL");
             return null;
         }
         
@@ -287,11 +286,7 @@ public class UrT41Console implements Console {
             if (m.matches()) map.put(m.group("key"), m.group("value"));
         }
         
-        if (map.size() == 0) {
-             this.log.debug("Client on slot " + client.getSlot() + " recently disconnected but his character is still in game...");
-             return null;
-        }
-        
+        if (map.size() == 0) return null;
         return map;
         
     }
@@ -309,7 +304,7 @@ public class UrT41Console implements Console {
         String result = this.rcon.sendRead("dumpuser " + slot);
         
         if (result == null) {
-            this.log.debug("Unable to parse dumped info for client " + slot + ": RCON response is NULL");
+            this.log.debug("Unable to parse dumpuser command response for client " + slot + ": RCON UDP socket returned NULL");
             return null;
         }
         
@@ -333,33 +328,29 @@ public class UrT41Console implements Console {
             if (m.matches()) map.put(m.group("key"), m.group("value"));
         }
         
-        if (map.size() == 0) {
-             this.log.debug("Client on slot " + slot + " recently disconnected but his character is still in game...");
-             return null;
-        }
-        
+        if (map.size() == 0) return null;
         return map;
         
     }
         
     
     /**
-     * Force a player in the blue team.
+     * Force a player in the blue team
      * 
      * @author Daniele Pantaleone
      * @param  client The client who is going to be forced in the blue team
      
      **/
     public void forceblue(Client client) {
-        // Do not execute if the client is already in the specified team.
-        // This will prevent to overflow the server with RCON commands.
+        // Do not execute if the client is already in the specified team
+        // This will prevent to overflow the server with RCON commands
         if (client.getTeam() != Team.BLUE)
             this.rcon.sendNoRead("forceteam " + client.getSlot() + " blue");
     }
     
     
     /**
-     * Force a player in the blue team.
+     * Force a player in the blue team
      * 
      * @author Daniele Pantaleone
      * @param  slot The slot of the player who is going to be forced in the blue team
@@ -367,14 +358,14 @@ public class UrT41Console implements Console {
      **/
     public void forceblue(int slot) {
         // Since we do not have a Client object as input, we cannot match the current
-        // client team. The RCON command is going to be executed anyway.
-        // NOTE: Use the previous version of the command if possible.
+        // client team. The RCON command is going to be executed anyway
+        // NOTE: Use the previous version of the command if possible
         this.rcon.sendNoRead("forceteam " + slot + " blue");
     }
     
     
     /**
-     * Force a player in the free team (autojoin).
+     * Force a player in the free team (autojoin)
      *
      * @author Daniele Pantaleone
      * @param  client The client who is going to be forced
@@ -385,7 +376,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Force a player in the free team (autojoin).
+     * Force a player in the free team (autojoin)
      * 
      * @author Daniele Pantaleone
      * @param  slot The slot of the player who is going to be forced
@@ -396,63 +387,63 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Force a player in the red team.
+     * Force a player in the red team
      * 
      * @author Daniele Pantaleone
      * @param  client The client who is going to be forced in the red team
      **/
     public void forcered(Client client) {
-        // Do not execute if the client is already in the specified team.
-        // This will prevent to overflow the server with RCON commands.
+        // Do not execute if the client is already in the specified team
+        // This will prevent to overflow the server with RCON commands
         if (client.getTeam() != Team.RED)
             this.rcon.sendNoRead("forceteam " + client.getSlot() + " red");
     }
     
     
     /**
-     * Force a player in the red team.
+     * Force a player in the red team
      * 
      * @author Daniele Pantaleone
      * @param  slot The slot of the player who is going to be forced in the red team
      **/
     public void forcered(int slot) {
         // Since we do not have a Client object as input, we cannot match the current
-        // client team. The RCON command is going to be executed anyway.
-        // NOTE: Use the previous version of the command if possible.
+        // client team. The RCON command is going to be executed anyway
+        // NOTE: Use the previous version of the command if possible
         this.rcon.sendNoRead("forceteam " + slot + " red");
     }
     
     
     /**
-     * Force a player in the spectator team.
+     * Force a player in the spectator team
      * 
      * @author Daniele Pantaleone
      * @param  client The client who is going to be forced in the spectators team
      **/
     public void forcespec(Client client) {
-        // Do not execute if the client is already in the specified team.
-        // This will prevent to overflow the server with RCON commands.
+        // Do not execute if the client is already in the specified team
+        // This will prevent to overflow the server with RCON commands
         if (client.getTeam() != Team.SPECTATOR)
             this.rcon.sendNoRead("forceteam " + client.getSlot() + " spectator");
     }
     
     
     /**
-     * Force a player in the spectator team.
+     * Force a player in the spectator team
      * 
      * @author Daniele Pantaleone
      * @param  slot The slot of the player who is going to be forced in the spectators team
      **/
     public void forcespec(int slot) {
         // Since we do not have a Client object as input, we cannot match the current
-        // client team. The RCON command is going to be executed anyway.
-        // NOTE: Use the previous version of the command if possible.
+        // client team. The RCON command is going to be executed anyway
+        // NOTE: Use the previous version of the command if possible
         this.rcon.sendNoRead("forceteam " + slot + " spectator");
     }
     
     
     /**
-     * Force a player in the specified team.
+     * Force a player in the specified team
      *
      * @author Daniele Pantaleone
      * @param  client The client who is going to be forced
@@ -463,22 +454,18 @@ public class UrT41Console implements Console {
         switch (team) {
             
             case RED:
-                // Forcing in the RED team
                 this.forcered(client);
                 break;
                 
             case BLUE:
-                // Forcing in the BLUE team
                 this.forceblue(client);
                 break;
                 
             case SPECTATOR:
-                // Forcing in the SPECTATOR team
                 this.forcespec(client);
                 break;
             
             case FREE:
-                // Forcing in the FREE team
                 this.forcefree(client);
                 break;
         
@@ -488,7 +475,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Force a player in the specified team.
+     * Force a player in the specified team
      *
      * @author Daniele Pantaleone
      * @param  slot The slot of the player who is going to be forced
@@ -499,22 +486,18 @@ public class UrT41Console implements Console {
         switch (team) {
         
             case RED:
-                // Forcing in the RED team
                 this.forcered(slot);
                 break;
                 
             case BLUE:
-                // Forcing in the BLUE team
                 this.forceblue(slot);
                 break;
                 
             case SPECTATOR:
-                // Forcing in the SPECTATOR team
                 this.forcespec(slot);
                 break;
             
             case FREE:
-                // Forcing in the FREE team
                 this.forcefree(slot);
                 break;
                 
@@ -536,7 +519,7 @@ public class UrT41Console implements Console {
         String result = this.rcon.sendRead(name);
         
         if (result == null) {
-            this.log.debug("Unable to retrieve server CVAR value [" + name + "]: RCON response is NULL");
+            this.log.debug("Unable to retrieve CVAR value [ cvar : " + name + " ]: RCON UDP socket returned NULL");
             return null;
         }
         
@@ -547,7 +530,7 @@ public class UrT41Console implements Console {
             
         	value = matcher.group("value");
             if (value.trim().isEmpty()) { 
-            	// CVAR not set
+                this.log.debug("Unable to retrieve CVAR value [ cvar : " + name + " ]: CVAR is not set");
             	return null;
             }
             
@@ -627,7 +610,7 @@ public class UrT41Console implements Console {
         String result = this.rcon.sendRead("fdir *.bsp");
         
         if (result == null) {
-            this.log.debug("Unable to retrieve map list: RCON response is NULL");
+            this.log.debug("Unable to retrieve map list: RCON UDP socket returned NULL");
             return null;
         }
         
@@ -657,24 +640,22 @@ public class UrT41Console implements Console {
     	
     	List<String> collection = new LinkedList<String>();
     	
-    	// Trimming and lowercasing the search key
+    	// Trimming and making lower case the search key
     	search = search.toLowerCase().trim();
     	
     	// Server map list not computed yet. Build the map list
-    	if ((this.game.mapList == null) || (this.game.mapList.size() == 0))
-    		this.game.mapList = this.getMapList();
+    	if ((this.game.getMapList() == null) || (this.game.getMapList().size() == 0))
+    		this.game.setMapList(this.getMapList());
     	
     	// We were not able to retrieve the server map list
-    	if ((this.game.mapList == null) || (this.game.mapList.size() == 0))
+    	if ((this.game.getMapList() == null) || (this.game.getMapList().size() == 0))
     		return null;
     	
-    	for (String map : this.game.mapList)
+    	for (String map : this.game.getMapList())
             if ((map != null) && (map.toLowerCase().contains(search.toLowerCase())))
                 collection.add(map);
     	
-    	
     	return collection;
-    	
     	
     }
     
@@ -703,46 +684,43 @@ public class UrT41Console implements Console {
         
         // Checking if the current map name has been
         // saved in the Game object reference on map load
-        if (this.game.mapname == null) {
-            this.game.mapname = this.getMap();
-            if (this.game.mapname == null) 
+        if (this.game.getMapName() == null) {
+            this.game.setMapName(this.getMap());
+            if (this.game.getMapName() == null) 
                 return null;
         }
         
         // Checking if the g_mapcycle cvar has been
         // already retrieved from the server
-        if (this.game.mapcycle == null) {
-            this.game.mapcycle = this.getCvar("g_mapcycle");
-            if (this.game.mapcycle == null) {
-                this.log.warn("Unable to retrieve cvar value: [ cvar : g_mapcycle ]");
+        if (this.game.getMapcycle() == null) {
+            this.game.setMapcycle(this.getCvar("g_mapcycle"));
+            if (this.game.getMapcycle() == null) {
                 return null;
             }
         }
         
         // Checking if fs_game has been initialized
-        if (this.game.fs_game == null) {
-            this.game.fs_game = this.getCvar("fs_game");
-            if (this.game.fs_game == null) {
-                this.log.warn("Unable to retrieve cvar value [ cvar : fs_game ]");
+        if (this.game.getFsGame() == null) {
+            this.game.setFsGame(this.getCvar("fs_game"));
+            if (this.game.getFsGame() == null) {
                 return null;
             }
         }
         
         // Checking if fs_basepath has been initialized
-        if (this.game.fs_basepath == null) {
-            this.game.fs_basepath = this.getCvar("fs_basepath");
-            if (this.game.fs_basepath == null) {
-                this.log.warn("Unable to retrieve cvar value [ cvar : fs_basepath ]");
+        if (this.game.getFsBasePath() == null) {
+            this.game.setFsBasePath(this.getCvar("fs_basepath"));
+            if (this.game.getFsBasePath() == null) {
                 return null;
             }
         }
         
         // Building the mapcycle file absolute path
-        path = this.game.fs_basepath + 
+        path = this.game.getFsBasePath() + 
                System.getProperty("file.separator") + 
-               this.game.fs_game + 
+               this.game.getFsGame() + 
                System.getProperty("file.separator") + 
-               this.game.mapcycle;
+               this.game.getMapcycle();
         
         try {
             
@@ -755,20 +733,19 @@ public class UrT41Console implements Console {
             this.log.debug("Unable to locate mapcycle file [ path : " + path + " ]");
             
             // Checking if fs_homepath has been initialized.
-            if (this.game.fs_homepath == null) {
-                this.game.fs_homepath = this.getCvar("fs_homepath");
-                if (this.game.fs_homepath == null) {
-                    this.log.warn("Unable to retrieve cvar value [ cvar : fs_homepath ]");
+            if (this.game.getFsHomePath() == null) {
+                this.game.setFsHomePath(this.getCvar("fs_homepath"));
+                if (this.game.getFsHomePath() == null) {
                     return null;
                 }
             }
             
             // Building the mapcycle file absolute path
-            path = this.game.fs_homepath + 
+            path = this.game.getFsHomePath() + 
                    System.getProperty("file.separator") + 
-                   this.game.fs_game + 
+                   this.game.getFsGame() + 
                    System.getProperty("file.separator") + 
-                   this.game.mapcycle;
+                   this.game.getMapcycle();
             
             try {
                 
@@ -789,7 +766,7 @@ public class UrT41Console implements Console {
         try {
             
             // Copying the content of the mapcycle file
-            // into a LinkedList for later scrolling.
+            // into a LinkedList for later scrolling
             maplist = new LinkedList<String>();
             while ((line = mapfile.readLine()) != null) {
                 maplist.add(line);
@@ -823,11 +800,11 @@ public class UrT41Console implements Console {
         try {
             
             tmpmap = maplist.remove(0);
-            while (!this.game.mapname.equals(tmpmap)) {
+            while (!this.game.getMapName().equals(tmpmap)) {
                 tmpmap = maplist.remove(0);
             }
             
-            if (this.game.mapname.equals(tmpmap)) {
+            if (this.game.getMapName().equals(tmpmap)) {
                 
                 if (maplist.size() > 0) {
                     // We still have 1 or more maps after
@@ -853,7 +830,7 @@ public class UrT41Console implements Console {
     
  
     /**
-     * Return an List containing the result of the "/rcon players" command.
+     * Return an List containing the result of the "/rcon players" command
      * 
      * @author Daniele Pantaleone
      * @return A list containing players informations
@@ -863,12 +840,12 @@ public class UrT41Console implements Console {
         String result = this.rcon.sendRead("players");
         
         if (result == null) {
-            this.log.debug("Unable to parse players info: RCON response is NULL");
+            this.log.debug("Unable to parse players command response: RCON UDP socket returned NULL");
             return null;
         }
         
-        // This is the string we expect from the /rcon players command.
-        // We need to parse it and build an Array with players informations.
+        // This is the string we expect from the /rcon players command
+        // We need to parse it and build an Array with players informations
         //
         // Map: ut4_casa
         // Players: 1
@@ -905,7 +882,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Return an List containing the result of the "/rcon status" command.
+     * Return an List containing the result of the "/rcon status" command
      * 
      * @author Daniele Pantaleone
      * @return A list containing status informations
@@ -915,12 +892,12 @@ public class UrT41Console implements Console {
         String result = this.rcon.sendRead("status");
         
         if (result == null) {
-            this.log.debug("Unable to parse status info: RCON response is NULL");
+            this.log.debug("Unable to status command response: RCON UDP socket returned NULL");
             return null;
         }
         
-        // This is the string we expect from the /rcon status command.
-        // We need to parse it and build an Array with players informations.
+        // This is the string we expect from the /rcon status command
+        // We need to parse it and build an Array with players informations
         //
         // map: ut4_casa
         // num score ping name            lastmsg address               qport rate
@@ -958,7 +935,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Kick the specified client from the server.
+     * Kick the specified client from the server
      * 
      * @author Daniele Pantaleone
      * @param  client The client who is going to be kicked from the server
@@ -969,7 +946,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Kick the specified client from the server.
+     * Kick the specified client from the server
      * 
      * @author Daniele Pantaleone
      * @param  slot The slot of the player who is going to be kicked from the server
@@ -980,7 +957,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Kick the specified client from the server by specifying a reason.
+     * Kick the specified client from the server by specifying a reason
      * 
      * @author Daniele Pantaleone
      * @param  client The client who is going to be kicked from the server
@@ -992,7 +969,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Kick the specified client from the server by specifying a reason.
+     * Kick the specified client from the server by specifying a reason
      * 
      * @author Daniele Pantaleone
      * @param  slot The slot of the player who is going to be kicked from the server
@@ -1004,31 +981,31 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Instantly kill a player.
+     * Instantly kill a player
      * 
      * @author Daniele Pantaleone
      * @param  client The client who is going to be killed
      * @throws UnsupportedOperationException If the RCON command is not supported by the console implementation
      **/
     public void kill(Client client) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("/rcon smite <slot> command is only available as from Urban Terror 4.2 version");
+        throw new UnsupportedOperationException("Unable to execute smite RCON command: such command is only available as from Urban Terror 4.2 version");
     }
     
     
     /**
-     * Instantly kill a player.
+     * Instantly kill a player
      * 
      * @author Daniele Pantaleone
      * @param  slot The slot of the player who is going to be killed
      * @throws UnsupportedOperationException If the RCON command is not supported by the console implementation
      **/
     public void kill(int slot) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("/rcon smite <slot> command is only available as from Urban Terror 4.2 version");
+        throw new UnsupportedOperationException("Unable to execute smite RCON command: such command is only available as from Urban Terror 4.2 version");
     }
     
     
     /**
-     * Change server current map.
+     * Change server current map
      * 
      * @author Daniele Pantaleone
      * @param  mapname The name of the map to load
@@ -1039,7 +1016,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Mute a player.
+     * Mute a player
      * 
      * @author Daniele Pantaleone 
      * @param  client The client who is going to be muted
@@ -1050,7 +1027,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Mute a player.
+     * Mute a player
      * 
      * @author Daniele Pantaleone 
      * @param  slot The slot of the player who is going to be muted
@@ -1061,7 +1038,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Mute a player.
+     * Mute a player
      * 
      * @author Daniele Pantaleone 
      * @param  client The client who is going to be muted
@@ -1073,7 +1050,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Mute a player.
+     * Mute a player
      * 
      * @author Daniele Pantaleone 
      * @param  slot The slot of the player who is going to be muted
@@ -1085,7 +1062,7 @@ public class UrT41Console implements Console {
     
      
     /**
-     * Nuke a player.
+     * Nuke a player
      * 
      * @author Daniele Pantaleone
      * @param  client The client who is going to be nuked
@@ -1096,7 +1073,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Nuke a player.
+     * Nuke a player
      * 
      * @author Daniele Pantaleone
      * @param  slot The slot of the player who is going to be nuked
@@ -1107,7 +1084,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Print a message to the in-game chat.
+     * Print a message to the in-game chat
      * 
      * @author Daniele Pantaleone
      * @param  message The message to print
@@ -1135,7 +1112,7 @@ public class UrT41Console implements Console {
     		
     	} else {
     		
-    		// Normal say command.
+    		// Normal say command
             this.rcon.sendNoRead("say " + Color.WHITE + message);
     		
     	}
@@ -1144,7 +1121,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Print an in-game message with visibility regulated by the command object.
+     * Print an in-game message with visibility regulated by the command object
      * 
      * @author Daniele Pantaleone
      * @param  command The command issued
@@ -1169,7 +1146,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Set a cvar value.
+     * Set a CVAR value
      * 
      * @author Daniele Pantaleone
      * @param  name The name of the cvar
@@ -1181,7 +1158,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Slap a player.
+     * Slap a player
      * 
      * @author Daniele Pantaleone
      * @param  client The client who is going to be slapped
@@ -1192,7 +1169,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Slap a player.
+     * Slap a player
      * 
      * @author Daniele Pantaleone
      * @param  slot The slot of the player who is going to be slapped
@@ -1203,7 +1180,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Start recording a server side demo of a player.
+     * Start recording a server side demo of a player
      * 
      * @author Daniele Pantaleone
      * @param  client The client whose we want to record a demo
@@ -1214,7 +1191,7 @@ public class UrT41Console implements Console {
 
     
     /**
-     * Start recording a server side demo of a player.
+     * Start recording a server side demo of a player
      * 
      * @author Daniele Pantaleone
      * @param  slot The slot of the player whose we want to record a demo
@@ -1225,7 +1202,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Start recording a server side demo of all the online players.
+     * Start recording a server side demo of all the online players
      * 
      * @author Daniele Pantaleone
      **/
@@ -1235,7 +1212,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Stop recording a server side demo of a player.
+     * Stop recording a server side demo of a player
      * 
      * @author Daniele Pantaleone 
      * @param  client The client whose we want to stop a demo recording
@@ -1246,7 +1223,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Stop recording a server side demo of a player.
+     * Stop recording a server side demo of a player
      * 
      * @author Daniele Pantaleone 
      * @param  slot The slot of the player whose we want to stop a demo recording
@@ -1257,7 +1234,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Stop recording a server side demo of all the online players.
+     * Stop recording a server side demo of all the online players
      * 
      * @author Daniele Pantaleone
      **/
@@ -1267,7 +1244,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Send a provate message to a player.
+     * Send a private message to a player
      * 
      * @author Daniele Pantaleone
      * @param  client The client you want to send the message
@@ -1296,7 +1273,7 @@ public class UrT41Console implements Console {
     		
     	} else {
     		
-    		// Normal tell command.
+    		// Normal tell command
     		this.rcon.sendNoRead("tell " + client.getSlot() + " " + Color.WHITE + message);
     		
     	}
@@ -1305,7 +1282,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Send a private message to a player.
+     * Send a private message to a player
      * 
      * @author Daniele Pantaleone
      * @param  slot The slot of the player you want to send the message
@@ -1334,7 +1311,7 @@ public class UrT41Console implements Console {
     		
     	} else {
     		
-    		// Normal tell command.
+    		// Normal tell command
     		this.rcon.sendNoRead("tell " + slot + " " + Color.WHITE + message);
     		
     	}
@@ -1343,7 +1320,7 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Unban a player from the server.
+     * Unban a player from the server
      * 
      * @author Daniele Pantaleone
      * @param  client The client we want to unban
@@ -1354,7 +1331,7 @@ public class UrT41Console implements Console {
     
 
     /**
-     * Unban a player from the server.
+     * Unban a player from the server
      * 
      * @author Daniele Pantaleone
      * @param  ip The IP address of the player we want to unban
@@ -1365,8 +1342,8 @@ public class UrT41Console implements Console {
     
     
     /**
-     * Write a message directly in the Urban Terror console.
-     * Try to avoid the use of this command. Use instead the other optimized methods available in this class.
+     * Write a message directly in the Urban Terror console<br>
+     * Try to avoid the use of this command: se instead the other optimized methods available in this class
      * 
      * @author Daniele Pantaleone
      * @param  command The command to execute
