@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.1.1
  * @copyright   Daniele Pantaleone, 20 January, 2013
  * @package     com.orion.domain
  **/
@@ -33,12 +33,12 @@ import org.joda.time.DateTime;
 
 public class IpAlias {
     
-    public int id;
-    public Client client;
-    public InetAddress ip ;
-    public int num_used;
-    public DateTime time_add;
-    public DateTime time_edit;
+    private int id;
+    private Client client;
+    private InetAddress ip ;
+    private int num_used;
+    private DateTime time_add;
+    private DateTime time_edit;
     
     
     /**
