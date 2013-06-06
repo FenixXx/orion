@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 29 January, 2013
  * @package     com.orion.dao
  **/
@@ -273,7 +273,7 @@ public class MySqlPenaltyDao implements PenaltyDao {
     public List<Penalty> loadByClient(Client client) throws ClassNotFoundException, SQLException, UnknownHostException {
         
         this.statement = this.storage.getConnection().prepareStatement(LOAD_BY_CLIENT);
-        this.statement.setInt(1, client.id);
+        this.statement.setInt(1, client.getId());
         this.statement.setLong(2, new Date().getTime());
         this.resultset = this.statement.executeQuery();
         List<Penalty> collection = this.getCollectionFromResultSet(this.resultset, client);
@@ -301,7 +301,7 @@ public class MySqlPenaltyDao implements PenaltyDao {
     public List<Penalty> loadByClient(Client client, PenaltyType type) throws ClassNotFoundException, SQLException, UnknownHostException {
         
         this.statement = this.storage.getConnection().prepareStatement(LOAD_BY_CLIENT_AND_TYPE);
-        this.statement.setInt(1, client.id);
+        this.statement.setInt(1, client.getId());
         this.statement.setString(2, type.name());
         this.statement.setLong(3, new Date().getTime());
         this.resultset = this.statement.executeQuery();
@@ -325,15 +325,24 @@ public class MySqlPenaltyDao implements PenaltyDao {
     public void insert(Penalty penalty) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS);
-        this.statement.setInt(1, penalty.client.id);
-        this.statement.setInt(2, penalty.admin.id);
-        this.statement.setString(3, penalty.type.name());
-        if (penalty.reason != null) this.statement.setString(4, penalty.reason);
-        else this.statement.setNull(4, Types.VARCHAR);
-        this.statement.setLong(5, penalty.time_add.getMillis());
-        this.statement.setLong(6, penalty.time_edit.getMillis());
-        if (penalty.time_expire != null) this.statement.setLong(7, penalty.time_expire.getMillis());
-        else this.statement.setNull(7, Types.BIGINT);
+        this.statement.setInt(1, penalty.getClient().getId());
+        this.statement.setInt(2, penalty.getAdmin().getId());
+        this.statement.setString(3, penalty.getType().name());
+        
+        if (penalty.getReason() != null) {
+            this.statement.setString(4, penalty.getReason());
+        } else {
+            this.statement.setNull(4, Types.VARCHAR);
+        }
+        
+        this.statement.setLong(5, penalty.getTimeAdd().getMillis());
+        this.statement.setLong(6, penalty.getTimeEdit().getMillis());
+        
+        if (penalty.getTimeExpire() != null) {
+            this.statement.setLong(7, penalty.getTimeExpire().getMillis());
+        } else {
+            this.statement.setNull(7, Types.BIGINT);
+        }
         
         // Executing the statement
         this.statement.executeUpdate();
@@ -343,7 +352,7 @@ public class MySqlPenaltyDao implements PenaltyDao {
         if (!this.resultset.next()) throw new SQLException("Unable to retrieve generated primary key from `penalties` table");
         
         // Storing the new generated client id
-        penalty.id = this.resultset.getInt(1);
+        penalty.setId(this.resultset.getInt(1));
         
         this.resultset.close();
         this.statement.close();
@@ -362,16 +371,26 @@ public class MySqlPenaltyDao implements PenaltyDao {
     public void update(Penalty penalty) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(UPDATE);
-        this.statement.setInt(1, penalty.client.id);
-        this.statement.setInt(2, penalty.admin.id);
-        this.statement.setString(3, penalty.type.name());
-        this.statement.setBoolean(4, penalty.active);
-        if (penalty.reason != null) this.statement.setString(5, penalty.reason);
-        else this.statement.setNull(5, Types.VARCHAR);
-        this.statement.setLong(6, penalty.time_edit.getMillis());
-        if (penalty.time_expire != null) this.statement.setLong(7, penalty.time_expire.getMillis());
-        else this.statement.setNull(7, Types.BIGINT);
-        this.statement.setInt(9, penalty.id);
+        this.statement.setInt(1, penalty.getClient().getId());
+        this.statement.setInt(2, penalty.getAdmin().getId());
+        this.statement.setString(3, penalty.getType().name());
+        this.statement.setBoolean(4, penalty.isActive());
+        
+        if (penalty.getReason() != null) {
+            this.statement.setString(5, penalty.getReason());
+        } else {
+            this.statement.setNull(5, Types.VARCHAR);
+        }
+        
+        this.statement.setLong(6, penalty.getTimeEdit().getMillis());
+        
+        if (penalty.getTimeExpire() != null) {
+            this.statement.setLong(7, penalty.getTimeExpire().getMillis());
+        } else {
+            this.statement.setNull(7, Types.BIGINT);
+        }
+        
+        this.statement.setInt(8, penalty.getId());
 
         // Executing the statement
         this.statement.executeUpdate();
@@ -391,11 +410,11 @@ public class MySqlPenaltyDao implements PenaltyDao {
     public void delete(Penalty penalty) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(DELETE);
-        statement.setInt(1, penalty.id);
+        this.statement.setInt(1, penalty.getId());
         
         // Executing the statement
-        statement.executeUpdate();
-        statement.close();
+        this.statement.executeUpdate();
+        this.statement.close();
         
     }
     
@@ -468,62 +487,45 @@ public class MySqlPenaltyDao implements PenaltyDao {
      **/
     private Penalty getObjectFromCursor(ResultSet resultset) throws SQLException, IndexOutOfBoundsException, UnknownHostException {
         
-        Group cgroup = new Group(resultset.getInt("gr_cl_id"), 
-                                 resultset.getString("gr_cl_name"), 
-                                 resultset.getString("gr_cl_keyword"), 
-                                 resultset.getInt("gr_cl_level"));
+        Penalty penalty = new Penalty.Builder(new Client.Builder(InetAddress.getByName(resultset.getString("cl_ip")), resultset.getString("cl_guid"))
+                                                        .id(resultset.getInt("cl_id"))
+                                                        .group(new Group(resultset.getInt("gr_cl_id"), 
+                                                                         resultset.getString("gr_cl_name"), 
+                                                                         resultset.getString("gr_cl_keyword"), 
+                                                                         resultset.getInt("gr_cl_level")))
+                                                        .name(resultset.getString("cl_name"))
+                                                        .connections(resultset.getInt("cl_connections"))
+                                                        .auth(resultset.getString("cl_auth"))
+                                                        .timeAdd(new DateTime(resultset.getLong("cl_time_add"), this.timezone))
+                                                        .timeEdit(new DateTime(resultset.getLong("cl_time_edit"), this.timezone))
+                                                        .build(), PenaltyType.getByName(resultset.getString("pn_type")))
+                                     .active(resultset.getBoolean("pn_active"))
+                                     .reason(resultset.getString("pn_reason"))
+                                     .timeAdd(new DateTime(resultset.getLong("pn_time_add"), this.timezone))
+                                     .timeEdit(new DateTime(resultset.getLong("pn_time_edit"), this.timezone))
+                                     .timeExpire(resultset.getObject("pn_time_expire") != null ? new DateTime(resultset.getLong("pn_time_expire"), timezone) : null)
+                                     .build();
         
-        Client client = new Client(resultset.getInt("cl_id"), 
-                                   cgroup, 
-                                   resultset.getString("cl_name"), 
-                                   resultset.getInt("cl_connections"), 
-                                   InetAddress.getByName(resultset.getString("cl_ip")),
-                                   resultset.getString("cl_guid"), 
-                                   resultset.getString("cl_auth"), 
-                                   new DateTime(resultset.getLong("cl_time_add"), this.timezone), 
-                                   new DateTime(resultset.getLong("cl_time_edit"), this.timezone));
-        
+        // Check if it's a penalty issued by an admin
         if (resultset.getObject("ad_id") != null) {
             
-            // Penalty issued by an admin
+            penalty.setAdmin(new Client.Builder(InetAddress.getByName(resultset.getString("ad_ip")), resultset.getString("ad_guid"))
+                                       .id(resultset.getInt("ad_id"))
+                                       .group(new Group(resultset.getInt("gr_ad_id"), 
+                                                        resultset.getString("gr_ad_name"), 
+                                                        resultset.getString("gr_ad_keyword"), 
+                                                        resultset.getInt("gr_ad_level")))
+                                       .name(resultset.getString("ad_name"))
+                                       .connections(resultset.getInt("ad_connections"))
+                                       .auth(resultset.getString("ad_auth"))
+                                       .timeAdd(new DateTime(resultset.getLong("ad_time_add"), this.timezone))
+                                       .timeEdit(new DateTime(resultset.getLong("ad_time_edit"), this.timezone))
+                                       .build());
             
-            Group agroup = new Group(resultset.getInt("gr_ad_id"), 
-                                     resultset.getString("gr_ad_name"), 
-                                     resultset.getString("gr_ad_keyword"), 
-                                     resultset.getInt("gr_ad_level"));
             
-            Client admin = new Client(resultset.getInt("cl_ad"), 
-                                      agroup, resultset.getString("ad_name"), 
-                                      resultset.getInt("ad_connections"), 
-                                      InetAddress.getByName(resultset.getString("ad_ip")),
-                                      resultset.getString("ad_guid"), 
-                                      resultset.getString("ad_auth"), 
-                                      new DateTime(resultset.getLong("ad_time_add"), this.timezone), 
-                                      new DateTime(resultset.getLong("ad_time_edit"), this.timezone));
-        
-            return new Penalty(resultset.getInt("pn_id"), 
-                               client, 
-                               admin, 
-                               PenaltyType.getByName(resultset.getString("pn_type")), 
-                               resultset.getBoolean("pn_active"), 
-                               resultset.getString("pn_reason"),
-                               new DateTime(resultset.getLong("pn_time_add"), this.timezone), 
-                               new DateTime(resultset.getLong("pn_time_edit"), this.timezone), 
-                               (resultset.getObject("pn_time_expire") != null) ? new DateTime(resultset.getLong("pn_time_expire"), timezone) : null);
-        
-        } else {
-            
-            // Penalty automatically issued by Orion
-            
-            return new Penalty(resultset.getInt("pn_id"), 
-                               client, PenaltyType.getByName(resultset.getString("pn_type")), 
-                               resultset.getBoolean("pn_active"), 
-                               resultset.getString("pn_reason"),
-                               new DateTime(resultset.getLong("pn_time_add"), this.timezone), 
-                               new DateTime(resultset.getLong("pn_time_edit"), this.timezone), 
-                               (resultset.getObject("pn_time_expire") != null) ? new DateTime(resultset.getLong("pn_time_expire"), this.timezone) : null);
-
         }
+        
+        return penalty;
      
     }
     
@@ -541,51 +543,34 @@ public class MySqlPenaltyDao implements PenaltyDao {
      **/
     private Penalty getObjectFromCursor(ResultSet resultset, Client client) throws SQLException, IndexOutOfBoundsException, UnknownHostException {
         
+        Penalty penalty = new Penalty.Builder(client, PenaltyType.getByName(resultset.getString("pn_type")))
+                             .active(resultset.getBoolean("pn_active"))
+                             .reason(resultset.getString("pn_reason"))
+                             .timeAdd(new DateTime(resultset.getLong("pn_time_add"), this.timezone))
+                             .timeEdit(new DateTime(resultset.getLong("pn_time_edit"), this.timezone))
+                             .timeExpire(resultset.getObject("pn_time_expire") != null ? new DateTime(resultset.getLong("pn_time_expire"), timezone) : null)
+                             .build();
+                            
+        // Check if it's a penalty issued by an admin
         if (resultset.getObject("ad_id") != null) {
-            
-            // Penalty issued by an admin
-            
-            Group agroup = new Group(resultset.getInt("gr_ad_id"), 
-                                     resultset.getString("gr_ad_name"), 
-                                     resultset.getString("gr_ad_keyword"), 
-                                     resultset.getInt("gr_ad_level"));
-            
-            Client admin = new Client(resultset.getInt("cl_ad"), 
-                                      agroup, 
-                                      resultset.getString("ad_name"), 
-                                      resultset.getInt("ad_connections"), 
-                                      InetAddress.getByName(resultset.getString("ad_ip")),
-                                      resultset.getString("ad_guid"), 
-                                      resultset.getString("ad_auth"), 
-                                      new DateTime(resultset.getLong("ad_time_add"), this.timezone), 
-                                      new DateTime(resultset.getLong("ad_time_edit"), this.timezone));
-        
-            return new Penalty(resultset.getInt("pn_id"), 
-                               client, 
-                               admin, 
-                               PenaltyType.getByName(resultset.getString("pn_type")), 
-                               resultset.getBoolean("pn_active"), 
-                               resultset.getString("pn_reason"),
-                               new DateTime(resultset.getLong("pn_time_add"), this.timezone), 
-                               new DateTime(resultset.getLong("pn_time_edit"), this.timezone), 
-                               (resultset.getObject("pn_time_expire") != null) ? new DateTime(resultset.getLong("pn_time_expire"), this.timezone) : null);
-        
-        } else {
-            
-            // Penalty automatically issued by Orion
-            
-            return new Penalty(resultset.getInt("pn_id"), 
-                               client, 
-                               PenaltyType.getByName(resultset.getString("pn_type")), 
-                               resultset.getBoolean("pn_active"), 
-                               resultset.getString("pn_reason"),
-                               new DateTime(resultset.getLong("pn_time_add"), this.timezone), 
-                               new DateTime(resultset.getLong("pn_time_edit"), this.timezone), 
-                               (resultset.getObject("pn_time_expire") != null) ? new DateTime(resultset.getLong("pn_time_expire"), this.timezone) : null);
+                            
+            penalty.setAdmin(new Client.Builder(InetAddress.getByName(resultset.getString("ad_ip")), resultset.getString("ad_guid"))
+                                       .id(resultset.getInt("ad_id"))
+                                       .group(new Group(resultset.getInt("gr_ad_id"), 
+                                               resultset.getString("gr_ad_name"), 
+                                               resultset.getString("gr_ad_keyword"), 
+                                               resultset.getInt("gr_ad_level")))
+                                       .name(resultset.getString("ad_name"))
+                                       .connections(resultset.getInt("ad_connections"))
+                                       .auth(resultset.getString("ad_auth"))
+                                       .timeAdd(new DateTime(resultset.getLong("ad_time_add"), this.timezone))
+                                       .timeEdit(new DateTime(resultset.getLong("ad_time_edit"), this.timezone))
+                                       .build());
 
         }
-     
-    }
 
+        return penalty;
+       
+    }
     
 }
