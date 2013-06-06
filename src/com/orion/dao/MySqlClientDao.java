@@ -383,11 +383,11 @@ public class MySqlClientDao implements ClientDao {
     public void delete(Client client) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(DELETE);
-        statement.setInt(1, client.getId());
+        this.statement.setInt(1, client.getId());
         
         // Executing the statement.
-        statement.executeUpdate();
-        statement.close();
+        this.statement.executeUpdate();
+        this.statement.close();
         
     }
     

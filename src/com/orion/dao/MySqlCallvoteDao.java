@@ -304,11 +304,11 @@ public class MySqlCallvoteDao implements CallvoteDao {
     public void delete(Callvote callvote) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(DELETE);
-        statement.setInt(1, callvote.getId());
+        this.statement.setInt(1, callvote.getId());
         
         // Executing the statement
-        statement.executeUpdate();
-        statement.close();
+        this.statement.executeUpdate();
+        this.statement.close();
         
     }
     
