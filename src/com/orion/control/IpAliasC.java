@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 30 January, 2013
  * @package     com.orion.control
  **/
@@ -103,8 +103,8 @@ public class IpAliasC {
         
         if (!ipalias.getClient().isBot()) {
             DateTime date = new DateTime(this.timezone);
-            ipalias.time_add  = date;
-            ipalias.time_edit = date;
+            ipalias.setTimeAdd(date);
+            ipalias.setTimeEdit(date);
             this.log.trace("[SQL] INSERT `ipaliases`: " + ipalias.toString());
             this.dao.insert(ipalias);
         }
@@ -123,7 +123,7 @@ public class IpAliasC {
     public void update(IpAlias ipalias) throws ClassNotFoundException, SQLException {
         
         if (!ipalias.getClient().isBot()) {
-            ipalias.time_edit = new DateTime(this.timezone);
+            ipalias.setTimeEdit(new DateTime(this.timezone));
             this.log.trace("[SQL] UPDATE `ipaliases`: " + ipalias.toString());
             this.dao.update(ipalias);
         }
@@ -158,7 +158,7 @@ public class IpAliasC {
      * @throws SQLException If the load query fails somehow
      **/
     public void save(IpAlias ipalias) throws ClassNotFoundException, SQLException { 
-        if (ipalias.id > 0) { this.update(ipalias); } 
+        if (ipalias.getId() > 0) { this.update(ipalias); } 
         else { this.insert(ipalias); }
     }
     
