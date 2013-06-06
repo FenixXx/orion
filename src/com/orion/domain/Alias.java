@@ -49,7 +49,7 @@ public class Alias {
     public Alias(Client client, String name) {
         this.setClient(client);
         this.setName(name);
-        this.setNumUsed(this.getNumUsed() + 1);
+        this.setNumUsed(1);
     }
     
     
