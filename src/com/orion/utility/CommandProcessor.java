@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Mathias Van Malderen, Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Mathias Van Malderen, 04 February, 2012
  * @package     com.orion.utility
  **/
@@ -106,8 +106,8 @@ public class CommandProcessor implements Runnable {
                 RegisteredCommand regcommand = this.regcommands.get(command.handle);
                 
                 // Checking correct client minLevel
-                if ((command.client.group.level < regcommand.minGroup.level) && (!command.force)) {
-                    // Informing the client that he has not sufficiend access for this command
+                if ((command.client.getGroup().getLevel() < regcommand.minGroup.getLevel()) && (!command.force)) {
+                    // Informing the client that he has not sufficient access for this command
                     this.console.tell(command.client, "You have no sufficient access: " + Color.YELLOW + command.prefix.name + Color.RED + command.handle);
                     continue;
                 }
