@@ -79,7 +79,7 @@ public abstract class Plugin {
     protected Map<String, Plugin> plugins;
     protected MultiKeyMap<String, String, RegisteredCommand> regcommands;
     
-    protected EventBus eventbus;
+    protected EventBus eventBus;
     
     protected boolean enabled = true;
     
@@ -111,7 +111,7 @@ public abstract class Plugin {
         this.plugins = orion.plugins;
         this.regcommands = orion.regcommands;
         
-        this.eventbus = orion.eventbus;
+        this.eventBus = orion.eventBus;
         
         this.config = config;
         
