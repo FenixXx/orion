@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 30 January, 2013
  * @package     com.orion.dao
  **/
@@ -184,7 +184,7 @@ public class MySqlCallvoteDao implements CallvoteDao {
     public List<Callvote> loadByClient(Client client) throws ClassNotFoundException, SQLException {
         
         this.statement = this.storage.getConnection().prepareStatement(LOAD_BY_CLIENT);
-        this.statement.setInt(1, client.id);
+        this.statement.setInt(1, client.getId());
         this.resultset = this.statement.executeQuery();
         List<Callvote> collection = this.getCollectionFromResultSet(this.resultset, client);
         this.resultset.close();
@@ -208,7 +208,7 @@ public class MySqlCallvoteDao implements CallvoteDao {
     public List<Callvote> loadByClientLimit(Client client, int limit) throws ClassNotFoundException, SQLException {
         
         this.statement = this.storage.getConnection().prepareStatement(LOAD_BY_CLIENT_LIMIT);
-        this.statement.setInt(1, client.id);
+        this.statement.setInt(1, client.getId());
         this.statement.setInt(2, limit);
         this.resultset = this.statement.executeQuery();
         List<Callvote> collection = this.getCollectionFromResultSet(this.resultset, client);
@@ -231,14 +231,19 @@ public class MySqlCallvoteDao implements CallvoteDao {
     public void insert(Callvote callvote) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS);
-        this.statement.setInt(1, callvote.client.id);
-        this.statement.setString(2, callvote.type);
-        if (callvote.data != null) this.statement.setString(3, callvote.data);
-        else this.statement.setNull(3, Types.VARCHAR);
-        this.statement.setInt(4, callvote.yes);
-        this.statement.setInt(5, callvote.no);
-        this.statement.setLong(6, callvote.time_add.getMillis());
-        this.statement.setLong(7, callvote.time_edit.getMillis());
+        this.statement.setInt(1, callvote.getClient().getId());
+        this.statement.setString(2, callvote.getType());
+        
+        if (callvote.getData() != null) {
+            this.statement.setString(3, callvote.getData());
+        } else {
+            this.statement.setNull(3, Types.VARCHAR);
+        }
+        
+        this.statement.setInt(4, callvote.getYes());
+        this.statement.setInt(5, callvote.getNo());
+        this.statement.setLong(6, callvote.getTimeAdd().getMillis());
+        this.statement.setLong(7, callvote.getTimeEdit().getMillis());
         
         // Executing the statement.
         this.statement.executeUpdate();
@@ -248,7 +253,7 @@ public class MySqlCallvoteDao implements CallvoteDao {
         if (!this.resultset.next()) throw new SQLException("Unable to retrieve generated primary key from `callvotes` table");
         
         // Storing the new generated client id
-        callvote.id = this.resultset.getInt(1);
+        callvote.setId(this.resultset.getInt(1));
         
         this.resultset.close();
         this.statement.close();
@@ -267,14 +272,19 @@ public class MySqlCallvoteDao implements CallvoteDao {
     public void update(Callvote callvote) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(UPDATE);
-        this.statement.setInt(1, callvote.client.id);
-        this.statement.setString(2, callvote.type);
-        if (callvote.data != null) this.statement.setString(3, callvote.data);
-        else this.statement.setNull(3, Types.VARCHAR);
-        this.statement.setInt(4, callvote.yes);
-        this.statement.setInt(5, callvote.no);
-        this.statement.setLong(6, callvote.time_edit.getMillis());
-        this.statement.setInt(7, callvote.id);
+        this.statement.setInt(1, callvote.getClient().getId());
+        this.statement.setString(2, callvote.getType());
+        
+        if (callvote.getData() != null) {
+            this.statement.setString(3, callvote.getData());
+        } else {
+            this.statement.setNull(3, Types.VARCHAR);
+        }
+        
+        this.statement.setInt(4, callvote.getYes());
+        this.statement.setInt(5, callvote.getNo());
+        this.statement.setLong(6, callvote.getTimeEdit().getMillis());
+        this.statement.setInt(7, callvote.getId());
         
         // Executing the statement.
         this.statement.executeUpdate();
@@ -294,7 +304,7 @@ public class MySqlCallvoteDao implements CallvoteDao {
     public void delete(Callvote callvote) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(DELETE);
-        statement.setInt(1, callvote.id);
+        statement.setInt(1, callvote.getId());
         
         // Executing the statement
         statement.executeUpdate();
@@ -366,30 +376,26 @@ public class MySqlCallvoteDao implements CallvoteDao {
      * @return A <tt>Callvote</tt> object matching the given <tt>ResultSet</tt> tuple
      **/
     private Callvote getObjectFromCursor(ResultSet resultset) throws SQLException, UnknownHostException {
-
-        Group group = new Group(resultset.getInt("gr_id"), 
-                                resultset.getString("gr_name"), 
-                                resultset.getString("gr_keyword"), 
-                                resultset.getInt("gr_level"));
-       
-        Client client = new Client(resultset.getInt("cl_id"), 
-                                   group, 
-                                   resultset.getString("cl_name"), 
-                                   resultset.getInt("cl_connections"), 
-                                   InetAddress.getByName(resultset.getString("cl_ip")),
-                                   resultset.getString("cl_guid"), 
-                                   resultset.getString("cl_auth"), 
-                                   new DateTime(resultset.getLong("cl_time_add"), this.timezone), 
-                                   new DateTime(resultset.getLong("cl_time_edit"), this.timezone));
         
-        return new Callvote(resultset.getInt("cv_id"), 
-                            client, 
-                            resultset.getString("cv_type"), 
-                            resultset.getString("cv_data"), 
-                            resultset.getInt("cv_yes"), 
-                            resultset.getInt("cv_no"), 
-                            new DateTime(resultset.getLong("cv_time_add"), this.timezone), 
-                            new DateTime(resultset.getLong("cv_time_edit"), this.timezone));
+        return new Callvote.Builder(new Client.Builder(InetAddress.getByName(resultset.getString("cl_ip")), resultset.getString("cl_guid"))
+                                               .id(resultset.getInt("cl_id"))
+                                               .group(new Group(resultset.getInt("gr_id"), 
+                                                                resultset.getString("gr_name"), 
+                                                                resultset.getString("gr_keyword"), 
+                                                                resultset.getInt("gr_level")))
+                                               .name(resultset.getString("cl_name"))
+                                               .connections(resultset.getInt("cl_connections"))
+                                               .auth(resultset.getString("cl_auth"))
+                                               .timeAdd(new DateTime(resultset.getLong("cl_time_add"), this.timezone))
+                                               .timeEdit(new DateTime(resultset.getLong("cl_time_edit"), this.timezone))
+                                               .build(), resultset.getString("cv_type"))
+                           .id(resultset.getInt("cv_id"))
+                           .data(resultset.getString("cv_data"))
+                           .yes(resultset.getInt("cv_yes"))
+                           .no(resultset.getInt("cv_no"))
+                           .timeAdd(new DateTime(resultset.getLong("cv_time_add"), this.timezone))
+                           .timeEdit(new DateTime(resultset.getLong("cv_time_edit"), this.timezone))
+                           .build();
     
     }
     
@@ -405,14 +411,14 @@ public class MySqlCallvoteDao implements CallvoteDao {
      **/
     private Callvote getObjectFromCursor(ResultSet resultset, Client client) throws SQLException {
 
-        return new Callvote(resultset.getInt("cv_id"), 
-                            client, 
-                            resultset.getString("cv_type"), 
-                            resultset.getString("cv_data"), 
-                            resultset.getInt("cv_yes"), 
-                            resultset.getInt("cv_no"), 
-                            new DateTime(resultset.getLong("cv_time_add"), this.timezone), 
-                            new DateTime(resultset.getLong("cv_time_edit"), this.timezone));
+        return new Callvote.Builder(client, resultset.getString("cv_type"))
+                           .id(resultset.getInt("cv_id"))
+                           .data(resultset.getString("cv_data"))
+                           .yes(resultset.getInt("cv_yes"))
+                           .no(resultset.getInt("cv_no"))
+                           .timeAdd(new DateTime(resultset.getLong("cv_time_add"), this.timezone))
+                           .timeEdit(new DateTime(resultset.getLong("cv_time_edit"), this.timezone))
+                           .build();
 
     }
 
