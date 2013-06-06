@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone, Mathias Van Malderen
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 15 February, 2013
  * @package     com.orion.plugin
  **/
@@ -36,7 +36,7 @@ import java.util.Timer;
 
 import org.apache.commons.logging.Log;
 
-import com.google.common.collect.Multimap;
+import com.google.common.eventbus.EventBus;
 import com.orion.annotation.Dependency;
 import com.orion.bot.Orion;
 import com.orion.command.Command;
@@ -50,8 +50,6 @@ import com.orion.control.GroupC;
 import com.orion.control.IpAliasC;
 import com.orion.control.PenaltyC;
 import com.orion.domain.Group;
-import com.orion.event.EventType;
-import com.orion.event.RegisteredEvent;
 import com.orion.exception.CommandRegisterException;
 import com.orion.exception.PluginNotFoundException;
 import com.orion.parser.Parser;
@@ -80,7 +78,8 @@ public abstract class Plugin {
     protected Map<String, Timer> schedule;
     protected Map<String, Plugin> plugins;
     protected MultiKeyMap<String, String, RegisteredCommand> regcommands;
-    protected Multimap<EventType, RegisteredEvent> regevents;
+    
+    protected EventBus eventbus;
     
     protected boolean enabled = true;
     
@@ -111,7 +110,8 @@ public abstract class Plugin {
         this.schedule = orion.schedule;
         this.plugins = orion.plugins;
         this.regcommands = orion.regcommands;
-        this.regevents = orion.regevents;
+        
+        this.eventbus = orion.eventbus;
         
         this.config = config;
         
@@ -208,7 +208,7 @@ public abstract class Plugin {
             // Checking minGroup
             if (minGroup == null) {
                 minGroup = this.groups.getByKeyword("superadmin");
-                this.warn("Minimum required group level detected as NULL for command !" + name + ". Casting to default: " + minGroup.name);
+                this.warn("Minimum required group level detected as NULL for command !" + name + ". Casting to default: " + minGroup.getName());
             }
             
             // Getting the plugin method
@@ -232,7 +232,7 @@ public abstract class Plugin {
             
             RegisteredCommand command = new RegisteredCommand(method, this, minGroup);
             this.regcommands.put(name, alias, command);
-            this.debug("Registered command [ name : " + name + " | alias : " + alias + " | minLevel : " + minGroup.level + " ]");
+            this.debug("Registered command [ name : " + name + " | alias : " + alias + " | minLevel : " + minGroup.getLevel() + " ]");
             
         } catch (ClassNotFoundException | SQLException | NoSuchMethodException | SecurityException e) {
             
@@ -247,42 +247,7 @@ public abstract class Plugin {
         }
         
     }
-    
-    
-    /**
-     * Register an <tt>Event</tt> for this <tt>Plugin</tt>
-     * 
-     * @author Daniele Pantaleone
-     * @param  type The <tt>Event</tt> type
-     * @param  handler The name of the <tt>Method</tt> to be run when such <tt>Event</tt> is processed
-     * @param  param The input parameter of the <tt>Method</tt> to be run on <tt>Event</tt> processing
-     **/
-    protected void registerEvent(EventType type, String handler, Class<?> param) {
-        
-        try {
-            
-            Method method = this.getClass().getMethod(handler, param);
-            RegisteredEvent regevent = new RegisteredEvent(method, this);
-            
-            // Check if the same event has already been registered
-            // for this plugin and skip registration if necessary.
-            if (this.regevents.containsEntry(type, regevent)) {
-                this.debug("Skipping event registration: " + type + " is already registered for this plugin");
-                return;
-            }
- 
-            this.regevents.put(type, regevent);
-            this.debug("Registered event: " + type);
-            
-        } catch (NoSuchMethodException | SecurityException e) {
-            
-            // Logging the exception
-            this.error("Unable to register event: " + type, e);
-            
-        }
-        
-    }
-    
+   
     
     /**
      * Schedule the execution of a <tt>Method</tt><br>
@@ -300,7 +265,7 @@ public abstract class Plugin {
         try {
             
             // Create a new Timer object for this cronjob
-            // in which we will store the method executuon call
+            // in which we will store the method execution call
             this.schedule.put(name, new Timer(name));
             this.schedule.get(name).scheduleAtFixedRate(new Cron(this.orion, handler, this), delay, period);
             
