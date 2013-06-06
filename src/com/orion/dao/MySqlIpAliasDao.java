@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 30 January, 2013
  * @package     com.orion.dao
  **/
@@ -85,7 +85,7 @@ public class MySqlIpAliasDao implements IpAliasDao {
     public List<IpAlias> loadByClient(Client client) throws ClassNotFoundException, SQLException, UnknownHostException {
         
         this.statement = this.storage.getConnection().prepareStatement(LOAD_BY_CLIENT);
-        this.statement.setInt(1, client.id);
+        this.statement.setInt(1, client.getId());
         this.resultset = this.statement.executeQuery();
         List<IpAlias> collection = this.getCollectionFromResultSet(this.resultset, client);
         this.resultset.close();
@@ -109,8 +109,8 @@ public class MySqlIpAliasDao implements IpAliasDao {
     public IpAlias loadByClientIp(Client client) throws ClassNotFoundException, SQLException, UnknownHostException {
         
         this.statement = this.storage.getConnection().prepareStatement(LOAD_BY_CLIENT_IP);
-        this.statement.setInt(1, client.id);
-        this.statement.setString(2, client.ip.getHostAddress());
+        this.statement.setInt(1, client.getId());
+        this.statement.setString(2, client.getIp().getHostAddress());
         this.resultset = this.statement.executeQuery();
         
         if (!this.resultset.next()) {    
@@ -140,10 +140,10 @@ public class MySqlIpAliasDao implements IpAliasDao {
     public void insert(IpAlias ipalias) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS);
-        this.statement.setInt(1, ipalias.client.id);
-        this.statement.setString(2, ipalias.ip.getHostAddress());
-        this.statement.setLong(3, ipalias.time_add.getMillis());
-        this.statement.setLong(4, ipalias.time_edit.getMillis());
+        this.statement.setInt(1, ipalias.getClient().getId());
+        this.statement.setString(2, ipalias.getIp().getHostAddress());
+        this.statement.setLong(3, ipalias.getTimeAdd().getMillis());
+        this.statement.setLong(4, ipalias.getTimeEdit().getMillis());
         
         // Executing the statement.
         this.statement.executeUpdate();
@@ -153,7 +153,7 @@ public class MySqlIpAliasDao implements IpAliasDao {
         if (!this.resultset.next()) throw new SQLException("Unable to retrieve generated primary key from `ipaliases` table");
         
         // Storing the new generated client id
-        ipalias.id = this.resultset.getInt(1);
+        ipalias.setId(this.resultset.getInt(1));
         
         this.resultset.close();
         this.statement.close();
@@ -172,11 +172,11 @@ public class MySqlIpAliasDao implements IpAliasDao {
     public void update(IpAlias ipalias) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(UPDATE);
-        this.statement.setInt(1, ipalias.client.id);
-        this.statement.setString(2, ipalias.ip.getHostAddress());
-        this.statement.setInt(3, ipalias.num_used);
-        this.statement.setLong(4, ipalias.time_edit.getMillis());
-        this.statement.setInt(5, ipalias.id);
+        this.statement.setInt(1, ipalias.getClient().getId());
+        this.statement.setString(2, ipalias.getIp().getHostAddress());
+        this.statement.setInt(3, ipalias.getNumUsed());
+        this.statement.setLong(4, ipalias.getTimeEdit().getMillis());
+        this.statement.setInt(5, ipalias.getId());
         
         // Executing the statement.
         this.statement.executeUpdate();
@@ -196,7 +196,7 @@ public class MySqlIpAliasDao implements IpAliasDao {
     public void delete(IpAlias ipalias) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(DELETE);
-        statement.setInt(1, ipalias.id);
+        statement.setInt(1, ipalias.getId());
         
         // Executing the statement.
         statement.executeUpdate();
