@@ -559,7 +559,7 @@ public class XmlConfiguration implements Configuration {
     /**
      * Read a human readable time notation from the configuration file and return
      * the correspondent amount of milliseconds as a <tt>long</tt><br>
-     * If an Exception occurrs the provided default value will be returned
+     * If an Exception occurs the provided default value will be returned
      * 
      * @author Mathias Van Malderen, Daniele Pantaleone
      * @param  section The name of the section from where to retrieve the value

@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 18 March, 2013
  * @package     com.orion.plugin
  **/
@@ -38,7 +38,6 @@ import com.orion.bot.Orion;
 import com.orion.command.Command;
 import com.orion.domain.Client;
 import com.orion.event.ClientConnectEvent;
-import com.orion.event.EventType;
 import com.orion.exception.CommandRuntimeException;
 import com.orion.exception.CommandSyntaxException;
 import com.orion.exception.EventInterruptedException;
@@ -122,7 +121,7 @@ public class LocationPlugin extends Plugin {
         // Getting the command section from configuration file
         Map<String, String> commands = this.config.getMap("commands");
         
-        // Iteraring throug all the commands so we can register them
+        // Iteraring through all the commands so we can register them
         for (Map.Entry<String, String> entry : commands.entrySet()) {
             
             String alias  = null;
@@ -140,8 +139,8 @@ public class LocationPlugin extends Plugin {
                 
         }
         
-        // Registering our specific events
-        this.registerEvent(EventType.EVT_CLIENT_CONNECT, "onClientConnect", ClientConnectEvent.class);
+        // Listen for produced events
+        this.eventBus.register(this);
            
     }
     
@@ -161,10 +160,10 @@ public class LocationPlugin extends Plugin {
     public void onClientConnect(ClientConnectEvent event) throws EventInterruptedException {
     
         // Copying the client reference
-        Client client = event.client;
+        Client client = event.getClient();
         
         // Storing the client country in the client object
-        Country country = this.geoip.getCountry(client.ip);
+        Country country = this.geoip.getCountry(client.getIp());
         client.setVar("country", country);   
         
         // Exit if we do not have to announce
@@ -172,7 +171,7 @@ public class LocationPlugin extends Plugin {
         if (!this.announce) return;
         
         // Displaying the client country in the game chat using the configuration message pattern
-        this.console.say(MessageFormat.format(this.messages.get("location_connect"), client.name, country.getName(), country.getCode()));
+        this.console.say(MessageFormat.format(this.messages.get("location_connect"), client.getName(), country.getName(), country.getCode()));
         
     }
     
@@ -196,7 +195,7 @@ public class LocationPlugin extends Plugin {
         // Checking if we got the correct number of parameters for the command execution
         if (command.getParamNum() != 1) throw new CommandSyntaxException("Invalid syntax");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         Client sclient = this.clients.getByMagic(command.client, command.getParamString(0));
         if (sclient == null) return;
         
@@ -204,14 +203,14 @@ public class LocationPlugin extends Plugin {
         if (!sclient.isVar("country")) {
             // We do not have a Country object
             // Retrieve a new one for the specified client
-            sclient.setVar("country", this.geoip.getCountry(sclient.ip));
+            sclient.setVar("country", this.geoip.getCountry(sclient.getIp()));
         }
         
         // Retrieving the client country
         Country country = (Country) sclient.getVar("country");
         
         // Displaying the client country in the game chat using the configuration message pattern
-        this.console.sayLoudOrPm(command, MessageFormat.format(this.messages.get("location_command"), sclient.name, country.getName(), country.getCode()));
+        this.console.sayLoudOrPm(command, MessageFormat.format(this.messages.get("location_command"), sclient.getName(), country.getName(), country.getCode()));
         
     }
     

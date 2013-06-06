@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 17 February, 2013
  * @package     com.orion.plugin
  **/
@@ -38,6 +38,7 @@ import java.util.Map;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Joiner;
+import com.google.common.eventbus.Subscribe;
 import com.orion.annotation.Dependency;
 import com.orion.annotation.Usage;
 import com.orion.bot.Orion;
@@ -56,10 +57,8 @@ import com.orion.domain.Penalty;
 import com.orion.event.ClientConnectEvent;
 import com.orion.event.ClientNameChangeEvent;
 import com.orion.event.ClientTeamChangeEvent;
-import com.orion.event.EventType;
 import com.orion.exception.CommandRuntimeException;
 import com.orion.exception.CommandSyntaxException;
-import com.orion.exception.EventInterruptedException;
 import com.orion.urt.Color;
 import com.orion.urt.Team;
 import com.orion.utility.Configuration;
@@ -128,7 +127,7 @@ public class AdminPlugin extends Plugin {
         // Getting the command section from configuration file
         Map<String, String> commands = this.config.getMap("commands");
         
-        // Iteraring throug all the commands so we can register them
+        // Iterating through all the commands so we can register them
         for (Map.Entry<String, String> entry : commands.entrySet()) {
             
             String alias  = null;
@@ -165,10 +164,8 @@ public class AdminPlugin extends Plugin {
             
         }
         
-        // Registering our specific events
-        this.registerEvent(EventType.EVT_CLIENT_CONNECT, "onClientConnect", ClientConnectEvent.class);
-        this.registerEvent(EventType.EVT_CLIENT_NAME_CHANGE, "onClientNameChange", ClientNameChangeEvent.class);
-        this.registerEvent(EventType.EVT_CLIENT_TEAM_CHANGE, "onClientTeamChange", ClientTeamChangeEvent.class);
+        // Listen for produced events
+        this.eventBus.register(this);
            
     }
     
@@ -183,12 +180,12 @@ public class AdminPlugin extends Plugin {
      * 
      * @author Daniele Pantaleone
      * @param  event The generated <tt>Event</tt>
-     * @throws EventInterruptedException If the connecting <tt>Client</tt> is banned
      **/
-    public void onClientConnect(ClientConnectEvent event) throws EventInterruptedException {
+    @Subscribe
+    public void onClientConnect(ClientConnectEvent event) {
     
         // Copying the client reference
-        Client client = event.client;
+        Client client = event.getClient();
         
         ///////////////////////////////////////////////////////////////////////////////////
         /////////////////////////////////// PENALIES //////////////////////////////////////
@@ -205,23 +202,17 @@ public class AdminPlugin extends Plugin {
                 
                 // Found at least one active BAN for the connecting client
                 // We'll kick him again for the same reason he was banned
-                this.log.debug("Connecting client @" + client.id + " on slot " + client.slot + " has an active BAN " + penalty.toString());
-                this.log.debug("Kicking client @" + client.id + " and stopping to process " + event.type.name());
-                this.console.kick(client, penalties.get(0).reason); 
-                
-                // Stopping the event processor from processing this Event
-                // We'll not remove the Client object from the Client list
-                // since an EVT_CLIENT_DISCONNECT will be instantly intercepted
-                // by the parser. We'll let it handle the object removing
-                throw new EventInterruptedException();
-                
+                this.debug("Connecting client " + client.getName() + "[@" + client.getId() + "] has an active BAN " + penalty.toString());
+                this.debug("Kicking client " + client.getName() + "[@" + client.getId() + "] and stopping to process " + event.getType().name());
+                this.console.kick(client, penalty.getReason()); 
+ 
             }
             
         } catch (ClassNotFoundException | SQLException | UnknownHostException | IndexOutOfBoundsException e) {
             
-            // Logging the Exception. Using a more verbose log message so we can idenfity
+            // Logging the Exception. Using a more verbose log message so we can identify
             // in a better way the function where such Exception as been raised and catched
-            this.error("Exception generated on " + event.type.name() , e);
+            this.error("Exception generated on " + event.getType().name(), e);
         
         }    
         
@@ -236,17 +227,23 @@ public class AdminPlugin extends Plugin {
             // a new entry in our database to keep tracking it
             Alias alias = this.aliases.getByClientName(client);
             
+            if (alias != null) {
+                // Upgrade the alias usage
+                alias.setNumUsed(alias.getNumUsed() + 1);
+            } else {
+                // Create a new alias for this client
+                alias = new Alias(client, client.getName());
+            }
+            
             // Saving the Alias object in the storage
-            if (alias != null) alias.num_used = alias.num_used + 1;
-            else alias = new Alias(client, client.name);
             this.aliases.save(alias);
             
             
         } catch (ClassNotFoundException | SQLException e) {
             
-            // Logging the Exception. Using a more verbose log message so we can idenfity
+            // Logging the Exception. Using a more verbose log message so we can identify
             // in a better way the function where such Exception as been raised and catched
-            this.error("Exception generated on " + event.type.name() , e);
+            this.error("Exception generated on " + event.getType().name(), e);
         
         }
         
@@ -261,16 +258,22 @@ public class AdminPlugin extends Plugin {
             // add a new entry in our database to keep tracking it
             IpAlias ipalias = this.ipaliases.getByClientIp(client);
             
-            // Saving the Alias object in the storage
-            if (ipalias != null) ipalias.num_used = ipalias.num_used + 1;
-            else ipalias = new IpAlias(client, client.ip);
+            if (ipalias != null) {
+                // Upgrade the ipalias usage
+                ipalias.setNumUsed(ipalias.getNumUsed() + 1);
+            } else {
+                // Create a new alias for this client
+                ipalias = new IpAlias(client, client.getIp());
+            }
+            
+            // Saving the IpAlias object in the storage
             this.ipaliases.save(ipalias);
             
         } catch (ClassNotFoundException | SQLException | UnknownHostException e) {
             
-            // Logging the Exception. Using a more verbose log message so we can idenfity
+            // Logging the Exception. Using a more verbose log message so we can identify
             // in a better way the function where such Exception as been raised and catched
-            this.error("Exception generated on " + event.type.name() , e);
+            this.error("Exception generated on " + event.getType().name(), e);
         
         }
         
@@ -283,10 +286,11 @@ public class AdminPlugin extends Plugin {
      * @author Daniele Pantaleone
      * @param  event The generated <tt>Event</tt>
      **/
+    @Subscribe
     public void onClientNameChange(ClientNameChangeEvent event) {
         
         // Copying the client reference
-        Client client = event.client;
+        Client client = event.getClient();
         
         try {
             
@@ -295,19 +299,23 @@ public class AdminPlugin extends Plugin {
             // a new entry in our database to keep tracking it
             Alias alias = this.aliases.getByClientName(client);
             
-            // Saving the alias in the storage
-            if (alias != null) alias.num_used = alias.num_used + 1;
-            else alias = new Alias(client, client.name);
-            this.aliases.save(alias);
+            if (alias != null) {
+                // Upgrade the alias usage
+                alias.setNumUsed(alias.getNumUsed() + 1);
+            } else {
+                // Create a new alias for this client
+                alias = new Alias(client, client.getName());
+            }
             
-            // Updating also the client
+            // Saving data
+            this.aliases.save(alias);
             this.clients.save(client);
             
         } catch (ClassNotFoundException | SQLException e) {
             
-            // Logging the Exception. Using a more verbose log message so we can idenfity
+            // Logging the Exception. Using a more verbose log message so we can identify
             // in a better way the function where such Exception as been raised and catched
-            this.error("Exception generated on " + event.type.name() , e);
+            this.error("Exception generated on " + event.getType().name() , e);
         
         }
         
@@ -321,18 +329,20 @@ public class AdminPlugin extends Plugin {
      * @author Daniele Pantaleone
      * @param  event The generated <tt>Event</tt>
      **/
+    @Subscribe
     public void onClientTeamChange(ClientTeamChangeEvent event) {
     	
     	// Copying the client reference
-        Client client = event.client;
+        Client client = event.getClient();
         
         // Checking if the player is locked
         if (client.isVar("locked_team")) {
         	        
         	Team team = (Team) client.getVar("locked_team");
-
-        	if ((team != client.team)) {
-        		// This client is currently locked to another team
+        	
+        	// If this client is locked to a team
+        	// don't let him move into another one
+        	if ((team != client.getTeam())) {
         		this.console.forceteam(client, team);
         		this.console.tell(client, "You are locked to: " + Color.getByTeam(team) + team.name());
         	}
@@ -379,7 +389,7 @@ public class AdminPlugin extends Plugin {
         for (Client admin: admins) {
             // Appending all the admin details to our collection
             // using the following format: nickname [level]
-            collection.add(admin.name + " [" + Color.GREEN + admin.group.level + Color.WHITE + "]");
+            collection.add(admin.getName() + " [" + Color.GREEN + admin.getGroup().getLevel() + Color.WHITE + "]");
         }
         
         // Printing the admin list in the game chat
@@ -408,7 +418,7 @@ public class AdminPlugin extends Plugin {
         // Checking if we got the correct number of parameters for the command execution
         if (command.getParamNum() < 1) throw new CommandSyntaxException("Invalid syntax");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         Client sclient = this.clients.getByMagic(command.client, command.getParamString(0));
         if (sclient == null) return;
         
@@ -417,9 +427,9 @@ public class AdminPlugin extends Plugin {
             throw new CommandRuntimeException(this.messages.get("ban_self"));
         }
         
-        if ((client.group.level <= sclient.group.level) && (client != sclient)) {
+        if ((client.getGroup().getLevel() <= sclient.getGroup().getLevel()) && (client != sclient)) {
             // The user is trying to kick an higher/equal level client
-            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("ban_denied"), sclient.name));
+            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("ban_denied"), sclient.getName()));
         }
         
         // Getting the ban reason if any
@@ -427,7 +437,7 @@ public class AdminPlugin extends Plugin {
         
         if (reason == null) {
             
-            if (client.group.level < this.noReasonLevel) {
+            if (client.getGroup().getLevel() < this.noReasonLevel) {
                 // Informing the player that he MUST supply a reason for the ban
                 throw new CommandSyntaxException("You must supply a reason");
             }
@@ -442,47 +452,70 @@ public class AdminPlugin extends Plugin {
                 
         }
         
-        
         ////////////////////////
         // PERFORMING THE BAN //
         ////////////////////////
         
-        
-        // Checking if Auth System is available
-        if ((this.console.getClass().equals(UrT42Console.class)) && 
-            (this.game.auth_enable != null) && 
-            (this.game.auth_enable == true) && 
-            (this.game.auth_owners != null)) {
+        // Check if the Auth System is enabled and correctly configured
+        // This will automatically exclude Urban Terror 4.1 console since the 
+        // auth boolean flag will remain false upon console initialization
+        if ((this.game.isAuthEnabled()) && (this.game.getAuthOwners() != null)) {
             
-            int days = 0, hours = 0;
-            int minutes = (int) (this.banDuration / 60000);
-            while (minutes >= 60) { hours += 1; minutes -= 60; }
-            while (hours >= 24) { days += 1; hours -= 24; }           
-            
-            // Sending the BAN through the auth server. We don't need
-            // to kick the player from the server. The Auth System
-            // will drop the player automatically after receiving the ban
-            this.console.authban(sclient, days, hours, minutes);
+            // Check if the client is authed
+            if (sclient.getAuth() != null) {
                 
+                int days = 0, hours = 0;
+                int minutes = (int) (this.banDuration / 60000);
+                while (minutes >= 60) { hours += 1; minutes -= 60; }
+                while (hours >= 24) { days += 1; hours -= 24; } 
+                
+                // Sending the BAN through the auth server. We don't need
+                // to kick the player from the server. The Auth System
+                // will drop the player automatically after receiving the ban
+                this.console.authban(sclient, days, hours, minutes);
+                
+            } else {
+                
+                // Client is not authed
+                this.console.kick(sclient, reason);
+             
+            }
+          
         } else {
             
             // Auth System not available
             this.console.kick(sclient, reason);
-            
         }
-        
         
         /////////////////////////
         // BAN IN-GAME DISPLAY //
         /////////////////////////        
         
-        
-        // Printing the ban message in the game chat. Everyone will be able to see the ban being issued
-        if (reason == null) this.console.say(MessageFormat.format(this.messages.get("tempban"), sclient.name, client.name, TimeParser.getHumanReadableTime(this.banDuration)));
-        else this.console.say(MessageFormat.format(this.messages.get("tempban_reason"), sclient.name, client.name, TimeParser.getHumanReadableTime(this.banDuration), reason));
+        if (reason == null) {
             
-        // Creating a new Penalty object for the matching Client and saving it permanently in the storage
-        this.penalties.insert(new Penalty(sclient, client, PenaltyType.BAN, reason, new DateTime(this.orion.timezone).plus(this.banDuration)));
+            this.console.say(MessageFormat.format(this.messages.get("tempban"), 
+                                                  sclient.getName(), 
+                                                  client.getName(), 
+                                                  TimeParser.getHumanReadableTime(this.banDuration)));
+        }
+        else {
+            
+            this.console.say(MessageFormat.format(this.messages.get("tempban_reason"), 
+                                                  sclient.getName(), 
+                                                  client.getName(), 
+                                                  TimeParser.getHumanReadableTime(this.banDuration), 
+                                                  reason));
+        }
+         
+        /////////////////////////
+        // STORING THE PENALTY //
+        /////////////////////////
+        
+        this.penalties.insert(new Penalty.Builder(sclient, PenaltyType.BAN)
+                                         .admin(client)
+                                         .reason(reason)
+                                         .timeExpire(new DateTime(this.orion.timezone).plus(this.banDuration))
+                                         .build());
         
     }
     
@@ -525,11 +558,8 @@ public class AdminPlugin extends Plugin {
         // Printing the nextmap name in the game chat so players will notice the cycle
         this.console.sayLoudOrPm(command, MessageFormat.format(this.messages.get("map_cycle"), nextmap));
         
-        try { Thread.sleep(1200);
-        } catch (InterruptedException e) {
-            // Don't do anything since this sleep is not really necessary
-            // It's just so players knows which map we are going to play
-        }
+        try { Thread.sleep(1200); } 
+        catch (InterruptedException e) { }
         
         // Cycle current map
         this.console.cyclemap();
@@ -629,14 +659,14 @@ public class AdminPlugin extends Plugin {
         // Checking if we got the correct number of parameters for the command execution
         if (command.getParamNum() != 1) throw new CommandSyntaxException("Invalid syntax");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         String search = command.getParamString(0);
         Client sclient = this.clients.getByMagic(command.client, search);
         if (sclient == null) return;
         
         // Printing the slot informations in the game chat
         this.console.sayLoudOrPm(command, "Found player matching " + Color.YELLOW + search + Color.WHITE + ": " + 
-                                          sclient.name + " [" + Color.GREEN + sclient.slot + Color.WHITE +"]");
+                                          sclient.getName() + " [" + Color.GREEN + sclient.getSlot() + Color.WHITE +"]");
         
     }
     
@@ -659,7 +689,7 @@ public class AdminPlugin extends Plugin {
         // Checking if we got the correct number of parameters for the command execution
         if (command.getParamNum() != 2) throw new CommandSyntaxException("Invalid syntax");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         sclient = this.clients.getByMagic(command.client, command.getParamString(0));
         if (sclient == null) return;
         
@@ -692,7 +722,7 @@ public class AdminPlugin extends Plugin {
         	if (lockTeam != team) {
         		
         		// Inform that the player cannot be forced since he's locked to another team
-        		this.console.tell(client, String.format("%s currently locked to: %s%s", ((client != sclient) ? sclient.name + " is" : "You are"), Color.getByTeam(lockTeam), lockTeam.name()));
+        		this.console.tell(client, String.format("%s currently locked to: %s%s", ((client != sclient) ? sclient.getName() + " is" : "You are"), Color.getByTeam(lockTeam), lockTeam.name()));
         		return;
         	
         	}
@@ -704,7 +734,7 @@ public class AdminPlugin extends Plugin {
         
         // Informing the player that he has been moved by an admin into another team
         this.console.tell(sclient, "You have been forced to: " + Color.getByTeam(team) + team.name());
-        if (sclient != client) this.console.tell(client, sclient.name + " has been forced to: " + Color.getByTeam(team) + team.name());
+        if (sclient != client) this.console.tell(client, sclient.getName() + " has been forced to: " + Color.getByTeam(team) + team.name());
         
     }
     
@@ -771,8 +801,8 @@ public class AdminPlugin extends Plugin {
             RegisteredCommand regcommand = this.regcommands.get(name);
             
             // Checking correct client minLevel
-            if (client.group.level < regcommand.minGroup.level) {
-                // Informing the client that he has not sufficiend access for this command
+            if (client.getGroup().getLevel() < regcommand.minGroup.getLevel()) {
+                // Informing the client that he has not sufficient access for this command
                 throw new CommandRuntimeException(MessageFormat.format(this.messages.get("help_no_access"), command.prefix.name, command.handle));
             }
             
@@ -790,7 +820,7 @@ public class AdminPlugin extends Plugin {
             for (Map.Entry<String, RegisteredCommand> entry : commands.entrySet()) {
                 
                 // No access for this command. Skip it!
-                if (client.group.level < entry.getValue().minGroup.level)
+                if (client.getGroup().getLevel() < entry.getValue().minGroup.getLevel())
                     continue;
                 
                 // Adding the command to the collection
@@ -841,13 +871,13 @@ public class AdminPlugin extends Plugin {
         }
         
         // Changing the Client group level and removing the command
-        client.group = this.groups.getByKeyword("superadmin");
-        this.log.trace(client.name + " [@" + client.id +"] has been registered as " + client.group.name + " [" + client.group.level + "]");
-        this.log.debug("Unregistering !iamgod command");
+        client.setGroup(this.groups.getByKeyword("superadmin"));
+        this.trace(client.getName() + " [@" + client.getId() +"] has been registered as " + client.getGroup().getName() + " [" + client.getGroup().getLevel() + "]");
+        this.debug("Unregistering !iamgod command");
         this.regcommands.remove("iamgod");
         
         // Printing the command result in the game chat
-        this.console.tell(client, "You are now a " + Color.GREEN + client.group.name);
+        this.console.tell(client, "You are now a " + Color.GREEN + client.getGroup().getName());
         
         // Saving the changes
         this.clients.save(client);
@@ -875,7 +905,7 @@ public class AdminPlugin extends Plugin {
         // Checking if we got the correct number of parameters for the command execution
         if (command.getParamNum() < 1) throw new CommandSyntaxException("Invalid syntax");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         Client sclient = this.clients.getByMagic(command.client, command.getParamString(0));
         if (sclient == null) return;
         
@@ -884,9 +914,9 @@ public class AdminPlugin extends Plugin {
             throw new CommandRuntimeException(this.messages.get("kick_self"));
         }
         
-        if ((client.group.level <= sclient.group.level) && (client != sclient)) {
+        if ((client.getGroup().getLevel() <= sclient.getGroup().getLevel()) && (client != sclient)) {
             // The user is trying to kick an higher/equal level client
-            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("kick_denied"), sclient.name));
+            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("kick_denied"), sclient.getName()));
         }
         
         // Getting the kick reason if any
@@ -894,16 +924,14 @@ public class AdminPlugin extends Plugin {
         
         if (reason == null) {
             
-            if (client.group.level < this.noReasonLevel) {
+            if (client.getGroup().getLevel() < this.noReasonLevel) {
                 // Informing the player that he MUST supply a reason for the kick
                 throw new CommandSyntaxException("You must supply a reason");
             }
             
             // Kicking the player
             this.console.kick(sclient);
-            
-            // Informing everyone that a player has been kicked from the server
-            this.console.say(MessageFormat.format(this.messages.get("kick"), sclient.name, client.name));
+            this.console.say(MessageFormat.format(this.messages.get("kick"), sclient.getName(), client.getName()));
             
         } else {
             
@@ -915,15 +943,15 @@ public class AdminPlugin extends Plugin {
             
             // Kicking the client
             this.console.kick(sclient, reason); 
-            
-            // Informing everyone that a player has been kicked from the server with a reason
-            this.console.say(MessageFormat.format(this.messages.get("kick_reason"), sclient.name, client.name, reason));
+            this.console.say(MessageFormat.format(this.messages.get("kick_reason"), sclient.getName(), client.getName(), reason));
 
         }
         
-        // Creating a new Penalty object for the matching Client
-        // and saving it permanently in the storage layer
-        this.penalties.insert(new Penalty(sclient, client, PenaltyType.KICK, reason));
+        // Storing the penalty in the storage
+        this.penalties.insert(new Penalty.Builder(sclient, PenaltyType.KICK)
+                                         .admin(client)
+                                         .reason(reason)
+                                         .build());
         
     }
     
@@ -947,13 +975,13 @@ public class AdminPlugin extends Plugin {
         // Checking if we got the correct number of parameters for the command execution
         if (command.getParamNum() > 1) throw new CommandSyntaxException("Invalid syntax");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         if (command.getParamNum() != 1) sclient = client;
         else sclient = this.clients.getByMagic(command.client, command.getParamString(0));
         
-        if ((client.group.level <= sclient.group.level) && (client != sclient)) {
+        if ((client.getGroup().getLevel() <= sclient.getGroup().getLevel()) && (client != sclient)) {
             // The user is trying to kill an higher/equal level client
-            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("kill_denied"), sclient.name));
+            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("kill_denied"), sclient.getName()));
         }
         
         // Performing the kill
@@ -984,7 +1012,7 @@ public class AdminPlugin extends Plugin {
         // Checking if we got the correct number of parameters for the command execution
         if (command.getParamNum() > 1) throw new CommandSyntaxException("Invalid syntax");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         if (command.getParamNum() != 1) sclient = client;
         else sclient = this.clients.getByMagicFull(command.client, command.getParamString(0));
         
@@ -992,8 +1020,11 @@ public class AdminPlugin extends Plugin {
         // on which to perform the leveltest
         if (sclient == null) return;
         
-        // Printing leveltest information in the game chat using the prebuilt format retrieved from the plugin configuration file
-        this.console.sayLoudOrPm(command, MessageFormat.format(this.messages.get("level_test"), sclient.name, sclient.id, sclient.group.name, sclient.group.level));
+        this.console.sayLoudOrPm(command, MessageFormat.format(this.messages.get("level_test"), 
+                                                               sclient.getName(), 
+                                                               sclient.getId(), 
+                                                               sclient.getGroup().getName(), 
+                                                               sclient.getGroup().getLevel()));
         
     }
     
@@ -1022,7 +1053,7 @@ public class AdminPlugin extends Plugin {
         for (Client sclient: clientlist) {
             // Appending all the client details to our collection
             // using the following format: [slot] nickname
-            collection.add("[" + Color.YELLOW + sclient.slot + Color.WHITE + "] " + sclient.name);
+            collection.add("[" + Color.YELLOW + sclient.getSlot() + Color.WHITE + "] " + sclient.getName());
         }
         
         // Printing the client list in the game chat
@@ -1049,13 +1080,13 @@ public class AdminPlugin extends Plugin {
         // Checking if we got the correct number of parameters for the command execution
         if (command.getParamNum() != 2) throw new CommandSyntaxException("Invalid syntax");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         sclient = this.clients.getByMagic(command.client, command.getParamString(0));
         if (sclient == null) return;
         
-        if ((client.group.level <= sclient.group.level) && (client != sclient)) {
+        if ((client.getGroup().getLevel() <= sclient.getGroup().getLevel()) && (client != sclient)) {
             // The user is trying to lock an higher/equal level client
-            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("lock_denied"), sclient.name));
+            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("lock_denied"), sclient.getName()));
         }
         
         try {
@@ -1090,7 +1121,7 @@ public class AdminPlugin extends Plugin {
         
         // Informing the player that he has been moved by an admin into another team
         this.console.tell(sclient, "You have been locked to: " + Color.getByTeam(team) + team.name());
-        if (sclient != client) this.console.tell(client, sclient.name + " has been locked to: " + Color.getByTeam(team) + team.name());
+        if (sclient != client) this.console.tell(client, sclient.getName() + " has been locked to: " + Color.getByTeam(team) + team.name());
         
     }
     
@@ -1115,15 +1146,15 @@ public class AdminPlugin extends Plugin {
         // Checking if we got the correct number of parameters for the command execution
         if (command.getParamNum() != 1) throw new CommandSyntaxException("Invalid syntax");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         Client sclient = this.clients.getByMagicFull(command.client, command.getParamString(0));
         if (sclient == null) return;
         
         // Printing lookup info in the game chat
-        this.console.sayLoudOrPm(command, client.name + " [" + Color.YELLOW + "@" + client.id + Color.WHITE + "] - Level: " + Color.YELLOW + client.group.name);
-        this.console.sayLoudOrPm(command, "Joined on: " + Color.YELLOW + client.time_add.toString(this.orion.timeformat, this.orion.locale));
-        this.console.sayLoudOrPm(command, "Last seen: " + Color.YELLOW + client.time_edit.toString(this.orion.timeformat, this.orion.locale));
-        this.console.sayLoudOrPm(command, "Last known host: " + Color.YELLOW + client.ip.getHostAddress());
+        this.console.sayLoudOrPm(command, client.getName() + " [" + Color.YELLOW + "@" + client.getId() + Color.WHITE + "] - Level: " + Color.YELLOW + client.getGroup().getName());
+        this.console.sayLoudOrPm(command, "Joined on: " + Color.YELLOW + client.getTimeAdd().toString(this.orion.timeformat, this.orion.locale));
+        this.console.sayLoudOrPm(command, "Last seen: " + Color.YELLOW + client.getTimeEdit().toString(this.orion.timeformat, this.orion.locale));
+        this.console.sayLoudOrPm(command, "Last known host: " + Color.YELLOW + client.getIp().getHostAddress());
         
     }
     
@@ -1190,16 +1221,16 @@ public class AdminPlugin extends Plugin {
         if (command.getParamNum() != 0) throw new CommandSyntaxException("Invalid syntax");
         
         // Getting the map list
-        if ((this.game.mapList == null) || (this.game.mapList.size() == 0))
-            this.game.mapList = this.console.getMapList();
+        if ((this.game.getMapList() == null) || (this.game.getMapList().size() == 0))
+            this.game.setMapList(this.console.getMapList());
 
-        if ((this.game.mapList == null) || (this.game.mapList.size() == 0)) {
+        if ((this.game.getMapList() == null) || (this.game.getMapList().size() == 0)) {
             // Inform the player that something went wrong
             throw new CommandRuntimeException("Unable to retrieve map list");
         }
         
         // Printing the map list in the game chat
-        this.console.sayLoudOrPm(command, MessageFormat.format(this.messages.get("map_list"), Color.YELLOW + Joiner.on(Color.WHITE + ", " + Color.YELLOW).join(this.game.mapList)));
+        this.console.sayLoudOrPm(command, MessageFormat.format(this.messages.get("map_list"), Color.YELLOW + Joiner.on(Color.WHITE + ", " + Color.YELLOW).join(this.game.getMapList())));
 
     }
     
@@ -1248,13 +1279,13 @@ public class AdminPlugin extends Plugin {
         // Checking if we got the correct number of parameters for the command execution
         if (command.getParamNum() != 1) throw new CommandSyntaxException("Invalid syntax");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         Client sclient = this.clients.getByMagic(command.client, command.getParamString(0));
         if (sclient == null) return;
         
-        if ((client.group.level <= sclient.group.level) && (client != sclient)) {
+        if ((client.getGroup().getLevel() <= sclient.getGroup().getLevel()) && (client != sclient)) {
             // The user is trying to nuke an higher/equal level client
-            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("nuke_denied"), sclient.name));
+            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("nuke_denied"), sclient.getName()));
         }
         
         // Performing the nuke
@@ -1304,7 +1335,7 @@ public class AdminPlugin extends Plugin {
         // Checking if we got the correct number of parameters for the command execution
         if (command.getParamNum() < 1) throw new CommandSyntaxException("Invalid syntax");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         Client sclient = this.clients.getByMagic(command.client, command.getParamString(0));
         if (sclient == null) return;
         
@@ -1313,9 +1344,9 @@ public class AdminPlugin extends Plugin {
             throw new CommandRuntimeException(this.messages.get("ban_self"));
         }
         
-        if ((client.group.level <= sclient.group.level) && (client != sclient)) {
+        if ((client.getGroup().getLevel() <= sclient.getGroup().getLevel()) && (client != sclient)) {
             // The user is trying to kick an higher/equal level client
-            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("ban_denied"), sclient.name));
+            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("ban_denied"), sclient.getName()));
         }
         
         // Getting the kick reason if any
@@ -1323,7 +1354,7 @@ public class AdminPlugin extends Plugin {
         
         if (reason == null) {
             
-            if (client.group.level < this.noReasonLevel) {
+            if (client.getGroup().getLevel() < this.noReasonLevel) {
                 // Informing the player that he MUST supply a reason for the ban
                 throw new CommandSyntaxException("You must supply a reason");
             }
@@ -1338,44 +1369,66 @@ public class AdminPlugin extends Plugin {
                 
         }
         
-        
         ////////////////////////
         // PERFORMING THE BAN //
         ////////////////////////
         
-        
         // Add the IP to banlist
         this.console.ban(sclient);
         
-        // Checking if Auth System is available
-        if ((this.console.getClass().equals(UrT42Console.class)) && 
-            (this.game.auth_enable != null) && 
-            (this.game.auth_enable == true) && 
-            (this.game.auth_owners != null)) {
+        // Check if the Auth System is enabled and correctly configured
+        // This will automatically exclude Urban Terror 4.1 console since the 
+        // auth boolean flag will remain false upon console initialization
+        if ((this.game.isAuthEnabled()) && (this.game.getAuthOwners() != null)) {
             
+            // Check if the client is authed
+            if (sclient.getAuth() != null) {
+                
                 // Sending the BAN through the auth server. We don't need
                 // to kick the player from the server. The Auth System
                 // will drop the player automatically after receiving the ban
                 this.console.authban(sclient, 0, 0, 0);
                 
-
+            } else {
+                
+                // Client is not authed
+                this.console.kick(sclient, reason);
+             
+            }
+          
         } else {
             
             // Auth System not available
             this.console.kick(sclient, reason);
-            
         }
         
         /////////////////////////
         // BAN IN-GAME DISPLAY //
         /////////////////////////        
         
-        // Printing the ban message in the game chat. Everyone will be able to see the ban being issued
-        if (reason == null) this.console.say(MessageFormat.format(this.messages.get("permban"), sclient.name, client.name));
-        else this.console.say(MessageFormat.format(this.messages.get("permban_reason"), sclient.name, client.name, reason));
+        if (reason == null) {
             
-        // Creating a new Penalty object for the matching Client and saving it permanently in the storage
-        this.penalties.insert(new Penalty(sclient, client, PenaltyType.BAN, reason));
+            this.console.say(MessageFormat.format(this.messages.get("permban"), 
+                                                  sclient.getName(), 
+                                                  client.getName()));
+            
+        }
+        else {
+            
+            this.console.say(MessageFormat.format(this.messages.get("permban_reason"), 
+                                                  sclient.getName(), 
+                                                  client.getName(), 
+                                                  reason));
+        }    
+        
+        /////////////////////////
+        // STORING THE PENALTY //
+        /////////////////////////
+        
+        this.penalties.insert(new Penalty.Builder(sclient, PenaltyType.BAN)
+                                         .admin(client)
+                                         .reason(reason)
+                                         .build());
         
     }
     
@@ -1432,15 +1485,15 @@ public class AdminPlugin extends Plugin {
         // Checking if we got the correct number of parameters for the command execution
         if (command.getParamNum() != 2) throw new CommandRuntimeException("Invalid command syntax");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         Client sclient = this.clients.getByMagicFull(command.client, command.getParamString(0));
         if (sclient == null) return;
         
         
         // Checking if the target is a higher level client
-        if ((client.group.level <= sclient.group.level) && (client != sclient)) {
+        if ((client.getGroup().getLevel() <= sclient.getGroup().getLevel()) && (client != sclient)) {
             // The user is trying to change the group of a higher/equal level client
-            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("putgroup_denied"), sclient.name));
+            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("putgroup_denied"), sclient.getName()));
         }
 
         
@@ -1453,25 +1506,25 @@ public class AdminPlugin extends Plugin {
             throw new CommandRuntimeException("Invalid group specified: " + Color.RED + command.getParamString(1));
         }
         
-        if ((newgroup.level >= client.group.level) && (client.group.level < 100)) {
+        if ((newgroup.getLevel() >= client.getGroup().getLevel()) && (client.getGroup().getLevel() < 100)) {
             // The user is trying to change a client level, to a level beyond his reach
-            throw new CommandRuntimeException("Group " + Color.RED + newgroup.name + Color.WHITE + " is beyond your reach");
+            throw new CommandRuntimeException("Group " + Color.RED + newgroup.getName() + Color.WHITE + " is beyond your reach");
         }
         
         if (sclient.inGroup(newgroup)) {
             // Target client is already in the specified group
-            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("putgroup_already"), sclient.name, newgroup.name));
+            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("putgroup_already"), sclient.getName(), newgroup.getName()));
         }
         
         // Changing the group
-        oldgroup = sclient.group;
-        sclient.group = newgroup;
-        this.log.trace(sclient.name + "[@" + sclient.id + "] group has been changed by " + client.name + "[@" + client.id + "]: " + 
-                       oldgroup.name + " [" + oldgroup.level +"] -> " + sclient.group.name + " [" + sclient.group.level + "]");
+        oldgroup = sclient.getGroup();
+        sclient.setGroup(newgroup);
+        this.log.trace(sclient.getName() + "[@" + sclient.getId() + "] group has been changed by " + client.getName() + "[@" + client.getId() + "]: " + 
+                       oldgroup.getName() + " [" + oldgroup.getLevel() +"] -> " + sclient.getGroup().getName() + " [" + sclient.getGroup().getLevel() + "]");
         
         // Informing both players on what happened
-        this.console.tell(client, sclient.name + " has been added in group: " + Color.GREEN + sclient.group.name);
-        this.console.tell(sclient, "You have been added in group: " + Color.GREEN + sclient.group.name);
+        this.console.tell(client, sclient.getName() + " has been added in group: " + Color.GREEN + sclient.getGroup().getName());
+        this.console.tell(sclient, "You have been added in group: " + Color.GREEN + sclient.getGroup().getName());
         
         // Saving the changes 
         this.clients.save(sclient);
@@ -1503,14 +1556,14 @@ public class AdminPlugin extends Plugin {
         // the client is already registered in the database
         Group guest = this.groups.getByKeyword("guest");
         
-        if (client.group.level >= guest.level) {
+        if (client.getGroup().getLevel() >= guest.getLevel()) {
             // The user is already registered
             throw new CommandRuntimeException("You are already registered");
         }
         
         // Registering the user
-        client.group = this.groups.getByKeyword("user");
-        this.console.tell(client, MessageFormat.format(this.messages.get("client_registered"), client.group.name));
+        client.setGroup(this.groups.getByKeyword("user"));
+        this.console.tell(client, MessageFormat.format(this.messages.get("client_registered"), client.getGroup().getName()));
         
         // Saving the new client group
         // permanently in the storage layer
@@ -1537,7 +1590,7 @@ public class AdminPlugin extends Plugin {
         // Checking if we got the correct number of parameters for the command execution
         if (command.getParamNum() < 2) throw new CommandSyntaxException("Invalid syntax");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         Client sclient = this.clients.getByMagic(command.client, command.getParamString(0));
         if (sclient == null) return;
         
@@ -1546,9 +1599,9 @@ public class AdminPlugin extends Plugin {
             throw new CommandRuntimeException(this.messages.get("run_self"));
         }
         
-        if ((client.group.level < sclient.group.level) && (client != sclient)) {
+        if ((client.getGroup().getLevel() < sclient.getGroup().getLevel()) && (client != sclient)) {
             // The user is trying to run a command as an higher level player
-            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("runas_denied"), sclient.name));
+            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("runas_denied"), sclient.getName()));
         }
         
         // Getting the command to be run as the target client
@@ -1570,7 +1623,7 @@ public class AdminPlugin extends Plugin {
         // Checking if the issued command actually exists
         if (!this.regcommands.containsKey(newcommand.handle)) {
             // The command to be issued as the target user is not registered
-            // Inform the client so he can eventualy try again
+            // Inform the client so he can eventually try again
             new CommandRuntimeException("Unable to find command: " + Color.YELLOW + command.prefix.name + Color.RED + newcommand.handle);
         }
         
@@ -1600,7 +1653,7 @@ public class AdminPlugin extends Plugin {
         String message = command.getParamStringConcat(0);
         
         // Printing the message in the game chat
-        this.console.say(MessageFormat.format(this.messages.get("say"), client.name, message));
+        this.console.say(MessageFormat.format(this.messages.get("say"), client.getName(), message));
         
     }
     
@@ -1691,13 +1744,13 @@ public class AdminPlugin extends Plugin {
         if (num < 1) throw new CommandSyntaxException("Invalid syntax");
         if (num > 2) throw new CommandSyntaxException("Too many parameters specified");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         Client sclient = this.clients.getByMagic(command.client, command.getParamString(0));
         if (sclient == null) return;
         
-        if ((client.group.level <= sclient.group.level) && (client != sclient)) {
+        if ((client.getGroup().getLevel() <= sclient.getGroup().getLevel()) && (client != sclient)) {
             // The user is trying to slap an higher/equal level client
-            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("slap_denied"), sclient.name));
+            throw new CommandRuntimeException(MessageFormat.format(this.messages.get("slap_denied"), sclient.getName()));
         }
         
         if (num == 2) {
@@ -1743,7 +1796,6 @@ public class AdminPlugin extends Plugin {
         if (command.getParamNum() != 0) throw new CommandSyntaxException("Invalid syntax");
         
         this.orion.reader.interrupt();
-        this.orion.eventproc.interrupt();
         this.orion.commandproc.interrupt();
         this.console.sayLoudOrPm(command, "Shutting down...");
         
@@ -1812,13 +1864,13 @@ public class AdminPlugin extends Plugin {
         // Checking if we got the correct number of parameters for the command execution
         if (command.getParamNum() != 1) throw new CommandSyntaxException("Invalid syntax");
         
-        // Retriving the correct client
+        // Retrieving the correct client
         sclient = this.clients.getByMagic(command.client, command.getParamString(0));
         if (sclient == null) return;
         
         if (!sclient.isVar("locked_team")) {
         	// There is no team lock on the specified client
-        	this.console.tell(client, "There is no team lock on " + Color.YELLOW + sclient.name);
+        	this.console.tell(client, "There is no team lock on " + Color.YELLOW + sclient.getName());
         	return;
         }
         
@@ -1827,7 +1879,7 @@ public class AdminPlugin extends Plugin {
 
         // Informing the player that he has been unlocked
         this.console.tell(sclient, "Your have been unlocked");
-        if (sclient != client) this.console.tell(client, sclient.name + " has been unlocked");
+        if (sclient != client) this.console.tell(client, sclient.getName() + " has been unlocked");
         
     }
     
