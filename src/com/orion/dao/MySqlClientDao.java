@@ -309,14 +309,19 @@ public class MySqlClientDao implements ClientDao {
     public void insert(Client client) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS);
-        this.statement.setInt(1, client.group.id);
-        this.statement.setString(2, client.name);
-        this.statement.setString(3, client.ip.getHostAddress());
-        this.statement.setString(4, client.guid);
-        if (client.auth != null) this.statement.setString(5, client.auth);
-        else this.statement.setNull(5, Types.VARCHAR);
-        this.statement.setLong(6, client.time_add.getMillis());
-        this.statement.setLong(7, client.time_edit.getMillis());
+        this.statement.setInt(1, client.getGroup().getId());
+        this.statement.setString(2, client.getName());
+        this.statement.setString(3, client.getIp().getHostAddress());
+        this.statement.setString(4, client.getGuid());
+        
+        if (client.getAuth() != null) {
+            this.statement.setString(5, client.getAuth());
+        } else {
+            this.statement.setNull(5, Types.VARCHAR);
+        }
+
+        this.statement.setLong(6, client.getTimeAdd().getMillis());
+        this.statement.setLong(7, client.getTimeEdit().getMillis());
         
         // Executing the statement
         this.statement.executeUpdate();
@@ -326,7 +331,7 @@ public class MySqlClientDao implements ClientDao {
         if (!this.resultset.next()) throw new SQLException("Unable to retrieve generated primary key from `clients` table");
         
         // Storing the new generated client id
-        client.id = this.resultset.getInt(1);
+        client.setId(this.resultset.getInt(1));
         
         this.resultset.close();
         this.statement.close();
@@ -345,15 +350,20 @@ public class MySqlClientDao implements ClientDao {
     public void update(Client client) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(UPDATE);
-        this.statement.setInt(1, client.group.id);
-        this.statement.setString(2, client.name);
-        this.statement.setInt(3, client.connections);
-        this.statement.setString(4, client.ip.getHostAddress());
-        this.statement.setString(5, client.guid);
-        if (client.auth != null) this.statement.setString(6, client.auth);
-        else this.statement.setNull(6, Types.VARCHAR);
-        this.statement.setLong(7, client.time_edit.getMillis());
-        this.statement.setInt(8, client.id);
+        this.statement.setInt(1, client.getGroup().getId());
+        this.statement.setString(2, client.getName());
+        this.statement.setInt(3, client.getConnections());
+        this.statement.setString(4, client.getIp().getHostAddress());
+        this.statement.setString(5, client.getGuid());
+        
+        if (client.getAuth() != null) {
+            this.statement.setString(6, client.getAuth());
+        } else {
+            this.statement.setNull(6, Types.VARCHAR);
+        }
+        
+        this.statement.setLong(7, client.getTimeEdit().getMillis());
+        this.statement.setInt(8, client.getId());
         
         // Executing the statement.
         this.statement.executeUpdate();
@@ -373,7 +383,7 @@ public class MySqlClientDao implements ClientDao {
     public void delete(Client client) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(DELETE);
-        statement.setInt(1, client.id);
+        statement.setInt(1, client.getId());
         
         // Executing the statement.
         statement.executeUpdate();
@@ -422,22 +432,18 @@ public class MySqlClientDao implements ClientDao {
      **/
     private Client getObjectFromCursor(ResultSet resultset) throws SQLException, UnknownHostException {
         
-        Group group = new Group(resultset.getInt("gr_id"), 
-                                resultset.getString("gr_name"), 
-                                resultset.getString("gr_keyword"), 
-                                resultset.getInt("gr_level"));
-        
-        return new Client(resultset.getInt("cl_id"), 
-                          group, 
-                          resultset.getString("cl_name"), 
-                          resultset.getInt("cl_connections"), 
-                          InetAddress.getByName(resultset.getString("cl_ip")),
-                          resultset.getString("cl_guid"), 
-                          resultset.getString("cl_auth"), 
-                          new DateTime(resultset.getLong("cl_time_add"), this.timezone), 
-                          new DateTime(resultset.getLong("cl_time_edit"), this.timezone));
-        
-
+        return new Client.Builder(InetAddress.getByName(resultset.getString("cl_ip")), resultset.getString("cl_guid"))
+                         .id(resultset.getInt("cl_id"))
+                         .group(new Group(resultset.getInt("gr_id"), 
+                                          resultset.getString("gr_name"), 
+                                          resultset.getString("gr_keyword"), 
+                                          resultset.getInt("gr_level")))
+                         .name(resultset.getString("cl_name"))
+                         .connections(resultset.getInt("cl_connections"))
+                         .auth(resultset.getString("cl_auth"))
+                         .timeAdd(new DateTime(resultset.getLong("cl_time_add"), this.timezone))
+                         .timeEdit(new DateTime(resultset.getLong("cl_time_edit"), this.timezone))
+                         .build();       
     
     }
 
