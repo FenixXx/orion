@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 29 January, 2013
  * @package     com.orion.dao
  **/
@@ -224,10 +224,10 @@ public class MySqlGroupDao implements GroupDao {
      **/
     public void insert(Group group) throws ClassNotFoundException, SQLException { 
         this.statement = this.storage.getConnection().prepareStatement(INSERT);
-        this.statement.setInt(1, group.id);
-        this.statement.setString(2, group.name);
-        this.statement.setString(3, group.keyword);
-        this.statement.setInt(4, group.level);
+        this.statement.setInt(1, group.getId());
+        this.statement.setString(2, group.getName());
+        this.statement.setString(3, group.getKeyword());
+        this.statement.setInt(4, group.getLevel());
         this.statement.executeUpdate();
         this.statement.close();
     }
@@ -243,10 +243,10 @@ public class MySqlGroupDao implements GroupDao {
      **/
     public void update(Group group) throws ClassNotFoundException, SQLException { 
         this.statement = this.storage.getConnection().prepareStatement(UPDATE);
-        this.statement.setString(1, group.name);
-        this.statement.setString(2, group.keyword);
-        this.statement.setInt(3, group.level);
-        this.statement.setInt(4, group.id);
+        this.statement.setString(1, group.getName());
+        this.statement.setString(2, group.getKeyword());
+        this.statement.setInt(3, group.getLevel());
+        this.statement.setInt(4, group.getId());
         this.statement.executeUpdate();
         this.statement.close(); 
     }
@@ -262,7 +262,7 @@ public class MySqlGroupDao implements GroupDao {
      **/
     public void delete(Group group) throws ClassNotFoundException, SQLException { 
         this.statement = this.storage.getConnection().prepareStatement(DELETE);
-        this.statement.setInt(1, group.id);
+        this.statement.setInt(1, group.getId());
         this.statement.executeUpdate();
         this.statement.close();
     }
