@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 30 January, 2013
  * @package     com.orion.dao
  **/
@@ -82,7 +82,7 @@ public class MySqlAliasDao implements AliasDao {
     public List<Alias> loadByClient(Client client) throws ClassNotFoundException, SQLException {
         
         this.statement = this.storage.getConnection().prepareStatement(LOAD_BY_CLIENT);
-        this.statement.setInt(1, client.id);
+        this.statement.setInt(1, client.getId());
         this.resultset = this.statement.executeQuery();
         List<Alias> collection = this.getCollectionFromResultSet(this.resultset, client);
         this.resultset.close();
@@ -105,8 +105,8 @@ public class MySqlAliasDao implements AliasDao {
     public Alias loadByClientName(Client client) throws ClassNotFoundException, SQLException {
         
         this.statement = this.storage.getConnection().prepareStatement(LOAD_BY_CLIENT_NAME);
-        this.statement.setInt(1, client.id);
-        this.statement.setString(2, client.name);
+        this.statement.setInt(1, client.getId());
+        this.statement.setString(2, client.getName());
         this.resultset = this.statement.executeQuery();
         
         if (!this.resultset.next()) {    
@@ -135,10 +135,10 @@ public class MySqlAliasDao implements AliasDao {
     public void insert(Alias alias) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS);
-        this.statement.setInt(1, alias.client.id);
-        this.statement.setString(2, alias.name);
-        this.statement.setLong(3, alias.time_add.getMillis());
-        this.statement.setLong(4, alias.time_edit.getMillis());
+        this.statement.setInt(1, alias.getClient().getId());
+        this.statement.setString(2, alias.getName());
+        this.statement.setLong(3, alias.getTimeAdd().getMillis());
+        this.statement.setLong(4, alias.getTimeEdit().getMillis());
         
         // Executing the statement
         this.statement.executeUpdate();
@@ -148,7 +148,7 @@ public class MySqlAliasDao implements AliasDao {
         if (!this.resultset.next()) throw new SQLException("Unable to retrieve generated primary key from `aliases` table");
         
         // Storing the new generated client id
-        alias.id = this.resultset.getInt(1);
+        alias.setId(this.resultset.getInt(1));
         
         this.resultset.close();
         this.statement.close();
@@ -167,11 +167,11 @@ public class MySqlAliasDao implements AliasDao {
     public void update(Alias alias) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(UPDATE);
-        this.statement.setInt(1, alias.client.id);
-        this.statement.setString(2, alias.name);
-        this.statement.setInt(3, alias.num_used);
-        this.statement.setLong(4, alias.time_edit.getMillis());
-        this.statement.setInt(5, alias.id);
+        this.statement.setInt(1, alias.getClient().getId());
+        this.statement.setString(2, alias.getName());
+        this.statement.setInt(3, alias.getNumUsed());
+        this.statement.setLong(4, alias.getTimeEdit().getMillis());
+        this.statement.setInt(5, alias.getId());
         
         // Executing the statement.
         this.statement.executeUpdate();
@@ -191,11 +191,11 @@ public class MySqlAliasDao implements AliasDao {
     public void delete(Alias alias) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(DELETE);
-        statement.setInt(1, alias.id);
+        this.statement.setInt(1, alias.getId());
         
         // Executing the statement.
-        statement.executeUpdate();
-        statement.close();
+        this.statement.executeUpdate();
+        this.statement.close();
         
     }
     
