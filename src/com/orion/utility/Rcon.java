@@ -28,6 +28,7 @@
 package com.orion.utility;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -36,7 +37,6 @@ import java.net.UnknownHostException;
 
 import org.apache.commons.logging.Log;
 
-import com.orion.bot.Orion;
 import com.orion.exception.RconException;
 
 public class Rcon {
@@ -64,9 +64,9 @@ public class Rcon {
      * @throws UnknownHostException If the IP address of a host could not be determined
      * @throws RconException If the RCON communication with the server is not working properly
      **/
-    public Rcon(String address, int port, String password, Orion orion) throws UnknownHostException, RconException {
+    public Rcon(String address, int port, String password, Log log) throws UnknownHostException, RconException {
         
-        this.log = orion.log;
+        this.log = log;
         this.password = password.trim();
         this.host = InetAddress.getByName(address);
         this.port = port;
@@ -100,26 +100,42 @@ public class Rcon {
      * @author Daniele Pantaleone
      * @param  command The RCON command to be sent to the server engine
      * @return A <tt>DatagramPacket</tt> with the RCON command ready to be sent to the server engine
+     * @throws UnsupportedEncodingException 
      **/
     private DatagramPacket getDatagramPacket(String command) {
-        
-        byte[] buff = command.getBytes();
-        byte[] send = new byte[buff.length + 5];
-        
-        send[0] = (byte)0xFF;
-        send[1] = (byte)0xFF;
-        send[2] = (byte)0xFF;
-        send[3] = (byte)0xFF;
-        
-        // Copying the command byte to byte into the byte array
-        // byte array that we are going to send on the UDP socket
-        for (int i = 0; i < buff.length; i++) send[i + 4] = buff[i];
-        
-        // Set the last byte to 0x00
-        send[buff.length + 4] = (byte)0x00;
-        
-        // Building and returning the DatagramPacket
-        return new DatagramPacket(send, send.length, this.host, this.port);
+    	
+    	final String SERVER_SUPPORTED_ENCODING = "UTF-8";
+    	
+    	try {
+    		
+    		// Need to specify a target encoding that is supported by the UrT server.
+    		// If no such encoding is explicitly specified, then the default platform encoding is used,
+    		// which may be configured as an encoding which is not supported by the UrT server.
+            byte[] buff = command.getBytes(SERVER_SUPPORTED_ENCODING);
+            byte[] send = new byte[buff.length + 5];
+            
+            send[0] = (byte)0xFF;
+            send[1] = (byte)0xFF;
+            send[2] = (byte)0xFF;
+            send[3] = (byte)0xFF;
+            
+            // Copying the command byte to byte into the byte array
+            // byte array that we are going to send on the UDP socket
+            for (int i = 0; i < buff.length; i++) send[i + 4] = buff[i];
+            
+            // Set the last byte to 0x00
+            send[buff.length + 4] = (byte)0x00;
+            
+            // Building and returning the DatagramPacket
+            return new DatagramPacket(send, send.length, this.host, this.port);
+            
+    	}
+    	catch (UnsupportedEncodingException ex) {
+    		
+    		log.error("Encoding [" + SERVER_SUPPORTED_ENCODING + "] not supported on this system.", ex);
+    		return null;
+    		
+    	}
    
     }
     
