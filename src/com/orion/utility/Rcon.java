@@ -103,14 +103,14 @@ public class Rcon {
      * @throws UnsupportedEncodingException 
      **/
     private DatagramPacket getDatagramPacket(String command) {
-    	
-    	final String SERVER_SUPPORTED_ENCODING = "UTF-8";
-    	
-    	try {
-    		
-    		// Need to specify a target encoding that is supported by the UrT server.
-    		// If no such encoding is explicitly specified, then the default platform encoding is used,
-    		// which may be configured as an encoding which is not supported by the UrT server.
+        
+        final String SERVER_SUPPORTED_ENCODING = "UTF-8";
+        
+        try {
+            
+            // Need to specify a target encoding that is supported by the UrT server.
+            // If no such encoding is explicitly specified, then the default platform encoding is used,
+            // which may be configured as an encoding which is not supported by the UrT server.
             byte[] buff = command.getBytes(SERVER_SUPPORTED_ENCODING);
             byte[] send = new byte[buff.length + 5];
             
@@ -129,13 +129,13 @@ public class Rcon {
             // Building and returning the DatagramPacket
             return new DatagramPacket(send, send.length, this.host, this.port);
             
-    	}
-    	catch (UnsupportedEncodingException ex) {
-    		
-    		log.error("Encoding [" + SERVER_SUPPORTED_ENCODING + "] not supported on this system.", ex);
-    		return null;
-    		
-    	}
+        }
+        catch (UnsupportedEncodingException ex) {
+            
+            log.error("Encoding [" + SERVER_SUPPORTED_ENCODING + "] not supported on this system.", ex);
+            return null;
+            
+        }
    
     }
     
