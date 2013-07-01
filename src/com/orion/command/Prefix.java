@@ -37,8 +37,8 @@ public enum Prefix {
     LOUD   ('@'),
     BIG    ('&');
     
-    private static final Map<Character,Prefix> prefixByChar = new HashMap<Character,Prefix>();
-    public final Character name;
+    private static final Map<Character, Prefix> prefixByChar = new HashMap<Character, Prefix>();
+    private final char name;
     
     
     static {  
@@ -59,6 +59,11 @@ public enum Prefix {
     }
     
     
+    public char getChar() {
+        return name;
+    }
+    
+    
     /**
      * Return the Prefix associated to the given identifier
      * 
@@ -75,5 +80,5 @@ public enum Prefix {
         return prefixByChar.get(name);
         
     }
- 
+    
 }

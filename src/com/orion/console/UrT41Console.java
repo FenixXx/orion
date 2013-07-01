@@ -54,8 +54,8 @@ import com.orion.utility.Splitter;
 
 public class UrT41Console implements Console {
     
-	protected static int MAX_SAY_STRLEN = 62;
-	
+    protected static int MAX_SAY_STRLEN = 62;
+    
     protected final Log log;
     protected final Rcon rcon;
     protected Game game;
@@ -74,7 +74,7 @@ public class UrT41Console implements Console {
      **/
     public UrT41Console(String address, int port, String password, Orion orion) throws UnknownHostException, RconException {
         
-    	this.rcon = new Rcon(address, port, password, orion);
+        this.rcon = new Rcon(address, port, password, orion.log);
         this.game = orion.game;
         this.log = orion.log;
         
@@ -174,34 +174,34 @@ public class UrT41Console implements Console {
      * @param  message The message to be printed
      **/
     public void bigtext(String message) {
-    	
-    	if (message.length() > MAX_SAY_STRLEN) {
-    		
-    		// Splitting the message into multiple sentences
-    		// In this way it won't overflow the game chat and it will print nicer
-    		List<String> collection = Splitter.split(message, MAX_SAY_STRLEN);
-    		
-    		for (String sentence: collection) {
-    			// Printing separate sentences. We'll also introduce a sleep
-    			// in between the messages since the a bigtext overlap a previous
-    			// printed message with a new one. It would be unreadable.
-    			sentence = sentence.trim();
-    			this.rcon.sendNoRead("bigtext \"" + Color.WHITE + sentence + "\"");
-    		
-				try { Thread.sleep(2000); } 
-				catch (InterruptedException e) {
-					this.log.error(e);
-				}
-				
-    		}
-    		
-    	} else {
-    		
-    		// Normal bigtext
-    		this.rcon.sendNoRead("bigtext \"" + Color.WHITE + message + "\"");
-    		
-    	}
-    	
+        
+        if (message.length() > MAX_SAY_STRLEN) {
+            
+            // Splitting the message into multiple sentences
+            // In this way it won't overflow the game chat and it will print nicer
+            List<String> collection = Splitter.split(message, MAX_SAY_STRLEN);
+            
+            for (String sentence: collection) {
+                // Printing separate sentences. We'll also introduce a sleep
+                // in between the messages since the a bigtext overlap a previous
+                // printed message with a new one. It would be unreadable.
+                sentence = sentence.trim();
+                this.rcon.sendNoRead("bigtext \"" + Color.WHITE + sentence + "\"");
+            
+                try { Thread.sleep(2000); } 
+                catch (InterruptedException e) {
+                    this.log.error(e);
+                }
+                
+            }
+            
+        } else {
+            
+            // Normal bigtext
+            this.rcon.sendNoRead("bigtext \"" + Color.WHITE + message + "\"");
+            
+        }
+        
     }
     
     
@@ -212,33 +212,33 @@ public class UrT41Console implements Console {
      * @param  message The message to be sent
      **/
     public void broadcast(String message) {
-    	
-    	if (message.length() > MAX_SAY_STRLEN) {
-    		
-    		// Splitting the message into multiple sentences
-    		// In this way it won't overflow the game chat and it will print nicer
-    		List<String> collection = Splitter.split(message, MAX_SAY_STRLEN);
-    		
-    		for (String sentence: collection) {
-    		
-    			// Sending the message
-    			sentence = sentence.trim();
-    			this.rcon.sendNoRead(Color.WHITE + sentence);
-    			
-    			try { Thread.sleep(1000); } 
-				catch (InterruptedException e) {
-					this.log.error(e);
-				}
-    			
-    		}
-    		
-    	} else {
-    		
-    		// Normal broadcast.
-    		this.rcon.sendNoRead(Color.WHITE + message);
-    		
-    	}
-    	
+        
+        if (message.length() > MAX_SAY_STRLEN) {
+            
+            // Splitting the message into multiple sentences
+            // In this way it won't overflow the game chat and it will print nicer
+            List<String> collection = Splitter.split(message, MAX_SAY_STRLEN);
+            
+            for (String sentence: collection) {
+            
+                // Sending the message
+                sentence = sentence.trim();
+                this.rcon.sendNoRead(Color.WHITE + sentence);
+                
+                try { Thread.sleep(1000); } 
+                catch (InterruptedException e) {
+                    this.log.error(e);
+                }
+                
+            }
+            
+        } else {
+            
+            // Normal broadcast.
+            this.rcon.sendNoRead(Color.WHITE + message);
+            
+        }
+        
     }
     
     
@@ -530,10 +530,10 @@ public class UrT41Console implements Console {
         
         if (matcher.matches()) {
             
-        	value = matcher.group("value");
+            value = matcher.group("value");
             if (value.trim().isEmpty()) { 
                 this.log.debug("Unable to retrieve CVAR value [ cvar : " + name + " ]: CVAR is not set");
-            	return null;
+                return null;
             }
             
             this.log.trace("Retrieved CVAR [ " + name + " : " + value + " ]");
@@ -557,8 +557,8 @@ public class UrT41Console implements Console {
     @SuppressWarnings("unchecked")
     public <V> V getCvar(String name, Class<V> c) {
         
-    	String value = this.getCvar(name);
-    	
+        String value = this.getCvar(name);
+        
         try {
             
             if (c == String.class) {
@@ -580,8 +580,8 @@ public class UrT41Console implements Console {
             return null;
         
         } catch (NumberFormatException e) {
-        	
-        	// Log the Exception
+            
+            // Log the Exception
             this.log.warn("Unable to convert CVAR value to " + c.getCanonicalName() + " [ cvar : " + name + " | value : " + value + " ]");
             return null;
         
@@ -639,26 +639,26 @@ public class UrT41Console implements Console {
      * @return A <tt>List</tt> of maps matching the given search key
      **/
     public List<String> getMapSoundingLike(String search) {
-    	
-    	List<String> collection = new LinkedList<String>();
-    	
-    	// Trimming and making lower case the search key
-    	search = search.toLowerCase().trim();
-    	
-    	// Server map list not computed yet. Build the map list
-    	if ((this.game.getMapList() == null) || (this.game.getMapList().size() == 0))
-    		this.game.setMapList(this.getMapList());
-    	
-    	// We were not able to retrieve the server map list
-    	if ((this.game.getMapList() == null) || (this.game.getMapList().size() == 0))
-    		return null;
-    	
-    	for (String map : this.game.getMapList())
+        
+        List<String> collection = new LinkedList<String>();
+        
+        // Trimming and making lower case the search key
+        search = search.toLowerCase().trim();
+        
+        // Server map list not computed yet. Build the map list
+        if ((this.game.getMapList() == null) || (this.game.getMapList().size() == 0))
+            this.game.setMapList(this.getMapList());
+        
+        // We were not able to retrieve the server map list
+        if ((this.game.getMapList() == null) || (this.game.getMapList().size() == 0))
+            return null;
+        
+        for (String map : this.game.getMapList())
             if ((map != null) && (map.toLowerCase().contains(search.toLowerCase())))
                 collection.add(map);
-    	
-    	return collection;
-    	
+        
+        return collection;
+        
     }
     
     
@@ -671,7 +671,7 @@ public class UrT41Console implements Console {
      **/
     public String getNextMap() {
         
-    	String path = null;
+        String path = null;
         String line = null;
         String firstmap = null;
         String tmpmap = null;
@@ -1092,32 +1092,32 @@ public class UrT41Console implements Console {
      * @param  message The message to print
      **/
     public void say(String message) {
-    	
-    	if (message.length() > MAX_SAY_STRLEN) {
-    		
-    		// Splitting the message into multiple sentences
-    		// In this way it won't overflow the game chat and it will print nicer
-    		List<String> collection = Splitter.split(message, MAX_SAY_STRLEN);
-    		
-    		for (String sentence: collection) {
-    			
-    			// Sending the message
-    			sentence = sentence.trim();
-    			this.rcon.sendNoRead("say " + Color.WHITE + sentence);
-    			
-    			try { Thread.sleep(1000); } 
-				catch (InterruptedException e) {
-					this.log.error(e);
-				}
-    			
-    		}
-    		
-    	} else {
-    		
-    		// Normal say command
+        
+        if (message.length() > MAX_SAY_STRLEN) {
+            
+            // Splitting the message into multiple sentences
+            // In this way it won't overflow the game chat and it will print nicer
+            List<String> collection = Splitter.split(message, MAX_SAY_STRLEN);
+            
+            for (String sentence: collection) {
+                
+                // Sending the message
+                sentence = sentence.trim();
+                this.rcon.sendNoRead("say " + Color.WHITE + sentence);
+                
+                try { Thread.sleep(1000); } 
+                catch (InterruptedException e) {
+                    this.log.error(e);
+                }
+                
+            }
+            
+        } else {
+            
+            // Normal say command
             this.rcon.sendNoRead("say " + Color.WHITE + message);
-    		
-    	}
+            
+        }
         
     }
     
@@ -1130,20 +1130,20 @@ public class UrT41Console implements Console {
      * @param  message The message to be printed
      **/
     public void sayLoudOrPm(Command command, String message) {
-    	
-    	switch (command.prefix) {
-    		
-    		case NORMAL:
-    			this.tell(command.client, message);
-    			break;
-    		case LOUD:
-    			this.say(message);
-    			break;
-    		case BIG:
-    			this.bigtext(message);
-    			break;
-    	
-    	}
+        
+        switch (command.getPrefix()) {
+            
+            case NORMAL:
+                this.tell(command.getClient(), message);
+                break;
+            case LOUD:
+                this.say(message);
+                break;
+            case BIG:
+                this.bigtext(message);
+                break;
+        
+        }
     }
     
     
@@ -1253,33 +1253,33 @@ public class UrT41Console implements Console {
      * @param  message The message to be sent
      **/
     public void tell(Client client, String message) {
-    	
-    	if (message.length() > MAX_SAY_STRLEN) {
-    		
-    		// Splitting the message into multiple sentences
-    		// In this way it won't overflow the game chat and it will print nicer
-    		List<String> collection = Splitter.split(message, MAX_SAY_STRLEN);
-    		
-    		for (String sentence: collection) {
-    			
-    			// Sending the message
-    			sentence = sentence.trim();
-    			this.rcon.sendNoRead("tell " + client.getSlot() + " " + Color.WHITE + sentence);
-    			
-    			try { Thread.sleep(1000); } 
-				catch (InterruptedException e) {
-					this.log.error(e);
-				}
-    			
-    		}
-    		
-    	} else {
-    		
-    		// Normal tell command
-    		this.rcon.sendNoRead("tell " + client.getSlot() + " " + Color.WHITE + message);
-    		
-    	}
-    	
+        
+        if (message.length() > MAX_SAY_STRLEN) {
+            
+            // Splitting the message into multiple sentences
+            // In this way it won't overflow the game chat and it will print nicer
+            List<String> collection = Splitter.split(message, MAX_SAY_STRLEN);
+            
+            for (String sentence: collection) {
+                
+                // Sending the message
+                sentence = sentence.trim();
+                this.rcon.sendNoRead("tell " + client.getSlot() + " " + Color.WHITE + sentence);
+                
+                try { Thread.sleep(1000); } 
+                catch (InterruptedException e) {
+                    this.log.error(e);
+                }
+                
+            }
+            
+        } else {
+            
+            // Normal tell command
+            this.rcon.sendNoRead("tell " + client.getSlot() + " " + Color.WHITE + message);
+            
+        }
+        
     }
     
     
@@ -1292,31 +1292,31 @@ public class UrT41Console implements Console {
      **/
     public void tell(int slot, String message) {
         
-    	if (message.length() > MAX_SAY_STRLEN) {
-    		
-    		// Splitting the message into multiple sentences
-    		// In this way it won't overflow the game chat and it will print nicer
-    		List<String> collection = Splitter.split(message, MAX_SAY_STRLEN);
-    		
-    		for (String sentence: collection) {
-    			
-    			// Sending the message
-    			sentence = sentence.trim();
-    			this.rcon.sendNoRead("tell " + slot + " " + Color.WHITE + sentence);
-    			
-    			try { Thread.sleep(1000); } 
-				catch (InterruptedException e) {
-					this.log.error(e);
-				}
-    			
-    		}
-    		
-    	} else {
-    		
-    		// Normal tell command
-    		this.rcon.sendNoRead("tell " + slot + " " + Color.WHITE + message);
-    		
-    	}
+        if (message.length() > MAX_SAY_STRLEN) {
+            
+            // Splitting the message into multiple sentences
+            // In this way it won't overflow the game chat and it will print nicer
+            List<String> collection = Splitter.split(message, MAX_SAY_STRLEN);
+            
+            for (String sentence: collection) {
+                
+                // Sending the message
+                sentence = sentence.trim();
+                this.rcon.sendNoRead("tell " + slot + " " + Color.WHITE + sentence);
+                
+                try { Thread.sleep(1000); } 
+                catch (InterruptedException e) {
+                    this.log.error(e);
+                }
+                
+            }
+            
+        } else {
+            
+            // Normal tell command
+            this.rcon.sendNoRead("tell " + slot + " " + Color.WHITE + message);
+            
+        }
 
     }
     

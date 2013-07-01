@@ -33,11 +33,11 @@ import com.orion.utility.BooleanParser;
 
 public class Command {
     
-	public Client  client;
-    public Prefix  prefix;
-    public String  handle;
-    public String  params;
-    public boolean force;
+    private Client  client;
+    private Prefix  prefix;
+    private String  handle;
+    private String  params;
+    private boolean force;
     
     
     /**
@@ -50,11 +50,7 @@ public class Command {
      * @param  params Extra command parameters
      **/
     public Command(Client client, Prefix prefix, String handle, String params) {
-    	this.client = client;
-        this.prefix = prefix;
-        this.handle = handle;
-        this.params = params;
-        this.force  = false;
+        this(client, prefix, handle, params, false);
     }
     
     
@@ -70,11 +66,11 @@ public class Command {
      *                the <tt>Client</tt> group level, <tt>false</tt> otherwise
      **/
     public Command(Client client, Prefix prefix, String handle, String params, boolean force) {
-    	this.client = client;
-        this.prefix = prefix;
-        this.handle = handle;
-        this.params = params;
-        this.force  = force;
+        setClient(client);
+        setPrefix(prefix);
+        setHandle(handle);
+        setParams(params);
+        setForce(force);
     }
     
     
@@ -85,13 +81,13 @@ public class Command {
      * @return The number of tokens extracted from the parameters <tt>String</tt>
      **/
     public int getParamNum() {
-    	
-    	// Don't bother if null or empty string
-    	if (((this.params == null)) || (this.params.isEmpty()))
-    		return 0;
-    	
-    	return this.params.split("\\s").length;
-    	
+        
+        // Don't bother if null or empty string
+        if (((this.params == null)) || (this.params.isEmpty()))
+            return 0;
+        
+        return this.params.split("\\s").length;
+        
     }
     
     
@@ -104,9 +100,9 @@ public class Command {
      * @return The command argument at the given index or <tt>null</tt> if there is no match
      **/
     public Boolean getParamBoolean(int index) throws ParserException {
-    	String token = this.getParamString(index);
-    	if (token != null) return BooleanParser.valueOf(token);
-    	return null;
+        String token = this.getParamString(index);
+        if (token != null) return BooleanParser.valueOf(token);
+        return null;
     }
     
     
@@ -119,9 +115,9 @@ public class Command {
      * @return The command argument at the given index or <tt>null</tt> if there is no match
      **/
     public Double getParamDouble(int index) throws NumberFormatException {
-    	String token = this.getParamString(index);
-    	if (token != null) return Double.valueOf(token);
-    	return null;
+        String token = this.getParamString(index);
+        if (token != null) return Double.valueOf(token);
+        return null;
     }
     
 
@@ -134,9 +130,9 @@ public class Command {
      * @return The command argument at the given index or <tt>null> if there is no match
      **/
     public Float getParamFloat(int index) throws NumberFormatException {
-    	String token = this.getParamString(index);
-    	if (token != null) return Float.valueOf(token);
-    	return null;
+        String token = this.getParamString(index);
+        if (token != null) return Float.valueOf(token);
+        return null;
     }
     
     
@@ -149,9 +145,9 @@ public class Command {
      * @return The command argument at the given index or <tt>null</tt> if there is no match
      **/
     public Integer getParamInt(int index) throws NumberFormatException {
-    	String token = this.getParamString(index);
-    	if (token != null) return Integer.valueOf(token);
-    	return null;
+        String token = this.getParamString(index);
+        if (token != null) return Integer.valueOf(token);
+        return null;
     }
     
     
@@ -164,9 +160,9 @@ public class Command {
      * @return The command argument at the given index or <tt>null</tt> if there is no match
      **/
     public Long getParamLong(int index) throws NumberFormatException {
-    	String token = this.getParamString(index);
-    	if (token != null) return Long.valueOf(token);
-    	return null;
+        String token = this.getParamString(index);
+        if (token != null) return Long.valueOf(token);
+        return null;
     }
     
     
@@ -179,9 +175,9 @@ public class Command {
      * @return The command argument at the given index or <tt>null</tt> if there is no match
      **/
     public Short getParamShort(int index) throws NumberFormatException {
-    	String token = this.getParamString(index);
-    	if (token != null) return Short.valueOf(token);
-    	return null;
+        String token = this.getParamString(index);
+        if (token != null) return Short.valueOf(token);
+        return null;
     }
     
     
@@ -241,5 +237,61 @@ public class Command {
         return params[index];
         
     }
-   
+
+    
+    private void setClient(Client client) {
+        if (client == null) throw new NullPointerException();
+        this.client = client;
+    }
+
+
+    private void setPrefix(Prefix prefix) {
+        if (prefix == null) throw new NullPointerException();
+        this.prefix = prefix;
+    }
+
+
+    private void setHandle(String handle) {
+        if (handle == null) throw new NullPointerException();
+        if (handle.trim().isEmpty()) throw new IllegalArgumentException();
+        
+        this.handle = handle;
+    }
+
+
+    private void setParams(String params) {
+        if (params == null) throw new NullPointerException();
+        this.params = params;
+    }
+
+
+    private void setForce(boolean force) {
+        this.force = force;
+    }
+    
+
+    public Client getClient() {
+        return client;
+    }
+
+    
+    public Prefix getPrefix() {
+        return prefix;
+    }
+    
+    
+    public String getHandle() {
+        return handle;
+    }
+
+    
+    public String getParams() {
+        return params;
+    }
+    
+    
+    public boolean isForce() {
+        return force;
+    }
+    
 }
