@@ -263,14 +263,9 @@ public class Callvote {
         private DateTime time_edit;
         
         
-        public Builder(Client client, String type) {
-            
-            if (client == null) throw new NullPointerException("client cannot be null");
-            if (type == null) throw new NullPointerException("type cannot be null");
-            
+        public Builder(Client client, String type) {            
             this.client = client;
             this.type = type;
-            
         }
         
         
