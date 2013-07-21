@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.1.1
  * @copyright   Daniele Pantaleone, 03 February, 2013
  * @package     com.orion.urt
  **/
@@ -39,8 +39,9 @@ public class Game {
     private Integer auth_owners;
     
     private String mapname;
-    private Gametype gametype;
     private String mapcycle;
+    
+    private Gametype gametype;
      
     private int minping = -1;
     private int maxping = -1;
@@ -116,17 +117,6 @@ public class Game {
     
     
     /**
-     * Return the current gametype
-     * 
-     * @author Daniele Pantaleone
-     * @return The current gametype
-     **/
-    public Gametype getGametype() {
-        return this.gametype;
-    }
-    
-    
-    /**
      * Return the current mapcycle file name
      * 
      * @author Daniele Pantaleone
@@ -134,6 +124,17 @@ public class Game {
      **/
     public String getMapcycle() {
         return this.mapcycle;
+    }
+    
+    
+    /**
+     * Return the current gametype
+     * 
+     * @author Daniele Pantaleone
+     * @return The current gametype
+     **/
+    public Gametype getGametype() {
+        return this.gametype;
     }
     
     
@@ -248,17 +249,6 @@ public class Game {
 
     
     /**
-     * Set the current gametype
-     * 
-     * @author Daniele Pantaleone
-     * @param  gametype The currently played gametype
-     **/
-    public void setGametype(Gametype gametype) {
-        this.gametype = gametype;
-    }
-
-    
-    /**
      * Set the current mapcycle file name
      * 
      * @author Daniele Pantaleone
@@ -266,6 +256,17 @@ public class Game {
      **/
     public void setMapcycle(String mapcycle) {
         this.mapcycle = mapcycle;
+    }
+    
+    
+    /**
+     * Set the current gametype
+     * 
+     * @author Daniele Pantaleone
+     * @param  gametype The currently played gametype
+     **/
+    public void setGametype(Gametype gametype) {
+        this.gametype = gametype;
     }
 
     
