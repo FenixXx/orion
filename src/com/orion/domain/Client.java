@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1.1
+ * @version     1.1.2
  * @copyright   Daniele Pantaleone, 05 October, 2012
  * @package     com.orion.domain
  **/
@@ -34,6 +34,7 @@ import java.util.Map;
 import org.joda.time.DateTime;
 
 import com.orion.urt.Team;
+import com.orion.utility.BooleanParser;
 
 public class Client {
     
@@ -244,8 +245,13 @@ public class Client {
      * @param  group The client <tt>Group</tt>
      **/
     public void setGroup(Group group) {
-        if (group == null) throw new NullPointerException("Client group can't be null");
+        
+        if (group == null) {
+            throw new NullPointerException("client group can't be NULL");
+        }
+        
         this.group = group;
+    
     }
 
 
@@ -268,8 +274,13 @@ public class Client {
      * @param  connections Amount of time this client has connected
      **/
     public void setConnections(int connections) {
-        if (this.connections < 1) throw new IllegalArgumentException("Number of connections cannot be lower than 1");
+        
+        if (this.connections < 1) {
+            throw new IllegalArgumentException("client number of connections can't be lower than 1");
+        }
+        
         this.connections = connections;
+    
     }
 
     
@@ -291,7 +302,6 @@ public class Client {
      * @param  guid The client GUID <tt>String</tt>
      **/
     public void setGuid(String guid) {
-        if (guid.length() != 32) throw new IllegalArgumentException("Unpure GUID detected. Must be 32 characters long");
         this.guid = guid.toUpperCase();
     }
 
@@ -303,7 +313,7 @@ public class Client {
      * @param  auth The client auth login
      **/
     public void setAuth(String auth) {
-        this.auth = auth;
+        this.auth = auth.toLowerCase();
     }
 
     
@@ -336,8 +346,13 @@ public class Client {
      * @param  slot The client slot number
      **/
     public void setSlot(Integer slot) {
-        if (slot < 0) throw new IllegalArgumentException("The slot number must be positive");
+        
+        if (slot < 0) {
+            throw new IllegalArgumentException("the slot number must be positive");
+        }
+        
         this.slot = slot;
+    
     }
 
     
@@ -396,6 +411,20 @@ public class Client {
     public Object getVar(String key) {
         return this.vars.containsKey(key) ? this.vars.get(key) : null;
     }
+    
+    
+    /**
+     * Return the <tt>Client</tt> variable associated to the given key
+     * 
+     * @author Daniele Pantaleone
+     * @param  key The key from which to fetch the variable in the <tt>HashMap</tt>
+     * @param  c The <tt>Class</tt> onto which to perform the variable conversion
+     * @return The <tt>Client</tt> variable associated to the specified key or <tt>null</tt> if there is no match
+     **/
+    @SuppressWarnings("unchecked")
+    public <V> V getVar(String key, Class<V> c) {
+        return this.vars.containsKey(key) ? (V) this.vars.get(key) : null;
+    } 
       
     
     /**
@@ -438,10 +467,20 @@ public class Client {
      * String object representation
      * 
      * @author Daniele Pantaleone
-     * @return A <tt>String</tt> representing the content of this object
+     * @return A <tt>String</tt> representing this object
      **/
-    public String toString() {    
-        return "[ id : " + this.getId() + " | name : " + this.getName() + " | level : " + this.getGroup().getLevel() + " | ip : " + this.getIp().getHostAddress() + " | guid : " + this.getGuid() + " | auth : " + this.getAuth() + " | connections: " + this.getConnections() + " | time_add: " + this.getTimeAdd().toString() + " | time_edit: " + this.getTimeEdit().toString() + " ]";
+    public String toString() {   
+        
+        return "[ id : " + this.getId() + " |" +
+                " name : " + this.getName() + " |" +
+                " level : " + this.getGroup().getLevel() + " |" +
+                " ip : " + this.getIp().getHostAddress() + " |" +
+                " guid : " + this.getGuid() + " |" +
+                " auth : " + this.getAuth() + " |" +
+                " connections: " + this.getConnections() + " |" +
+                " time_add: " + this.getTimeAdd().toString() + " |" +
+                " time_edit: " + this.getTimeEdit().toString() + " ]";
+        
     }
     
     
