@@ -34,7 +34,6 @@ import java.util.Map;
 import org.joda.time.DateTime;
 
 import com.orion.urt.Team;
-import com.orion.utility.BooleanParser;
 
 public class Client {
     
