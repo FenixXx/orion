@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Mathias Van Malderen
- * @version     1.0
+ * @version     1.1
  * @copyright   Mathias Van Malderen 09 July, 2012
  * @package     com.orion.utility
  **/
@@ -61,9 +61,17 @@ public class BooleanParser {
      * @throws ParserException If the input <tt>String</tt> can't be converted
      **/
     public static boolean parseBoolean(String str) throws ParserException {
+        
         Boolean value = stringToBoolean.get(str.toLowerCase());
-        if (value == null) throw new ParserException("Unable to parse string as a boolean: " + str);
+        
+        if (value == null) {
+            // The given string is not a key of our HashMap. Throw an Exception
+            // instead of returning null so top level layers will notice
+            throw new ParserException("Couldn't parse string as a boolean: " + str);
+        }
+        
         return value;
+    
     }
     
     
@@ -75,9 +83,17 @@ public class BooleanParser {
      * @throws ParserException If the input <tt>String</tt> can't be converted
      **/
     public static Boolean valueOf(String str) throws ParserException {
+        
         Boolean value = stringToBoolean.get(str.toLowerCase());
-        if (value == null) throw new ParserException("Unable to parse string as a Boolean: " + str);
+        
+        if (value == null) {
+            // The given string is not a key of our HashMap. Throw an Exception
+            // instead of returning null so top level layers will notice
+            throw new ParserException("Couldn't parse string as a Boolean: " + str);
+        }
+        
         return value;
+    
     }
     
 }
