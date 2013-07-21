@@ -111,7 +111,7 @@ public class Game {
      * @author Daniele Pantaleone
      * @return The current map name
      **/
-    public String getMapName() {
+    public String getMapname() {
         return this.mapname;
     }
     
