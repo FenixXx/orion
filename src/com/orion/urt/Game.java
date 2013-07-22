@@ -243,7 +243,7 @@ public class Game {
      * @author Daniele Pantaleone
      * @param  mapname The current map name
      */
-    public void setMapName(String mapname) {
+    public void setMapname(String mapname) {
         this.mapname = mapname;
     }
 

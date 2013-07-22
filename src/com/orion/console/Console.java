@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 10 February, 2013
  * @package     com.orion.console
  **/
@@ -32,6 +32,7 @@ import java.util.Map;
 
 import com.orion.command.Command;
 import com.orion.domain.Client;
+import com.orion.urt.Cvar;
 import com.orion.urt.Team;
 
 
@@ -243,24 +244,13 @@ public interface Console {
      
     
     /**
-     * Return a cvar value.
+     * Retrieve a CVAR from the server
      * 
      * @author Daniele Pantaleone
-     * @param  name The cvar name
-     * @return The cvar value as a String
+     * @param  name The CVAR name
+     * @return The <tt>Cvar</tt> object associated to the given name
      **/
-    public abstract String getCvar(String name);
-    
-    
-    /**
-     * Return a cvar value converted into the specified object class
-     * 
-     * @author Daniele Pantaleone
-     * @param  name The cvar name
-     * @param  c The class into which convert the cvar value
-     * @return The cvar value parsed according to the input class given
-     **/
-    public abstract <E> E getCvar(String name, Class<E> c);
+    public abstract Cvar getCvar(String name);
     
     
     /**
@@ -296,7 +286,8 @@ public interface Console {
      * Will return <tt>null</tt> if the operation doesn't succeed
      * 
      * @author Daniele Pantaleone
-     * @return The name of the nextmap set on the server or <tt>null</tt> if the operation doesn't succeed
+     * @return The name of the nextmap set on the server or <tt>null</tt> 
+     *         if the operation doesn't succeed
      **/
     public abstract String getNextMap();
         
