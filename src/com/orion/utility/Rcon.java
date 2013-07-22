@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 04 October, 2012
  * @package     com.orion.utility
  **/
@@ -41,17 +41,19 @@ import com.orion.exception.RconException;
 
 public class Rcon {
     
-    private static final int  PACKET_SIZE             = 1400;
-    private static final int  PACKET_TIMEOUT          = 2000;
-    private static final int  MULTIPLE_PACKET_TIMEOUT = 300;
-    private static final long SOCKET_DELAY            = 200;
+    private static final int      PACKET_SIZE             = 1400;
+    private static final int      PACKET_TIMEOUT          = 2000;
+    private static final int      MULTIPLE_PACKET_TIMEOUT = 300;
+    private static final long     SOCKET_DELAY            = 200;
+    
+    private static final String   Q3_COLOR_PATTERN        = "\\^[0-9]{1}";
     
     private final Log log;
-
-    private long lastCommandTime;
-    private String password;
+    
     private InetAddress host;
+    private String password;
     private int port; 
+    private long lastcmdtime;
     
     /**
      * Object constructor
@@ -67,12 +69,11 @@ public class Rcon {
     public Rcon(String address, int port, String password, Log log) throws UnknownHostException, RconException {
         
         this.log = log;
-        this.password = password.trim();
         this.host = InetAddress.getByName(address);
+        this.password = password.trim();
         this.port = port;
         
-        // Printing some RCON informations in the log so the user can check if he committed mistakes in the configuration file
-        this.log.debug("RCON configured [ host : " + this.host.getHostAddress() + " | port : " + this.port + " | password : " + this.password + " ]");
+        this.log.debug("RCON configured [ host : " + this.host.getHostAddress() + " | port : " + this.port + " ]");
         
         // Testing RCON utility
         this.log.debug("Testing RCON...");
@@ -99,10 +100,10 @@ public class Rcon {
      * 
      * @author Daniele Pantaleone
      * @param  command The RCON command to be sent to the server engine
+     * @throws RconException If the specified encoding is not supported by the server
      * @return A <tt>DatagramPacket</tt> with the RCON command ready to be sent to the server engine
-     * @throws UnsupportedEncodingException 
      **/
-    private DatagramPacket getDatagramPacket(String command) {
+    private DatagramPacket getDatagramPacket(String command) throws RconException {
         
         final String SERVER_SUPPORTED_ENCODING = "UTF-8";
         
@@ -130,11 +131,9 @@ public class Rcon {
             return new DatagramPacket(send, send.length, this.host, this.port);
             
         }
-        catch (UnsupportedEncodingException ex) {
-            
-            log.error("Encoding [" + SERVER_SUPPORTED_ENCODING + "] not supported on this system.", ex);
-            return null;
-            
+        catch (UnsupportedEncodingException e) {
+            // Throw our custom exception so top level layers will notice
+            throw new RconException("Encoding [" + SERVER_SUPPORTED_ENCODING + "] not supported on this system", e);
         }
    
     }
@@ -144,9 +143,10 @@ public class Rcon {
      * Write a command in the RCON console without returning the server response
      * 
      * @author Daniele Pantaleone 
-     * @param  command The command to be sent to the server engine
+     * @param  command The command to be sent to the server
+     * @throws RconException If the given command could not be executed
      **/
-    public void sendNoRead(String command) {
+    public void sendNoRead(String command) throws RconException {
         
         DatagramSocket socket = null;
         
@@ -154,10 +154,10 @@ public class Rcon {
             
             // Be sure not to overflow the server engine
             long currentTime = System.currentTimeMillis();
-            if ((currentTime - this.lastCommandTime) < SOCKET_DELAY)
-                Thread.sleep(SOCKET_DELAY - (currentTime - this.lastCommandTime));
+            if ((currentTime - this.lastcmdtime) < SOCKET_DELAY)
+                Thread.sleep(SOCKET_DELAY - (currentTime - this.lastcmdtime));
             
-            // Logging the RCON send command
+            // Logging the RCON command
             this.log.trace("RCON sending [" + this.host.getHostAddress() + ":" + this.port + "] " + command);
             
             // Creating the UDP socket
@@ -168,14 +168,13 @@ public class Rcon {
             socket.send(out);
 
             // Updating last command execution time
-            this.lastCommandTime = System.currentTimeMillis();
-
+            this.lastcmdtime = System.currentTimeMillis();
             
         } catch (IOException | InterruptedException e) {
-
-            // Logging the Exception
-            this.log.error("Unable to send RCON command: " + command, e);
             
+            // Throw our custom exception so top level layers will notice
+            throw new RconException("Unable to send RCON command: " + command, e);
+        
         } finally {
             
             // Closing the socket if it has been actually
@@ -195,10 +194,11 @@ public class Rcon {
      * returned by the server engine without parsing the server response
      * 
      * @author Daniele Pantaleone 
-     * @param  command The command to be sent to the server engine
+     * @param  command The command to be sent to the server
+     * @throws RconException If the given command could not be executed
      * @return A <tt>String</tt> with the parsed RCON server response
      **/
-    public String sendRead(String command) {
+    public String sendRead(String command) throws RconException {
         
         DatagramSocket socket = null;
         DatagramPacket packet = null;
@@ -208,8 +208,8 @@ public class Rcon {
             
             // Be sure not to overflow the server engine
             long currentTime = System.currentTimeMillis();
-            if ((currentTime - this.lastCommandTime) < SOCKET_DELAY)
-                Thread.sleep(SOCKET_DELAY - (currentTime - this.lastCommandTime));
+            if ((currentTime - this.lastcmdtime) < SOCKET_DELAY)
+                Thread.sleep(SOCKET_DELAY - (currentTime - this.lastcmdtime));
             
             // Logging the RCON send command
             this.log.trace("RCON sending [" + this.host.getHostAddress() + ":" + this.port + "] " + command);
@@ -242,20 +242,20 @@ public class Rcon {
                 
             } catch(SocketTimeoutException e) {
                 // Server didn't send more packets
+                // Just keep processing...
             }
             
             // Updating last command execution time
-            this.lastCommandTime = System.currentTimeMillis();
+            this.lastcmdtime = System.currentTimeMillis();
             
             return builder.substring(10)
-                          .replaceAll("\\^[0-9]{1}", "")
+                          .replaceAll(Q3_COLOR_PATTERN, "")
                           .trim();
             
         } catch (IOException | InterruptedException e) {
 
-            // Logging the Exception
-            this.log.error("Unable to send RCON command: " + command, e);
-            return null;
+            // Throw our custom exception so top level layers will notice
+            throw new RconException("Unable to send RCON command: " + command, e);
             
         } finally {
             
