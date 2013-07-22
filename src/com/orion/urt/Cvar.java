@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 21 July, 2013
  * @package     com.orion.urt
  **/
@@ -187,10 +187,8 @@ public class Cvar {
      **/
     public Float getFloat() throws NumberFormatException {
         
-        if (this.value != null) {
-            // Converting the CVAR string
+        if (this.value != null)
             return Float.valueOf(this.value);
-        }
         
         return null;
         
@@ -207,10 +205,8 @@ public class Cvar {
      **/
     public Double getDouble() throws NumberFormatException {
         
-        if (this.value != null) {
-            // Converting the CVAR string
+        if (this.value != null) 
             return Double.valueOf(this.value);
-        }
         
         return null;
         
@@ -227,10 +223,8 @@ public class Cvar {
      **/
     public Short getShort() throws NumberFormatException {
         
-        if (this.value != null) {
-            // Converting the CVAR string
+        if (this.value != null) 
             return Short.valueOf(this.value);
-        }
         
         return null;
         
@@ -247,10 +241,8 @@ public class Cvar {
      **/
     public Long getLong() throws NumberFormatException {
         
-        if (this.value != null) {
-            // Converting the CVAR string
+        if (this.value != null)
             return Long.valueOf(this.value);
-        }
         
         return null;
         
@@ -266,11 +258,9 @@ public class Cvar {
      **/
     public Boolean getBoolean() throws ParserException {
         
-        if (this.value != null) {
-            // Converting the CVAR string
+        if (this.value != null)
             return BooleanParser.valueOf(this.value);
-        }
-        
+
         return null;
         
     }
