@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 15 July, 2012
  * @package     com.orion.urt
  **/
@@ -32,12 +32,16 @@ public enum Hitlocation {
     HL_HEAD,
     HL_HELMET,
     HL_TORSO,
-    HL_KEVLAR,
     HL_VEST,
-    HL_ARMS,
-    HL_ARM_LEFT,
-    HL_ARM_RIGHT,
-    HL_LEGS,
-    HL_BODY;
+    HL_ARML,
+    HL_ARMR,
+    HL_GROIN,
+    HL_BUTT,
+    HL_LEGUL,
+    HL_LEGUR,
+    HL_LEGLL,
+    HL_LEGLR,
+    HL_FOOTL,
+    HL_FOOTR,
     
 }
