@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 03 February, 2013
  * @package     com.orion.urt
  **/
@@ -31,142 +31,142 @@ import java.util.List;
 
 public class Game {
     
-    private String fs_game;
-    private String fs_basepath;
-    private String fs_homepath;
+    private Cvar fs_game;
+    private Cvar fs_basepath;
+    private Cvar fs_homepath;
     
-    private boolean auth_enable;
-    private Integer auth_owners;
+    private Cvar auth_enable;
+    private Cvar auth_owners;
     
-    private String mapname;
-    private String mapcycle;
+    private Cvar mapname;
+    private Cvar mapcycle;
     
-    private Gametype gametype;
+    private Cvar gametype;
      
-    private int minping = -1;
-    private int maxping = -1;
-    private int maxclients = -1;
+    private Cvar minping;
+    private Cvar maxping;
+    private Cvar maxclients;
     
     private List<String> maplist;
     
     
     /**
-     * Return the fs_game name
+     * Return the fs_game name CVAR
      * 
      * @author Daniele Pantaleone
-     * @return The fs_game CVAR value
+     * @return The fs_game CVAR
      **/
-    public String getFsGame() {
+    public Cvar getFsGame() {
         return this.fs_game;
     }
     
     
     /**
-     * Return the fs_basepath
+     * Return the fs_basepath CVAR
      * 
      * @author Daniele Pantaleone
-     * @return The fs_basepath CVAR value
+     * @return The fs_basepath CVAR
      **/
-    public String getFsBasePath() {
+    public Cvar getFsBasePath() {
         return this.fs_basepath;
     }
     
     
     /**
-     * Return the fs_homepath
+     * Return the fs_homepath CVAR
      * 
      * @author Daniele Pantaleone
-     * @return The fs_homepath CVAR value
+     * @return The fs_homepath CVAR
      **/
-    public String getFsHomePath() {
+    public Cvar getFsHomePath() {
         return this.fs_homepath;
     }
     
     
     /**
-     * Tells whether the auth system is enabled
+     * Return the auth_enable CVAR
      * 
      * @author Daniele Pantaleone
-     * @return <tt>true</tt> if the auth system is enabled, <tt>false</tt> otherwise
+     * @return The auth_enable
      **/
-    public boolean isAuthEnabled() {
+    public Cvar getAuthEnable() {
         return this.auth_enable;
     }
     
     
     /**
-     * Return the auth_owners
+     * Return the auth_owners CVAR
      * 
      * @author Daniele Pantaleone
-     * @return The auth_owners CVAR value
+     * @return The auth_owners CVAR
      **/
-    public Integer getAuthOwners() {
+    public Cvar getAuthOwners() {
         return this.auth_owners;
     }
     
     
     /**
-     * Return the current map name
+     * Return the mapname CVAR
      * 
      * @author Daniele Pantaleone
-     * @return The current map name
+     * @return The mapname CVAR
      **/
-    public String getMapname() {
+    public Cvar getMapname() {
         return this.mapname;
     }
     
     
     /**
-     * Return the current mapcycle file name
+     * Return the g_mapcycle CVAR
      * 
      * @author Daniele Pantaleone
-     * @return The current mapcycle file name
+     * @return The g_mapcycle CVAR
      **/
-    public String getMapcycle() {
+    public Cvar getMapcycle() {
         return this.mapcycle;
     }
     
     
     /**
-     * Return the current gametype
+     * Return the g_gametype CVAR
      * 
      * @author Daniele Pantaleone
-     * @return The current gametype
+     * @return The g_gametype CVAR
      **/
-    public Gametype getGametype() {
+    public Cvar getGametype() {
         return this.gametype;
     }
     
     
     /**
-     * Return the sv_minping CVAR value
+     * Return the sv_minping CVAR
      * 
      * @author Daniele Pantaleone
-     * @return The sv_minping CVAR value
+     * @return The sv_minping CVAR
      **/
-    public int getMinPing() {
+    public Cvar getMinPing() {
         return this.minping;
     }
     
     
     /**
-     * Return the sv_maxping CVAR value
+     * Return the sv_maxping CVAR
      * 
      * @author Daniele Pantaleone
-     * @return The sv_maxping CVAR value
+     * @return The sv_maxping CVAR
      **/
-    public int getMaxPing() {
+    public Cvar getMaxPing() {
         return this.maxping;
     }
     
     
     /**
-     * Return the sv_maxclients CVAR value
+     * Return the sv_maxclients CVAR
      * 
      * @author Daniele Pantaleone
-     * @return The sv_maxclients CVAR value
+     * @return The sv_maxclients CVAR
      **/
-    public int getMaxClients() {
+    public Cvar getMaxClients() {
         return this.maxclients;
     }
     
@@ -186,9 +186,9 @@ public class Game {
      * Set the fs_game name
      * 
      * @author Daniele Pantaleone
-     * @param  fs_game The fs_game CVAR value
+     * @param  fs_game The fs_game CVAR
      **/
-    public void setFsGame(String fs_game) {
+    public void setFsGame(Cvar fs_game) {
         this.fs_game = fs_game;
     }
 
@@ -197,9 +197,9 @@ public class Game {
      * Set the fs_basepath
      * 
      * @author Daniele Pantaleone
-     * @param  fs_basepath The fs_basepath CVAR value
+     * @param  fs_basepath The fs_basepath CVAR
      **/
-    public void setFsBasePath(String fs_basepath) {
+    public void setFsBasePath(Cvar fs_basepath) {
         this.fs_basepath = fs_basepath;
     }
     
@@ -208,9 +208,9 @@ public class Game {
      * Set the fs_homepath
      * 
      * @author Daniele Pantaleone
-     * @param  fs_homepath The fs_homepath CVAR value
+     * @param  fs_homepath The fs_homepath CVAR
      **/
-    public void setFsHomePath(String fs_homepath) {
+    public void setFsHomePath(Cvar fs_homepath) {
         this.fs_homepath = fs_homepath;
     }
 
@@ -219,9 +219,9 @@ public class Game {
      * Set the auth_enable
      * 
      * @author Daniele Pantaleone
-     * @param  auth_enable The auth_enable CVAR value converted as a <tt>boolean</tt>
+     * @param  auth_enable The auth_enable CVAR
      **/
-    public void setAuthEnable(boolean auth_enable) {
+    public void setAuthEnable(Cvar auth_enable) {
         this.auth_enable = auth_enable;
     }
 
@@ -230,9 +230,9 @@ public class Game {
      * Set the auth_owners
      * 
      * @author Daniele Pantaleone
-     * @param  auth_owners The auth_owners CVAR value
+     * @param  auth_owners The auth_owners CVAR
      **/
-    public void setAuthOwners(Integer auth_owners) {
+    public void setAuthOwners(Cvar auth_owners) {
         this.auth_owners = auth_owners;
     }
 
@@ -241,9 +241,9 @@ public class Game {
      * Set the map name
      * 
      * @author Daniele Pantaleone
-     * @param  mapname The current map name
+     * @param  mapname The mapname CVAR
      */
-    public void setMapname(String mapname) {
+    public void setMapname(Cvar mapname) {
         this.mapname = mapname;
     }
 
@@ -252,9 +252,9 @@ public class Game {
      * Set the current mapcycle file name
      * 
      * @author Daniele Pantaleone
-     * @param  mapcycle The current mapcycle file name
+     * @param  mapcycle The g_mapcycle CVAR
      **/
-    public void setMapcycle(String mapcycle) {
+    public void setMapcycle(Cvar mapcycle) {
         this.mapcycle = mapcycle;
     }
     
@@ -263,42 +263,42 @@ public class Game {
      * Set the current gametype
      * 
      * @author Daniele Pantaleone
-     * @param  gametype The currently played gametype
+     * @param  gametype The g_gametype CVAR
      **/
-    public void setGametype(Gametype gametype) {
+    public void setGametype(Cvar gametype) {
         this.gametype = gametype;
     }
 
     
     /**
-     * Set the sv_minping CVAR value
+     * Set the sv_minping CVAR
      * 
      * @author Daniele Pantaleone
-     * @param  minping the sv_minping CVAR value
+     * @param  minping the sv_minping CVAR
      **/
-    public void setMinPing(int minping) {
+    public void setMinPing(Cvar minping) {
         this.minping = minping;
     }
 
     
     /**
-     * Set the sv_maxping CVAR value
+     * Set the sv_maxping CVAR
      * 
      * @author Daniele Pantaleone
-     * @param  minping the sv_maxping CVAR value
+     * @param  minping the sv_maxping CVAR
      **/
-    public void setMaxPing(int maxping) {
+    public void setMaxPing(Cvar maxping) {
         this.maxping = maxping;
     }
     
     
     /**
-     * Set the sv_maxclients CVAR value
+     * Set the sv_maxclients CVAR
      * 
      * @author Daniele Pantaleone
-     * @param maxclients The sv_maxclients CVAR value
+     * @param maxclients The sv_maxclients CVAR
      **/
-    public void setMaxClients(int maxclients) {
+    public void setMaxClients(Cvar maxclients) {
         this.maxclients = maxclients;
     }
     
