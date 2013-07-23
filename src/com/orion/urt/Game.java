@@ -95,7 +95,7 @@ public class Game {
      *         if the CVAR has not been retrieved and stored yet
      **/
     public Cvar getCvar(String name) {
-        return this.isCvar(name) ? this.cvarlist.get(name) : null;
+        return this.isCvar(name) ? this.cvarlist.get(name.toLowerCase()) : null;
     }
     
     
@@ -104,11 +104,10 @@ public class Game {
      * NOTE: this method doesn't query the game server
      * 
      * @author Daniele Pantaleone
-     * @param  name The CVAR name
      * @param  cvar The <tt>Cvar</tt> object to be stored
      **/
-    public void setCvar(String name, Cvar cvar) {
-        this.cvarlist.put(name, cvar);
+    public void setCvar(Cvar cvar) {
+        this.cvarlist.put(cvar.getName(), cvar);
     }
     
     
@@ -119,9 +118,8 @@ public class Game {
      * @author Daniele Pantaleone
      **/
     public void clear() {
-        this.cvarlist.clear();
         this.maplist.clear();
+        this.cvarlist.clear();
     }
    
-    
 }

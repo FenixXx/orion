@@ -52,7 +52,7 @@ public class Cvar {
             throw new NullPointerException("CVAR name can't be NULL");
         }
         
-        this.name = name;
+        this.name = name.toLowerCase();
         this.value = value;
     }
     

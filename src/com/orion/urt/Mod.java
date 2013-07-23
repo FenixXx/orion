@@ -40,7 +40,6 @@ public enum Mod {
     MOD_TARGET_LASER,
     MOD_TRIGGER_HURT,
     MOD_CHANGE_TEAM,
-    UT_MOD_WEAPON,
     UT_MOD_KNIFE,
     UT_MOD_KNIFE_THROWN,
     UT_MOD_BERETTA,
@@ -55,8 +54,6 @@ public enum Mod {
     UT_MOD_BLED,
     UT_MOD_KICKED,
     UT_MOD_HEGRENADE,
-    UT_MOD_FLASHGRENADE,
-    UT_MOD_SMOKEGRENADE,
     UT_MOD_SR8,
     UT_MOD_SACRIFICE,
     UT_MOD_AK103,
@@ -69,6 +66,8 @@ public enum Mod {
     UT_MOD_HK69_HIT,
     UT_MOD_M4,
     UT_MOD_GLOCK,
+    UT_MOD_COLT1911,
+    UT_MOD_MAC11,
     UT_MOD_FLAG,
     UT_MOD_GOOMBA;
   

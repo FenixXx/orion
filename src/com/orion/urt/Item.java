@@ -55,6 +55,8 @@ public enum Item {
     UT_WP_NEGEV,
     UT_WP_M4,
     UT_WP_GLOCK,
+    UT_WP_COLT1911,
+    UT_WP_MAC11,
     UT_WP_GRENADE_HE,
     UT_WP_GRENADE_SMOKE,
     UT_WP_BOMB;
