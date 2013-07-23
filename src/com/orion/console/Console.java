@@ -20,426 +20,496 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 10 February, 2013
  * @package     com.orion.console
  **/
 
 package com.orion.console;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 import com.orion.command.Command;
 import com.orion.domain.Client;
+import com.orion.exception.ParserException;
+import com.orion.exception.RconException;
 import com.orion.urt.Cvar;
 import com.orion.urt.Team;
 
-
 public interface Console {
     
-    
     /**
-     * Ban a client from the server using the FS Auth System
+     * Ban a <tt>Client</tt> from the server using the FS Auth System
      * 
      * @author Daniele Pantaleone
-     * @param  client The client to be banned
+     * @param  slot The slot of the <tt>Client</tt> who is going to be banned
      * @param  days The number of days of the ban
      * @param  hours The number of hours of the ban
      * @param  mins The number of minutes of the ban
-     * @throws UnsupportedOperationException If the RCON command is not supported by the console implementation
+     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract void authban(Client client, int days, int hours, int mins) throws UnsupportedOperationException;
+    public void authban(int slot, int days, int hours, int mins) throws UnsupportedOperationException, RconException;
     
     
     /**
-     * Ban a client from the server using the FS Auth System
+     * Ban a <tt>Client</tt> from the server using the FS Auth System
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the client to be banned
+     * @param  client The <tt>Client</tt> who is going to be banned
      * @param  days The number of days of the ban
      * @param  hours The number of hours of the ban
      * @param  mins The number of minutes of the ban
-     * @throws UnsupportedOperationException If the RCON command is not supported by the console implementation
+     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract void authban(int slot, int days, int hours, int mins) throws UnsupportedOperationException;
+    public void authban(Client client, int days, int hours, int mins) throws UnsupportedOperationException, RconException;
     
     
     /**
-     * Fetch FS Auth System informations for the specified client
+     * Permban a <tt>Client</tt> from the server using the FS Auth System
      * 
      * @author Daniele Pantaleone
-     * @param  client The client whose informations needs to be retrieved
-     * @throws UnsupportedOperationException If the RCON command is not supported by the console implementation
-     * @return Map<String, String>
+     * @param  slot The slot of the <tt>Client</tt> who is going to be banned permanently
+     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract Map<String, String> authwhois(Client client) throws UnsupportedOperationException;
+    public void authpermban(int slot) throws UnsupportedOperationException, RconException;
     
     
     /**
-     * Fetch FS Auth System informations for the specified client
+     * Permban a <tt>Client</tt> from the server using the FS Auth System
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the client whose informations needs to be retrieved
-     * @throws UnsupportedOperationException If the RCON command is not supported by the console implementation
-     * @return Map<String, String>
+     * @param  client The <tt>Client</tt> who is going to be banned permanently
+     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract Map<String, String> authwhois(int slot) throws UnsupportedOperationException;
-    
+    public void authpermban(Client client) throws UnsupportedOperationException, RconException;
+        
     
     /**
-     * Ban a player from the server permanently.
+     * Fetch FS Auth System informations for the specified <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
-     * @param  client The client to ban from the server
+     * @param  slot The slot of the <tt>Client</tt> whose informations needs to be retrieved
+     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
+     * @throws RconException If the RCON command fails in being executed
+     * @throws ParserException If the auth-whois response couldn't be parsed correctly
+     * @return A <tt>Map</tt> containing the auth-whois command response
      **/
-    public abstract void ban(Client client);
+    public Map<String, String> authwhois(int slot) throws UnsupportedOperationException, RconException, ParserException;
     
     
     /**
-     * Ban an ip address from the server permanently.
+     * Fetch FS Auth System informations for the specified <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
-     * @param  ip The IP address to ban from the server
+     * @param  client The <tt>Client</tt> whose informations needs to be retrieved
+     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
+     * @throws RconException If the RCON command fails in being executed
+     * @throws ParserException If the auth-whois response couldn't be parsed correctly
+     * @return A <tt>Map</tt> containing the auth-whois command response
      **/
-    public abstract void ban(String ip);
+    public Map<String, String> authwhois(Client client) throws UnsupportedOperationException, RconException, ParserException;
     
     
     /**
-     * Write a bold message in the middle of the screen of all players.
-     * The message is going to disappear in few seconds (almost 3).
+     * Ban an IP address from the server permanently
+     * 
+     * @author Daniele Pantaleone
+     * @param  ip The IP address to be banned 
+     * @throws RconException If the RCON command fails in being executed
+     **/
+    public void ban(String ip) throws RconException;
+    
+    
+    /**
+     * Ban a <tt>Client</tt> IP address from the server permanently
+     * 
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> whose IP address is going to be banned
+     * @throws RconException If the RCON command fails in being executed
+     **/
+    public void ban(Client client) throws RconException;
+    
+    
+    /**
+     * Write a bold message in the middle of the screen
      * 
      * @author Daniele Pantaleone
      * @param  message The message to be printed
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract void bigtext(String message);
+    public void bigtext(String message) throws RconException;
     
     
     /**
-     * Broadcast a message in the top-left screen.
+     * Broadcast a message in the top-left screen
      * 
      * @author Daniele Pantaleone
      * @param  message The message to be sent
+     * @throws RconException If the RCON commands fails in being executed
      **/
-    public abstract void broadcast(String message);
+    public void broadcast(String message) throws RconException;
     
     
     /**
      * Cycle the current map on the server
      * 
      * @author Daniele Pantaleone
+     * @throws RconException If the RCON commands fails in being executed
      **/
-    public abstract void cyclemap();
-    
-    /**
-     * Dump user information for the specified client.
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The client you want to retrieve informations
-     * @return A Map<String,String> with the dumped result or return null if the player is not connected anymore
-     **/
-    public abstract Map<String, String> dumpuser(Client client);
+    public void cyclemap() throws RconException;
     
     
     /**
-     * Dump user information for the specified player slot.
+     * Retrieve userinfo data for the specified <tt>Client</tt> slot number
      * 
      * @author Daniele Pantaleone
-     * @param  slot The player slot on which perform the dumpuser command
-     * @return A Map<String,String> with the dumped result or return null if the player is not connected anymore
+     * @param  slot The slot of the <tt>Client</tt> whose informations needs to be retrieved
+     * @throws RconException If the <tt>Client</tt> informations couldn't be retrieved
+     * @return A <tt>Map</tt> containing userinfo data or <tt>null</tt> 
+     *         if the <tt>Client</tt> is not connected anymore
      **/
-    public abstract Map<String, String> dumpuser(int slot);
+    public Map<String, String> dumpuser(int slot) throws RconException;
+    
+    
+    /**
+     * Retrieve userinfo data for the specified <tt>Client</tt>
+     * 
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> whose informations needs to be retrieved
+     * @throws RconException If the <tt>Client</tt> informations couldn't be retrieved
+     * @return A <tt>Map</tt> containing userinfo data or <tt>null</tt> 
+     *         if the <tt>Client</tt> is not connected anymore
+     **/
+    public Map<String, String> dumpuser(Client client) throws RconException;
+      
+    
+    /**
+     * Force a <tt>Client</tt> in the blue team
+     * 
+     * @author Daniele Pantaleone
+     * @param  slot The slot of the <tt>Client</tt> who is going to be forced in the blue team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
+     **/
+    public void forceblue(int slot) throws RconException;
+    
+    
+    /**
+     * Force a <tt>Client</tt> in the blue team
+     * 
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> who is going to be forced in the blue team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
+     **/
+    public void forceblue(Client client) throws RconException;
+    
+    
+    /**
+     * Force a <tt>Client</tt> in the free team (aka autojoin)
+     * 
+     * @author Daniele Pantaleone
+     * @param  slot The slot of the <tt>Client</tt> who is going to be forced in the free team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
+     **/
+    public void forcefree(int slot) throws RconException;
+    
+    
+    /**
+     * Force a <tt>Client</tt> in the free team (aka autojoin)
+     * 
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> who is going to be forced in the free team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
+     **/
+    public void forcefree(Client client) throws RconException;
+    
+    
+    /**
+     * Force a <tt>Client</tt> in the red team
+     * 
+     * @author Daniele Pantaleone
+     * @param  slot The slot of the <tt>Client</tt> who is going to be forced in the red team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
+     **/
+    public void forcered(int slot) throws RconException;
+    
+    
+    /**
+     * Force a <tt>Client</tt> in the red team
+     * 
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> who is going to be forced in the red team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
+     **/
+    public void forcered(Client client) throws RconException;
+    
+    
+    /**
+     * Force a <tt>Client</tt> in the spectator team
+     * 
+     * @author Daniele Pantaleone
+     * @param  slot The slot of the <tt>Client</tt> who is going to be forced in the spectator team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
+     **/
+    public void forcespec(int slot) throws RconException;
+    
+    
+    /**
+     * Force a <tt>Client</tt> in the spectator team
+     * 
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> who is going to be forced in the spectator team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
+     **/
+    public void forcespec(Client client) throws RconException;
+    
+    
+    /**
+     * Force a <tt>Client</tt> in the specified team
+     *
+     * @author Daniele Pantaleone
+     * @param  slot The slot of the <tt>Client</tt> who is going to be moved
+     * @param  team The <tt>Team</tt> where to force the player in
+     * @throws RconException If the <tt>Client</tt> fails in being moved
+     **/
+    public void forceteam(int slot, Team team) throws RconException;
+    
+    
+    /**
+     * Force a <tt>Client</tt> in the specified team
+     *
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> who is going to be moved
+     * @param  team The <tt>Team</tt> where to force the player in
+     * @throws RconException If the <tt>Client</tt> fails in being moved
+     **/
+    public void forceteam(Client client, Team team) throws RconException;
         
-    
-    /**
-     * Force a player in the blue team.
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The client who is going to be forced in the blue team
-     **/
-    public abstract void forceblue(Client client);
-    
-    
-    /**
-     * Force a player in the blue team.
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be forced in the blue team
-     **/
-    public abstract void forceblue(int slot);
-    
-    
-    /**
-     * Force a player in the free team (autojoin).
-     *
-     * @author Daniele Pantaleone
-     * @param  client The client who is going to be forced
-     **/
-    public abstract void forcefree(Client client);
-    
-    
-    /**
-     * Force a player in the free team (autojoin).
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be forced
-     **/
-    public abstract void forcefree(int slot);
-    
-    
-    /**
-     * Force a player in the red team.
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The client who is going to be forced in the red team
-     **/
-    public abstract void forcered(Client client);
-    
-    
-    /**
-     * Force a player in the red team.
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be forced in the red team
-     **/
-    public abstract void forcered(int slot);
-    
-    
-    /**
-     * Force a player in the spectator team.
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The client who is going to be forced in the spectators team
-     **/
-    public abstract void forcespec(Client client);
-    
-    
-    /**
-     * Force a player in the spectator team.
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be forced in the spectators team
-     **/
-    public abstract void forcespec(int slot);
-    
-    
-    /**
-     * Force a player in the specified team.
-     *
-     * @author Daniele Pantaleone
-     * @param  client The client who is going to be forced
-     * @param  team The team where to force the player in
-     **/
-    public abstract void forceteam(Client client, Team team);
-    
-    
-    /**
-     * Force a player in the specified team.
-     *
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be forced
-     * @param  team The team where to force the player in
-     **/
-    public abstract void forceteam(int slot, Team team);
-     
     
     /**
      * Retrieve a CVAR from the server
      * 
      * @author Daniele Pantaleone
      * @param  name The CVAR name
-     * @return The <tt>Cvar</tt> object associated to the given name
+     * @throws RconException If the CVAR could not be retrieved form the server
+     * @return The <tt>Cvar</tt> object associated to the given CVAR name or <tt>null</tt> 
+     *         if such CVAR is not set on the server
      **/
-    public abstract Cvar getCvar(String name);
+    public Cvar getCvar(String name) throws RconException;
     
-    
+        
     /**
-     * Return the current map name.
+     * Return the current map name
      * 
      * @author Daniele Pantaleone
+     * @throws RconException If the current map name couldn't be retrieved
      * @return The current map name 
      **/
-    public abstract String getMap();
+    public String getMap() throws RconException;
     
     
     /**
-     * Return a list of available maps.
+     * Return a <tt>List</tt> of available maps
      * 
      * @author Daniele Pantaleone
-     * @return A list of all the maps available on the server
+     * @throws RconException If the map list couldn't be retrieved
+     * @return A <tt>List</tt> of all the maps available on the server
      **/
-    public abstract List<String> getMapList();
+    public List<String> getMapList() throws RconException;
     
     
     /**
      * Return a <tt>List</tt> of maps matching the given search key
      * 
      * @author Daniele Pantaleone
-     * @param  search The map name search <tt>String</tt>
+     * @param  search The name of the map to search (or a part of it)
+     * @throws RconException If the list of available maps couldn't be computed
      * @return A <tt>List</tt> of maps matching the given search key
      **/
-    public abstract List<String> getMapSoundingLike(String search);
+    public List<String> getMapSoundingLike(String search) throws RconException;
     
     
     /**
-     * Return the name of the nextmap set on the server<br>
-     * Will return <tt>null</tt> if the operation doesn't succeed
+     * Return the name of the nextmap set on the server
      * 
      * @author Daniele Pantaleone
+     * @throws RconException If an RCON command fails in being executed
+     * @throws FileNotFoundException If the mapcycle file couldn't be found
+     * @throws IOException If there is an error while reading the mapcycle file
      * @return The name of the nextmap set on the server or <tt>null</tt> 
-     *         if the operation doesn't succeed
+     *         if it can't be computed
      **/
-    public abstract String getNextMap();
-        
+    public String getNextMap() throws RconException, FileNotFoundException, IOException;
     
+ 
     /**
-     * Return an List containing the result of the "/rcon players" command.
+     * Return a <tt>List</tt> containing the result of the <tt>/rcon players</tt> command
      * 
      * @author Daniele Pantaleone
-     * @return A list containing players informations
+     * @throws RconException If we couldn't fetch informations from the server
+     * @return A <tt>List</tt> containing players informations
      **/
-    public abstract List<List<String>> getPlayers();
+    public List<List<String>> getPlayers() throws RconException;
     
     
     /**
-     * Return an List containing the result of the "/rcon status" command.
+     * Return a <tt>List</tt> containing the result of the <tt>/rcon status</tt> command
      * 
      * @author Daniele Pantaleone
-     * @return A list containing status informations
+     * @throws RconException If we couldn't fetch informations from the server
+     * @return A <tt>List</tt> containing status informations
      **/
-    public abstract List<List<String>> getStatus();
+    public List<List<String>> getStatus() throws RconException;
     
     
     /**
-     * Kick the specified client from the server.
+     * Kick the specified <tt>Client</tt> from the server
      * 
      * @author Daniele Pantaleone
-     * @param  client The client who is going to be kicked from the server
+     * @param  client The slot of the <tt>Client</tt> who is going to be kicked from the server
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract void kick(Client client);
+    public void kick(int slot) throws RconException;
     
     
     /**
-     * Kick the specified client from the server.
+     * Kick the specified <tt>Client</tt> from the server
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be kicked from the server
+     * @param  client The <tt>Client</tt> who is going to be kicked from the server
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract void kick(int slot);
+    public void kick(Client client) throws RconException;
     
     
     /**
-     * Kick the specified client from the server by specifying a reason.
+     * Kick the specified <tt>Client</tt> from the server by specifying a reason
      * 
      * @author Daniele Pantaleone
-     * @param  client The client who is going to be kicked from the server
-     * @param  reason The reason why the client is going to be kicked
+     * @param  slot The slot of the <tt>Client</tt> who is going to be kicked from the server
+     * @param  reason The reason why the <tt>Client</tt> is going to be kicked
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract void kick(Client client, String reason);
+    public void kick(int slot, String reason) throws RconException;
     
     
     /**
-     * Kick the specified client from the server by specifying a reason.
+     * Kick the specified <tt>Client</tt> from the server by specifying a reason
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be kicked from the server
-     * @param  reason The reason why the player with the specified slot is going to be kicked
+     * @param  client The <tt>Client</tt> who is going to be kicked from the server
+     * @param  reason The reason why the <tt>Client</tt> is going to be kicked
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract void kick(int slot, String reason);
-    
+    public void kick(Client client, String reason) throws RconException;
+   
     
     /**
-     * Instantly kill a player.
+     * Instantly kill a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
-     * @param  client The client who is going to be killed
-     * @throws UnsupportedOperationException If the RCON command is not supported by the console implementation
+     * @param  slot The slot of the <tt>Client</tt> who is going to be killed
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract void kill(Client client) throws UnsupportedOperationException;
+    public void kill(int slot) throws RconException;
     
     
     /**
-     * Instantly kill a player.
+     * Instantly kill a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be killed
-     * @throws UnsupportedOperationException If the RCON command is not supported by the console implementation
+     * @param  client The <tt>Client</tt> who is going to be killed
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract void kill(int slot) throws UnsupportedOperationException;
+    public void kill(Client client) throws RconException;
     
     
     /**
-     * Change server current map.
+     * Spawn the server onto a new level
      * 
      * @author Daniele Pantaleone
-     * @param  mapname The name of the map to load
+     * @param  mapname The name of the level to load
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract void map(String mapname);
+    public void map(String mapname) throws RconException;
     
     
     /**
-     * Mute a player.
+     * Mute a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone 
-     * @param  client The client who is going to be muted
+     * @param  slot The slot of the <tt>Client</tt> who is going to be muted
+     * @throws RconException If the <tt>Client</tt> couldn't be muted
      **/
-    public abstract void mute(Client client);
+    public void mute(int slot) throws RconException;
     
     
     /**
-     * Mute a player.
+     * Mute a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone 
-     * @param  slot The slot of the player who is going to be muted
+     * @param  client The <tt>Client</tt> who is going to be muted
+     * @throws RconException If the <tt>Client</tt> couldn't be muted
      **/
-    public abstract void mute(int slot);
+    public void mute(Client client) throws RconException;
     
     
     /**
-     * Mute a player.
+     * Mute a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone 
-     * @param  client The client who is going to be muted
-     * @param  seconds The amount of seconds after which the mute will expire
+     * @param  slot The slot of the <tt>Client</tt> who is going to be muted
+     * @param  seconds The amount of seconds the <tt>Client</tt> will be muted
+     * @throws RconException If the <tt>Client</tt> couldn't be muted
      **/
-    public abstract void mute(Client client, int seconds);
+    public void mute(int slot, int seconds) throws RconException;
     
     
     /**
-     * Mute a player.
+     * Mute a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone 
-     * @param  slot The slot of the player who is going to be muted
-     * @param  seconds The amount of seconds after which the mute will expire
+     * @param  client The <tt>Client</tt> who is going to be muted
+     * @param  seconds The amount of seconds the <tt>Client</tt> will be muted
+     * @throws RconException If the <tt>Client</tt> couldn't be muted
      **/
-    public abstract void mute(int slot, int seconds);
+    public void mute(Client client, int seconds) throws RconException;
     
-     
+
     /**
-     * Nuke a player.
+     * Nuke a <tt>Client</tt>
      * 
-     * @author Daniele Pantaleone
-     * @param  client The client who is going to be nuked
+     * @author Daniele Pantaleone 
+     * @param  slot The slot of the <tt>Client</tt> who is going to be nuked
+     * @throws RconException If the <tt>Client</tt> couldn't be nuked
      **/
-    public abstract void nuke(Client client);
-    
-    
-    /**
-     * Nuke a player.
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be nuked
-     **/
-    public abstract void nuke(int slot);
+    public void nuke(int slot) throws RconException;
     
     
     /**
-     * Print a message to the in-game chat.
+     * Nuke a <tt>Client</tt>
+     * 
+     * @author Daniele Pantaleone 
+     * @param  client The <tt>Client</tt> who is going to be nuked
+     * @throws RconException If the <tt>Client</tt> couldn't be nuked
+     **/
+    public void nuke(Client client) throws RconException;
+    
+    
+    /**
+     * Print a message in the game chat
      * 
      * @author Daniele Pantaleone
-     * @param  message The message to print
+     * @param  message The message to be printed
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract void say(String message);
+    public void say(String message) throws RconException;
     
     
     /**
@@ -448,136 +518,162 @@ public interface Console {
      * @author Daniele Pantaleone
      * @param  command The command issued
      * @param  message The message to be printed
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract void sayLoudOrPm(Command command, String message);
+    public void sayLoudOrPm(Command command, String message) throws RconException;
+      
+    
+    /**
+     * Set a CVAR value
+     * 
+     * @author Daniele Pantaleone
+     * @param  name The name of the CVAR
+     * @param  value The value to assign to the CVAR
+     * @throws RconException If the CVAR could not be set
+     **/
+    public void setCvar(String name, Object value) throws RconException;
     
     
     /**
-     * Set a cvar value.
+     * Set a CVAR value
      * 
      * @author Daniele Pantaleone
-     * @param  name The name of the cvar
-     * @param  value The value to assign to the cvar
+     * @param  cvar The <tt>Cvar</tt> to be set on the server
+     * @throws RconException If the CVAR could not be set
      **/
-    public abstract void setCvar(String name, Object value);
+    public void setCvar(Cvar cvar) throws RconException;
     
     
     /**
-     * Slap a player.
+     * Slap a <tt>Client</tt>
      * 
-     * @author Daniele Pantaleone
-     * @param  client The client who is going to be slapped
+     * @author Daniele Pantaleone 
+     * @param  slot The slot of the <tt>Client</tt> who is going to be slapped
+     * @throws RconException If the <tt>Client</tt> couldn't be slapped
      **/
-    public void slap(Client client);
+    public void slap(int slot) throws RconException;
     
     
     /**
-     * Slap a player.
+     * Slap a <tt>Client</tt>
      * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be slapped
+     * @author Daniele Pantaleone 
+     * @param  client The <tt>Client</tt> who is going to be slapped
+     * @throws RconException If the <tt>Client</tt> couldn't be slapped
      **/
-    public abstract void slap(int slot);
-    
-    
-    /**
-     * Start recording a server side demo of a player.
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The client whose we want to record a demo
-     **/
-    public abstract void startserverdemo(Client client);
+    public void slap(Client client) throws RconException;
 
     
     /**
-     * Start recording a server side demo of a player.
+     * Start recording a server side demo of a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the player whose we want to record a demo
+     * @param  slot The slot of the <tt>Client</tt> whose demo is going to be recorded
+     * @throws RconException If the demo recording couldn't be started
      **/
-    public abstract void startserverdemo(int slot);
+    public void startserverdemo(int slot) throws RconException;
     
     
     /**
-     * Start recording a server side demo of all the online players.
+     * Start recording a server side demo of a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> whose demo is going to be recorded
+     * @throws RconException If the demo recording couldn't be started
      **/
-    public abstract void startserverdemo();
+    public void startserverdemo(Client client) throws RconException;
     
     
     /**
-     * Stop recording a server side demo of a player.
-     * 
-     * @author Daniele Pantaleone 
-     * @param  client The client whose we want to stop a demo recording
-     **/
-    public abstract void stopserverdemo(Client client);
-    
-    
-    /**
-     * Stop recording a server side demo of a player.
-     * 
-     * @author Daniele Pantaleone 
-     * @param  slot The slot of the player whose we want to stop a demo recording
-     **/
-    public abstract void stopserverdemo(int slot);
-    
-    
-    /**
-     * Stop recording a server side demo of all the online players.
+     * Start recording a server side demo of all the online clients
      * 
      * @author Daniele Pantaleone
+     * @throws RconException If the demo recording couldn't be started
      **/
-    public abstract void stopserverdemo();
+    public void startserverdemo() throws RconException;
     
     
     /**
-     * Send a private message to a player.
+     * Stop recording a server side demo of a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
-     * @param  client The client you want to send the message
+     * @param  slot The slot of the <tt>Client</tt> whose demo is going to be stopped
+     * @throws RconException If the demo recording couldn't be stopped
+     **/
+    public void stopserverdemo(int slot) throws RconException;
+    
+    
+    /**
+     * Stop recording a server side demo of a <tt>Client</tt>
+     * 
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> whose demo is going to be stopped
+     * @throws RconException If the demo recording couldn't be stopped
+     **/
+    public void stopserverdemo(Client client) throws RconException;
+    
+    
+    /**
+     * Stop recording a server side demo of all the online clients
+     * 
+     * @author Daniele Pantaleone
+     * @throws RconException If the demo recording couldn't be stopped
+     **/
+    public void stopserverdemo() throws RconException;
+    
+    
+    /**
+     * Send a private message to a <tt>Client</tt>
+     * 
+     * @author Daniele Pantaleone
+     * @param  slot The slot of the <tt>Client</tt> who will receive the message
      * @param  message The message to be sent
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract void tell(Client client, String message);
+    public void tell(int slot, String message) throws RconException;
     
     
     /**
-     * Send a private message to a player.
+     * Send a private message to a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the player you want to send the message
+     * @param  client The <tt>Client</tt> who will receive the message
      * @param  message The message to be sent
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public abstract void tell(int slot, String message);
-    
-    
-    /**
-     * Unban a player from the server.
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The client we want to unban
-     **/
-    public abstract void unban(Client client);
+    public void tell(Client client, String message) throws RconException;
     
 
     /**
-     * Unban a player from the server.
+     * Unban an IP address from the server
      * 
      * @author Daniele Pantaleone
-     * @param  ip The IP address of the player we want to unban
+     * @param  ip The IP address we want to unban
+     * @throws RconException If the IP address couldn't be unbanned
      **/
-    public abstract void unban(String ip);
+    public void unban(String ip) throws RconException;
     
     
     /**
-     * Write a message directly in the Urban Terror console.
-     * Try to avoid the use of this command. Use instead the other optimized methods available in this class.
+     * Unban a <tt>Client</tt> IP address from the server
+     * 
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> whose IP address we want to unban
+     * @throws RconException If the IP address couldn't be unbanned
+     **/
+    public void unban(Client client) throws RconException;
+    
+    
+    /**
+     * Write a message directly in the Urban Terror console<br>
+     * Try to avoid the use of this command: use instead the other 
+     * optimized methods available in this class
      * 
      * @author Daniele Pantaleone
      * @param  command The command to execute
+     * @throws RconException If the RCON command fails in being executed
      * @return The server response to the RCON command
      **/
-    public abstract String write(String command);
+    public abstract String write(String command) throws RconException;
      
 }

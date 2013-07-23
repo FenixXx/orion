@@ -45,26 +45,30 @@ import org.apache.commons.logging.Log;
 import com.orion.bot.Orion;
 import com.orion.command.Command;
 import com.orion.domain.Client;
+import com.orion.exception.ParserException;
 import com.orion.exception.RconException;
 import com.orion.urt.Color;
 import com.orion.urt.Cvar;
 import com.orion.urt.Game;
 import com.orion.urt.Team;
-import com.orion.utility.BooleanParser;
 import com.orion.utility.Rcon;
 import com.orion.utility.Splitter;
 
 public class UrT42Console implements Console {
     
-    private static int MAX_SAY_STRLEN = 62;
+    private static final int CHAT_DELAY = 1000;
+    private static final int CENTER_SCREEN_DELAY = 2000;
     
-    private final Log log;
+    private static final int MAX_SAY_STRLEN = 62;
+    
     private final Rcon rcon;
+    private final Log log;
     
     private Game game;
     
+    
     /**
-     * Object constructor.
+     * Object constructor
      * 
      * @author Daniele Pantaleone 
      * @param  address The remote server address
@@ -76,152 +80,104 @@ public class UrT42Console implements Console {
      **/
     public UrT42Console(String address, int port, String password, Orion orion) throws UnknownHostException, RconException {
         
-        this.rcon = new Rcon(address, port, password, orion.log);
-        this.game = orion.game;
         this.log = orion.log;
-            
-        this.game.setFsGame(this.getCvar("fs_game").getString());
-        this.game.setFsBasePath(this.getCvar("fs_basepath").getString());
-        this.game.setFsHomePath(this.getCvar("fs_homepath").getString());
-        this.game.setAuthEnable(this.getCvar("auth_enable").getBoolean());
-        this.game.setAuthOwners(this.getCvar("auth_owners").getInt());
-        
+        this.game = orion.game;
+        this.rcon = new Rcon(address, port, password, this.log);
         this.log.debug("Urban Terror 4.2 console initialized");
         
     }
     
     
     /**
-     * Ban a client from the server using the FS Auth System
+     * Ban a <tt>Client</tt> from the server using the FS Auth System
      * 
      * @author Daniele Pantaleone
-     * @param  client The client to be banned
+     * @param  slot The slot of the <tt>Client</tt> who is going to be banned
      * @param  days The number of days of the ban
      * @param  hours The number of hours of the ban
      * @param  mins The number of minutes of the ban
-     * @throws UnsupportedOperationException If the Auth System is not configured properly
+     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public void authban(Client client, int days, int hours, int mins) throws UnsupportedOperationException {
+    public void authban(int slot, int days, int hours, int mins) throws UnsupportedOperationException, RconException {
         
-        if (!this.game.isAuthEnabled()) {
-            throw new UnsupportedOperationException("Unable to execute auth-ban RCON command. Auth system is disabled");
-        }
+        if (!this.game.isCvar("auth_enable") || !this.game.getCvar("auth_enable").getBoolean())
+            throw new UnsupportedOperationException("auth system is disabled");
         
-        if (this.game.getAuthOwners() == null) {
-            throw new UnsupportedOperationException("Unable to execute auth-ban RCON command. Auth owners has not been set");
-        }
-        
-        this.rcon.sendNoRead("auth-ban " + client.getSlot() + " " + days + " " + hours + " " + mins);
-        
-    }
-    
-    
-    /**
-     * Ban a client from the server using the FS Auth System
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the client to be banned
-     * @param  days The number of days of the ban
-     * @param  hours The number of hours of the ban
-     * @param  mins The number of minutes of the ban
-     * @throws UnsupportedOperationException If the Auth System is not configured properly
-     **/
-    public void authban(int slot, int days, int hours, int mins) throws UnsupportedOperationException {
-        
-        if (!this.game.isAuthEnabled()) {
-            throw new UnsupportedOperationException("Unable to execute auth-ban RCON command. Auth system is disabled");
-        }
-        
-        if (this.game.getAuthOwners() == null) {
-            throw new UnsupportedOperationException("Unable to execute auth-ban RCON command. Auth owners has not been set");
-        }
+        if (!this.game.isCvar("auth_owners"))
+            throw new UnsupportedOperationException("auth owners is not correctly set");
         
         this.rcon.sendNoRead("auth-ban " + slot + " " + days + " " + hours + " " + mins);
-    
-    }
-    
-    
-    /**
-     * Fetch FS Auth System informations for the specified client
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The client whose informations needs to be retrieved
-     * @throws UnsupportedOperationException If the RCON command is not supported by the console implementation
-     * @return A Map<String, String> containing the auth-whois command result
-     **/
-    @Override
-    public Map<String, String> authwhois(Client client) throws UnsupportedOperationException {
-        
-        if (!this.game.isAuthEnabled()) {
-            throw new UnsupportedOperationException("Unable to execute auth-whois RCON command. Auth system is disabled");
-        }
-        
-        Map<String, String> data = new HashMap<String, String>();
-        String result = this.rcon.sendRead("auth-whois " + client.getSlot());
-        
-        if (result == null) {
-            this.log.debug("Unable to parse auth-whois command response for client " + client.getSlot() + ": RCON UDP socket returned NULL");
-            return null;
-        }
-        
-        // Remove color codes from the obtained string
-        result = result.replaceAll("\\^[0-9]{1}", "");
-        
-        // Collecting FS Auth System informations
-        Pattern pattern = Pattern.compile("^auth:\\s*id:\\s*(?<slot>\\d+)\\s*-\\s*name:\\s*(?<name>\\w+)\\s*-\\s*login:\\s*(?<login>\\w*)\\s*-\\s*notoriety:\\s*(?<notoriety>.*)\\s*-\\s*level:\\s*(?<level>\\d+)\\s*-\\s*(?<rank>.*)$", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(result);
-        
-        if (!matcher.matches()) {
-            this.log.debug("Unable to parse auth-whois command response for client " + client.getSlot() + ": declared pattern doesn't match RCON response");
-            return null;
-        }
-        
-        data.put("slot",        matcher.group("slot"));
-        data.put("name",        matcher.group("name"));
-        data.put("login",       matcher.group("login").isEmpty() ? null : matcher.group("login"));
-        data.put("notoriety",   matcher.group("login").isEmpty() ? null : matcher.group("notoriety"));
-        data.put("level",       matcher.group("login").isEmpty() ? null : matcher.group("level"));
-        data.put("rank",        matcher.group("login").isEmpty() ? null : matcher.group("rank"));
-        
-        return data;
         
     }
     
     
     /**
-     * Fetch FS Auth System informations for the specified client
+     * Ban a <tt>Client</tt> from the server using the FS Auth System
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the client whose informations needs to be retrieved
-     * @throws UnsupportedOperationException If the RCON command is not supported by the console implementation
-     * @return A Map<String, String> containing the auth-whois command result
+     * @param  client The <tt>Client</tt> who is going to be banned
+     * @param  days The number of days of the ban
+     * @param  hours The number of hours of the ban
+     * @param  mins The number of minutes of the ban
+     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
+     * @throws RconException If the RCON command fails in being executed
      **/
-    @Override
-    public Map<String, String> authwhois(int slot) throws UnsupportedOperationException {
+    public void authban(Client client, int days, int hours, int mins) throws UnsupportedOperationException, RconException {
+        this.authban(client.getSlot(), days, hours, mins);
+    }
+    
+    
+    /**
+     * Permban a <tt>Client</tt> from the server using the FS Auth System
+     * 
+     * @author Daniele Pantaleone
+     * @param  slot The slot of the <tt>Client</tt> who is going to be banned permanently
+     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
+     * @throws RconException If the RCON command fails in being executed
+     **/
+    public void authpermban(int slot) throws UnsupportedOperationException, RconException {
+        this.authban(slot, 0, 0, 0);
+    }
+    
+    
+    /**
+     * Permban a <tt>Client</tt> from the server using the FS Auth System
+     * 
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> who is going to be banned permanently
+     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
+     * @throws RconException If the RCON command fails in being executed
+     **/
+    public void authpermban(Client client) throws UnsupportedOperationException, RconException {
+        this.authpermban(client.getSlot());
+    }
         
-        if (!this.game.isAuthEnabled()) {
-            throw new UnsupportedOperationException("Unable to execute auth-whois RCON command. Auth system is disabled");
-        }
+    
+    /**
+     * Fetch FS Auth System informations for the specified <tt>Client</tt>
+     * 
+     * @author Daniele Pantaleone
+     * @param  slot The slot of the <tt>Client</tt> whose informations needs to be retrieved
+     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
+     * @throws RconException If the RCON command fails in being executed
+     * @throws ParserException If the auth-whois response couldn't be parsed correctly
+     * @return A <tt>Map</tt> containing the auth-whois command response
+     **/
+    public Map<String, String> authwhois(int slot) throws UnsupportedOperationException, RconException, ParserException {
+        
+        if (!this.game.isCvar("auth_enable") || !this.game.getCvar("auth_enable").getBoolean())
+            throw new UnsupportedOperationException("auth system is disabled");
         
         Map<String, String> data = new HashMap<String, String>();
         String result = this.rcon.sendRead("auth-whois " + slot);
         
-        if (result == null) {
-            this.log.debug("Unable to parse auth-whois command response for client " + slot + ": RCON UDP socket returned NULL");
-            return null;
-        }
-        
-        // Remove color codes from the obtained string
-        result = result.replaceAll("\\^[0-9]{1}", "");
-        
         // Collecting FS Auth System informations
         Pattern pattern = Pattern.compile("^auth:\\s*id:\\s*(?<slot>\\d+)\\s*-\\s*name:\\s*(?<name>\\w+)\\s*-\\s*login:\\s*(?<login>\\w*)\\s*-\\s*notoriety:\\s*(?<notoriety>.*)\\s*-\\s*level:\\s*(?<level>\\d+)\\s*-\\s*(?<rank>.*)$", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(result);
         
-        if (!matcher.matches()) {
-            this.log.debug("Unable to parse auth-whois command response for client " + slot + ": declared pattern doesn't match RCON response");
-            return null;
-        }
+        if (!matcher.matches())
+            throw new ParserException("could not parse auth-whois command response");
         
         data.put("slot",        matcher.group("slot"));
         data.put("name",        matcher.group("name"));
@@ -236,34 +192,55 @@ public class UrT42Console implements Console {
     
     
     /**
-     * Ban a player from the server permanently
+     * Fetch FS Auth System informations for the specified <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
-     * @param  client The client to ban from the server
+     * @param  client The <tt>Client</tt> whose informations needs to be retrieved
+     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
+     * @throws RconException If the RCON command fails in being executed
+     * @throws ParserException If the auth-whois response couldn't be parsed correctly
+     * @return A <tt>Map</tt> containing the auth-whois command response
      **/
-    public void ban(Client client) {
-        this.rcon.sendNoRead("addip " + client.getIp().getHostAddress());
+    public Map<String, String> authwhois(Client client) throws UnsupportedOperationException, RconException, ParserException {
+        return this.authwhois(client.getSlot());
     }
     
     
     /**
-     * Ban an ip address from the server permanently
+     * Ban an IP address from the server permanently
      * 
      * @author Daniele Pantaleone
-     * @param  ip The IP address to ban from the server
+     * @param  ip The IP address to be banned 
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public void ban(String ip) {
+    public void ban(String ip) throws RconException {
         this.rcon.sendNoRead("addip " + ip);
     }
     
     
     /**
-     * Write a bold message in the middle of the screen of all players
+     * Ban a <tt>Client</tt> IP address from the server permanently
+     * 
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> whose IP address is going to be banned
+     * @throws RconException If the RCON command fails in being executed
+     **/
+    public void ban(Client client) throws RconException {
+        this.ban(client.getIp().getHostAddress());
+    }
+    
+    
+    /**
+     * Write a bold message in the middle of the screen
      * 
      * @author Daniele Pantaleone
      * @param  message The message to be printed
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public void bigtext(String message) {
+    public void bigtext(String message) throws RconException {
+        
+        if (message.trim().isEmpty())
+            return;
         
         if (message.length() > MAX_SAY_STRLEN) {
             
@@ -274,20 +251,21 @@ public class UrT42Console implements Console {
             for (String sentence: collection) {
                 // Printing separate sentences. We'll also introduce a sleep
                 // in between the messages since the a bigtext overlap a previous
-                // printed message with a new one. It would be unreadable.
+                // printed message with a new one. It would be unreadable
                 sentence = sentence.trim();
                 this.rcon.sendNoRead("bigtext \"" + Color.WHITE + sentence + "\"");
             
-                try { Thread.sleep(2000); } 
-                catch (InterruptedException e) {
-                    this.log.error(e);
+                try { 
+                    Thread.sleep(CENTER_SCREEN_DELAY); 
+                } catch (InterruptedException e) {
+                    // Do nothing here...
                 }
                 
             }
             
         } else {
             
-            // Normal bigtext
+            // No need to split here. Just send the command
             this.rcon.sendNoRead("bigtext \"" + Color.WHITE + message + "\"");
             
         }
@@ -300,8 +278,9 @@ public class UrT42Console implements Console {
      * 
      * @author Daniele Pantaleone
      * @param  message The message to be sent
+     * @throws RconException If the RCON commands fails in being executed
      **/
-    public void broadcast(String message) {
+    public void broadcast(String message) throws RconException {
         
         if (message.length() > MAX_SAY_STRLEN) {
             
@@ -315,16 +294,17 @@ public class UrT42Console implements Console {
                 sentence = sentence.trim();
                 this.rcon.sendNoRead(Color.WHITE + sentence);
                 
-                try { Thread.sleep(1000); } 
-                catch (InterruptedException e) {
-                    this.log.error(e);
+                try { 
+                    Thread.sleep(CHAT_DELAY); 
+                } catch (InterruptedException e) {
+                    // Do nothing here...
                 }
                 
             }
             
         } else {
             
-            // Normal broadcast.
+            // No need to split here. Just send the command
             this.rcon.sendNoRead(Color.WHITE + message);
             
         }
@@ -336,70 +316,26 @@ public class UrT42Console implements Console {
      * Cycle the current map on the server
      * 
      * @author Daniele Pantaleone
+     * @throws RconException If the RCON commands fails in being executed
      **/
-    public void cyclemap() {
+    public void cyclemap() throws RconException {
         this.rcon.sendNoRead("cyclemap");
     }
     
     
     /**
-     * Dump user information for the specified client
+     * Retrieve userinfo data for the specified <tt>Client</tt> slot number
      * 
      * @author Daniele Pantaleone
-     * @param  client The client you want to retrieve informations
-     * @return A Map<String,String> with the dumped result or return null if the player is not connected anymore
+     * @param  slot The slot of the <tt>Client</tt> whose informations needs to be retrieved
+     * @throws RconException If the <tt>Client</tt> informations couldn't be retrieved
+     * @return A <tt>Map</tt> containing userinfo data or <tt>null</tt> 
+     *         if the <tt>Client</tt> is not connected anymore
      **/
-    public Map<String, String> dumpuser(Client client) {
-        
-        String result = this.rcon.sendRead("dumpuser " + client.getSlot());
-        
-        if (result == null) {
-            this.log.debug("Unable to parse dumpuser command response for client " + client.getSlot() + ": RCON UDP socket returned NULL");
-            return null;
-        }
-        
-        // This is the string we expect from the /rcon dumpuser <slot> command.
-        // We need to parse it and build an HashMap containing the client data.
-        //
-        // userinfo
-        // --------
-        // ip                  93.40.100.128:59685
-        // gear                GZJATWA
-        // rate                25000
-        // name                [FS]Fenix
-        // racered             2
-        
-        Map<String, String> map = new LinkedHashMap<String, String>();
-        Pattern pattern = Pattern.compile("^\\s*(?<key>\\w+)\\s+(?<value>.*)$");
-        String[] lines = result.split("\n");
-        
-        for (String line: lines) {
-            Matcher m = pattern.matcher(line);
-            if (m.matches()) map.put(m.group("key"), m.group("value"));
-        }
-        
-        if (map.size() == 0) return null;
-        return map;
-        
-    }
-    
-    
-    /**
-     * Dump user information for the specified player slot.
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The player slot on which perform the dumpuser command
-     * @return A Map<String,String> with the dumped result or return null if the player is not connected anymore
-     **/
-    public Map<String, String> dumpuser(int slot) {
+    public Map<String, String> dumpuser(int slot) throws RconException {
         
         String result = this.rcon.sendRead("dumpuser " + slot);
         
-        if (result == null) {
-            this.log.debug("Unable to parse dumpuser command response for client " + slot + ": RCON UDP socket returned NULL");
-            return null;
-        }
-        
         // This is the string we expect from the /rcon dumpuser <slot> command.
         // We need to parse it and build an HashMap containing the client data.
         //
@@ -417,38 +353,37 @@ public class UrT42Console implements Console {
         
         for (String line: lines) {
             Matcher m = pattern.matcher(line);
-            if (m.matches()) map.put(m.group("key"), m.group("value"));
+            if (m.matches()) 
+                map.put(m.group("key"), m.group("value"));
         }
         
-        if (map.size() == 0) return null;
-        return map;
+        return map.size() > 0 ? map : null;
         
-    }
-        
-    
-    /**
-     * Force a player in the blue team
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The client who is going to be forced in the blue team
-     
-     **/
-    public void forceblue(Client client) {
-        // Do not execute if the client is already in the specified team
-        // This will prevent to overflow the server with RCON commands
-        if (client.getTeam() != Team.BLUE)
-            this.rcon.sendNoRead("forceteam " + client.getSlot() + " blue");
     }
     
     
     /**
-     * Force a player in the blue team
+     * Retrieve userinfo data for the specified <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be forced in the blue team
-     
+     * @param  client The <tt>Client</tt> whose informations needs to be retrieved
+     * @throws RconException If the <tt>Client</tt> informations couldn't be retrieved
+     * @return A <tt>Map</tt> containing userinfo data or <tt>null</tt> 
+     *         if the <tt>Client</tt> is not connected anymore
      **/
-    public void forceblue(int slot) {
+    public Map<String, String> dumpuser(Client client) throws RconException {
+        return this.dumpuser(client.getSlot());
+    }
+      
+    
+    /**
+     * Force a <tt>Client</tt> in the blue team
+     * 
+     * @author Daniele Pantaleone
+     * @param  slot The slot of the <tt>Client</tt> who is going to be forced in the blue team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
+     **/
+    public void forceblue(int slot) throws RconException {
         // Since we do not have a Client object as input, we cannot match the current
         // client team. The RCON command is going to be executed anyway
         // NOTE: Use the previous version of the command if possible
@@ -457,48 +392,52 @@ public class UrT42Console implements Console {
     
     
     /**
-     * Force a player in the free team (autojoin)
-     *
+     * Force a <tt>Client</tt> in the blue team
+     * 
      * @author Daniele Pantaleone
-     * @param  client The client who is going to be forced
+     * @param  client The <tt>Client</tt> who is going to be forced in the blue team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
      **/
-    public void forcefree(Client client) {
-        this.rcon.sendNoRead("forceteam " + client.getSlot() + " free");
+    public void forceblue(Client client) throws RconException {
+        // Do not execute if the client is already in the specified team
+        // This will prevent to overflow the server with RCON commands
+        if (client.getTeam() != Team.BLUE)
+            this.forceblue(client.getSlot());
     }
     
     
     /**
-     * Force a player in the free team (autojoin)
+     * Force a <tt>Client</tt> in the free team (aka autojoin)
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be forced
+     * @param  slot The slot of the <tt>Client</tt> who is going to be forced in the free team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
      **/
-    public void forcefree(int slot) {
+    public void forcefree(int slot) throws RconException {
         this.rcon.sendNoRead("forceteam " + slot + " free");
     }
     
     
     /**
-     * Force a player in the red team
+     * Force a <tt>Client</tt> in the free team (aka autojoin)
      * 
      * @author Daniele Pantaleone
-     * @param  client The client who is going to be forced in the red team
+     * @param  client The <tt>Client</tt> who is going to be forced in the free team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
      **/
-    public void forcered(Client client) {
-        // Do not execute if the client is already in the specified team
-        // This will prevent to overflow the server with RCON commands
-        if (client.getTeam() != Team.RED)
-            this.rcon.sendNoRead("forceteam " + client.getSlot() + " red");
+    public void forcefree(Client client) throws RconException {
+        this.forcefree(client.getSlot());
     }
     
     
     /**
-     * Force a player in the red team
+     * Force a <tt>Client</tt> in the red team
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be forced in the red team
+     * @param  slot The slot of the <tt>Client</tt> who is going to be forced in the red team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
      **/
-    public void forcered(int slot) {
+    public void forcered(int slot) throws RconException {
         // Since we do not have a Client object as input, we cannot match the current
         // client team. The RCON command is going to be executed anyway
         // NOTE: Use the previous version of the command if possible
@@ -507,26 +446,28 @@ public class UrT42Console implements Console {
     
     
     /**
-     * Force a player in the spectator team
+     * Force a <tt>Client</tt> in the red team
      * 
      * @author Daniele Pantaleone
-     * @param  client The client who is going to be forced in the spectators team
+     * @param  client The <tt>Client</tt> who is going to be forced in the red team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
      **/
-    public void forcespec(Client client) {
+    public void forcered(Client client) throws RconException {
         // Do not execute if the client is already in the specified team
         // This will prevent to overflow the server with RCON commands
-        if (client.getTeam() != Team.SPECTATOR)
-            this.rcon.sendNoRead("forceteam " + client.getSlot() + " spectator");
+        if (client.getTeam() != Team.RED)
+            this.forcered(client.getSlot());
     }
     
     
     /**
-     * Force a player in the spectator team
+     * Force a <tt>Client</tt> in the spectator team
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be forced in the spectators team
+     * @param  slot The slot of the <tt>Client</tt> who is going to be forced in the spectator team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
      **/
-    public void forcespec(int slot) {
+    public void forcespec(int slot) throws RconException {
         // Since we do not have a Client object as input, we cannot match the current
         // client team. The RCON command is going to be executed anyway
         // NOTE: Use the previous version of the command if possible
@@ -535,45 +476,29 @@ public class UrT42Console implements Console {
     
     
     /**
-     * Force a player in the specified team
-     *
+     * Force a <tt>Client</tt> in the spectator team
+     * 
      * @author Daniele Pantaleone
-     * @param  client The client who is going to be forced
-     * @param  team The team where to force the player in
+     * @param  client The <tt>Client</tt> who is going to be forced in the spectator team
+     * @throws RconException If the <tt>Client</tt> fails in being moved
      **/
-    public void forceteam(Client client, Team team) {
-        
-        switch (team) {
-            
-            case RED:
-                this.forcered(client);
-                break;
-                
-            case BLUE:
-                this.forceblue(client);
-                break;
-                
-            case SPECTATOR:
-                this.forcespec(client);
-                break;
-            
-            case FREE:
-                this.forcefree(client);
-                break;
-        
-        }
-        
+    public void forcespec(Client client) throws RconException {
+        // Do not execute if the client is already in the specified team
+        // This will prevent to overflow the server with RCON commands
+        if (client.getTeam() != Team.RED)
+            this.forcespec(client.getSlot());
     }
     
     
     /**
-     * Force a player in the specified team
+     * Force a <tt>Client</tt> in the specified team
      *
      * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be forced
-     * @param  team The team where to force the player in
+     * @param  slot The slot of the <tt>Client</tt> who is going to be moved
+     * @param  team The <tt>Team</tt> where to force the player in
+     * @throws RconException If the <tt>Client</tt> fails in being moved
      **/
-    public void forceteam(int slot, Team team) {
+    public void forceteam(int slot, Team team) throws RconException {
         
         switch (team) {
         
@@ -596,6 +521,19 @@ public class UrT42Console implements Console {
         }
     
     }
+    
+    
+    /**
+     * Force a <tt>Client</tt> in the specified team
+     *
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> who is going to be moved
+     * @param  team The <tt>Team</tt> where to force the player in
+     * @throws RconException If the <tt>Client</tt> fails in being moved
+     **/
+    public void forceteam(Client client, Team team) throws RconException {
+        this.forceteam(client.getSlot(), team);
+    }
         
     
     /**
@@ -603,32 +541,40 @@ public class UrT42Console implements Console {
      * 
      * @author Daniele Pantaleone
      * @param  name The CVAR name
-     * @return The <tt>Cvar</tt> object associated to the given name
+     * @throws RconException If the CVAR could not be retrieved form the server
+     * @return The <tt>Cvar</tt> object associated to the given CVAR name or <tt>null</tt> 
+     *         if such CVAR is not set on the server
      **/
-    public Cvar getCvar(String name) {
+    public Cvar getCvar(String name) throws RconException {
         
         String value;
-        String result = this.rcon.sendRead(name);
         
-        if (result == null) {
-            this.log.debug("Unable to retrieve CVAR[" + name + "]: RCON UDP socket returned NULL");
-            return null;
-        }
-        
-        Pattern pattern = Pattern.compile("\\s*\\\"[\\w+]*\\\"\\sis:\\\"(?<value>[\\w:\\.\\-\\\\/]*)\\\".*", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(result);
-        
-        if (matcher.matches()) {
+        try {
             
-            value = matcher.group("value");
+            String result = this.rcon.sendRead(name); 
             
-            if (!value.trim().isEmpty()) {
-                this.log.trace("Retrieved CVAR[" + name + "]: " + value);
-                return new Cvar(name, value);
+            Pattern pattern = Pattern.compile("\\s*\\\"[\\w+]*\\\"\\sis:\\\"(?<value>[\\w:\\.\\-\\\\/]*)\\\".*", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(result);
+            
+            if (matcher.matches()) {
+                
+                value = matcher.group("value");
+                
+                if (!value.trim().isEmpty()) {
+                    this.log.trace("Retrieved CVAR [" + name + "] : " + value);
+                    return new Cvar(name, value);
+                }
+
             }
-
+        
+        } catch (RconException e) {
+            // Catch and re-throw the same Exception but with more details
+            throw new RconException("Could not retrieve CVAR [" + name + "] : ", e);
         }
-
+        
+        // We'll eventually get here if the given CVAR
+        // is not set on the server (mostly when doing
+        // and Runtime CVAR retrieval upon user request
         return null;
         
     }
@@ -638,28 +584,25 @@ public class UrT42Console implements Console {
      * Return the current map name
      * 
      * @author Daniele Pantaleone
+     * @throws RconException If the current map name couldn't be retrieved
      * @return The current map name 
      **/
-    public String getMap() {
+    public String getMap() throws RconException {
         return this.getCvar("mapname").getString();
     }
     
     
     /**
-     * Return a list of available maps.
+     * Return a <tt>List</tt> of available maps
      * 
      * @author Daniele Pantaleone
-     * @return A list of all the maps available on the server
+     * @throws RconException If the map list couldn't be retrieved
+     * @return A <tt>List</tt> of all the maps available on the server
      **/
-    public List<String> getMapList() {
+    public List<String> getMapList() throws RconException {
         
         String result = this.rcon.sendRead("fdir *.bsp");
-        
-        if (result == null) {
-            this.log.debug("Unable to retrieve map list: RCON UDP socket returned NULL");
-            return null;
-        }
-        
+
         List<String> maplist = new LinkedList<String>();
         Pattern pattern = Pattern.compile("^*maps/(?<mapname>.*).bsp$");
         
@@ -679,10 +622,11 @@ public class UrT42Console implements Console {
      * Return a <tt>List</tt> of maps matching the given search key
      * 
      * @author Daniele Pantaleone
-     * @param  search The map name search <tt>String</tt>
+     * @param  search The name of the map to search (or a part of it)
+     * @throws RconException If the list of available maps couldn't be computed
      * @return A <tt>List</tt> of maps matching the given search key
      **/
-    public List<String> getMapSoundingLike(String search) {
+    public List<String> getMapSoundingLike(String search) throws RconException {
         
         List<String> collection = new LinkedList<String>();
         
@@ -690,14 +634,8 @@ public class UrT42Console implements Console {
         search = search.toLowerCase().trim();
         
         // Server map list not computed yet. Build the map list
-        if ((this.game.getMapList() == null) || (this.game.getMapList().size() == 0)) {
+        if (this.game.getMapList().isEmpty())
             this.game.setMapList(this.getMapList());
-        }
-        
-        // We were not able to retrieve the server map list
-        if ((this.game.getMapList() == null) || (this.game.getMapList().size() == 0)) {
-            return null;
-        }
         
         for (String map : this.game.getMapList()) {
             if ((map != null) && (map.toLowerCase().contains(search.toLowerCase()))) {
@@ -711,134 +649,90 @@ public class UrT42Console implements Console {
     
     
     /**
-     * Return the name of the nextmap set on the server<br>
-     * Will return <tt>null</tt> if the operation doesn't succeed
+     * Return the name of the nextmap set on the server
      * 
      * @author Daniele Pantaleone
+     * @throws RconException If an RCON command fails in being executed
+     * @throws FileNotFoundException If the mapcycle file couldn't be found
+     * @throws IOException If there is an error while reading the mapcycle file
      * @return The name of the nextmap set on the server or <tt>null</tt> 
-     *         if the operation doesn't succeed
+     *         if it can't be computed
      **/
-    public String getNextMap() {
+    public String getNextMap() throws RconException, FileNotFoundException, IOException {
         
-        String path = null;
-        String line = null;
-        String firstmap = null;
-        String tmpmap = null;
-        
-        List<String> maplist = null;
+        String path, line, firstmap, tmpmap, mapname;
+        RandomAccessFile mapfile;
+        List<String> maplist;
         
         // Checking if the nextmap on the server has been manually changed 
         // using an RCON command or after a callvote for nextmap being issued
-        String nextmap = this.getCvar("g_nextmap").getString();
-        if (nextmap != null) {
-            return nextmap;
-        }
+        Cvar nextmap = this.getCvar("g_nextmap");
+        if (nextmap != null)
+            return nextmap.getString();
         
-        if (this.game.getFsGame() == null) {
-            this.game.setFsGame(this.getCvar("fs_game").getString());
-            if (this.game.getFsGame() == null) {
-                this.log.warn("Could not compute nextmap: unable to retrieve CVAR [fs_game]");
-                return null;
-            }
-        }
+        if (!this.game.isCvar("fs_game"))
+            this.game.setCvar(this.getCvar("fs_game"));
         
-        if (this.game.getFsBasePath() == null) {
-            this.game.setFsBasePath(this.getCvar("fs_basepath").getString());
-            if (this.game.getFsBasePath() == null) {
-                this.log.warn("Could not compute nextmap: unable to retrieve CVAR [fs_basepath]");
-                return null;
-            }
-        }
+        if (!this.game.isCvar("g_mapcycle"))
+            this.game.setCvar(this.getCvar("g_mapcycle"));
         
-        if (this.game.getMapcycle() == null) {
-            this.game.setMapcycle(this.getCvar("g_mapcycle").getString());
-            if (this.game.getMapcycle() == null) {
-                this.log.warn("Could not compute nextmap: unable to retrieve CVAR [g_mapcycle]");
-                return null;
-            }
-        }
-        
-        if (this.game.getMapname() == null) {
-            this.game.setMapname(this.getCvar("mapname").getString());
-            if (this.game.getMapname() == null) {
-                this.log.warn("Could not compute nextmap: unable to retrieve CVAR [mapname]");
-                return null;
-            }
-        }
-        
-        // Computing mapcycle filepath
-        path = this.game.getFsBasePath() +
-               System.getProperty("file.separator") +
-               this.game.getFsGame() +
-               System.getProperty("file.separator") +
-               this.game.getMapcycle();
+        if (!this.game.isCvar("mapname"))
+            this.game.setCvar(this.getCvar("mapname"));
         
         try {
             
-            this.log.trace("Opening mapcycle file: " + path);
-            RandomAccessFile mapfile = new RandomAccessFile(path, "r");
+            if (!this.game.isCvar("fs_basepath"))
+                this.game.setCvar(this.getCvar("fs_basepath"));
             
-        } catch (FileNotFoundException e) {
+            // Computing mapcycle filepath
+            path = this.game.getCvar("fs_basepath").getString() +
+                   System.getProperty("file.separator") +
+                   this.game.getCvar("fs_game").getString() +
+                   System.getProperty("file.separator") +
+                   this.game.getCvar("g_mapcycle").getString();
             
-            this.log.debug("Could not open mapcycle file: " + path + ". File not found");
+            mapfile = new RandomAccessFile(path, "r");
             
-            if (this.game.getFsHomePath() == null) {
-                this.game.setFsHomePath(this.getCvar("fs_homepath").getString());
-                if (this.game.getFsHomePath() == null) {
-                    return null;
-                }
-            }
             
-            // Building the mapcycle file absolute path
-            path = this.game.getFsHomePath() + 
-                   System.getProperty("file.separator") + 
-                   this.game.getFsGame() + 
-                   System.getProperty("file.separator") + 
-                   this.game.getMapcycle();
+        } catch (RconException | FileNotFoundException e1) {
+            
+            // We were not able to open the mapcycle file due to 
+            // fs_basepath not being retrieved, or file not found
+            this.log.warn("Could not open mapcycle file", e1);
             
             try {
                 
-                // Opening the mapcycle file under fs_basepath
+                if (!this.game.isCvar("fs_homepath"))
+                    this.game.setCvar(this.getCvar("fs_homepath"));
+                
+                // Computing mapcycle filepath
+                path = this.game.getCvar("fs_homepath").getString() +
+                        System.getProperty("file.separator") +
+                        this.game.getCvar("fs_game").getString() +
+                        System.getProperty("file.separator") +
+                        this.game.getCvar("g_mapcycle").getString();
+                
                 mapfile = new RandomAccessFile(path, "r");
                 
-            } catch (FileNotFoundException e1) {
+            } catch (RconException | FileNotFoundException e2) {
                 
-                // Mapcycle file is not located under fs_homepath either.
-                this.log.debug("Unable to locate mapcycle file [ path : " + path + " ]");
-                this.log.error("Mapcycle file missing: unable to retrieve nextmap name");
-                return null;
+                this.log.warn("Could not open mapcycle file", e2);
+                throw e2;
                 
-            }
+            } 
             
         }
         
-        try {
-            
-            // Copying the content of the mapcycle file
-            // into a LinkedList for later scrolling
-            maplist = new LinkedList<String>();
-            while ((line = mapfile.readLine()) != null) {
-                maplist.add(line);
-            }
-            
-            try {
-                
-                // Closing the file
-                mapfile.close();
-                
-            } catch (IOException e) {
-                // Logging the exception...this is very rare!
-                this.log.error("Unable to close mapcycle file handler", e);
-            }
-            
-        } catch (IOException e1) {
-            this.log.error("Unable to read mapcycle file", e1);
-            return null;
-        }
+        // Reading the mapcycle file
+        maplist = new LinkedList<String>();
+        while ((line = mapfile.readLine()) != null)
+            maplist.add(line);
         
-        // Mapcycle file empty
+        mapfile.close();
+       
+        // No map listed
         if (maplist.size() == 0) {
-            this.log.warn("Mapcycle file is empty [ path : " + path + " ]");
+            this.log.warn("Could not retrieve nextmap. Mapcycle file is empty");
             return null;
         }
         
@@ -848,51 +742,42 @@ public class UrT42Console implements Console {
         
         try {
             
+            mapname = this.game.getCvar("mapname").getString();
             tmpmap = maplist.remove(0);
-            while (!this.game.getMapName().equals(tmpmap)) {
+            while (!mapname.equals(tmpmap))
                 tmpmap = maplist.remove(0);
-            }
             
-            if (this.game.getMapName().equals(tmpmap)) {
-                
-                if (maplist.size() > 0) {
-                    // We still have 1 or more maps after
-                    // the current one in the mapcycle file
-                    return maplist.get(0);
-                } else {
-                    // Mapcycle is restarting from the beginning
-                    // We are playing the last map in the file
-                    // or we are playing a map that is not listed
-                    // in the mapcycle file
-                    return firstmap;
-                }
-            }
+            if (mapname.equals(tmpmap))
+                return (maplist.size() > 0) ? maplist.get(0) : firstmap;
+            
             
         } catch(IndexOutOfBoundsException e) {
+            
+            // We are playing the last map listed
+            // in the mapcycle file. The 1st one will
+            // be again set as nextmap
             return firstmap;
+        
         }
         
-        this.log.warn("Unable to compute nextmap name....giving up!");
+        // We failed somehow
+        this.log.warn("Unable to compute nextmap name.....");
         return null;
-        
+   
     }
     
  
     /**
-     * Return an List containing the result of the "/rcon players" command
+     * Return a <tt>List</tt> containing the result of the <tt>/rcon players</tt> command
      * 
      * @author Daniele Pantaleone
-     * @return A list containing players informations
+     * @throws RconException If we couldn't fetch informations from the server
+     * @return A <tt>List</tt> containing players informations
      **/
-    public List<List<String>> getPlayers() {
+    public List<List<String>> getPlayers() throws RconException {
         
         String result = this.rcon.sendRead("players");
-        
-        if (result == null) {
-            this.log.debug("Unable to parse players command response: RCON UDP socket returned NULL");
-            return null;
-        }
-        
+
         // This is the string we expect from the /rcon players command
         // We need to parse it and build an Array with players informations
         //
@@ -931,19 +816,15 @@ public class UrT42Console implements Console {
     
     
     /**
-     * Return an List containing the result of the "/rcon status" command
+     * Return a <tt>List</tt> containing the result of the <tt>/rcon status</tt> command
      * 
      * @author Daniele Pantaleone
-     * @return A list containing status informations
+     * @throws RconException If we couldn't fetch informations from the server
+     * @return A <tt>List</tt> containing status informations
      **/
-    public List<List<String>> getStatus() {
+    public List<List<String>> getStatus() throws RconException {
         
         String result = this.rcon.sendRead("status");
-        
-        if (result == null) {
-            this.log.debug("Unable to status command response: RCON UDP socket returned NULL");
-            return null;
-        }
         
         // This is the string we expect from the /rcon status command
         // We need to parse it and build an Array with players informations
@@ -984,55 +865,38 @@ public class UrT42Console implements Console {
     
     
     /**
-     * Kick the specified client from the server
+     * Kick the specified <tt>Client</tt> from the server
      * 
      * @author Daniele Pantaleone
-     * @param  client The client who is going to be kicked from the server
-     * @param  reason The reason why the client is going to be kicked
+     * @param  client The slot of the <tt>Client</tt> who is going to be kicked from the server
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public void kick(Client client) {
-        this.rcon.sendNoRead("kick " + client.getSlot());
-    }
-    
-    
-    /**
-     * Kick the specified client from the server
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be kicked from the server
-     **/
-    public void kick(int slot) throws UnsupportedOperationException {
+    public void kick(int slot) throws RconException {
         this.rcon.sendNoRead("kick " + slot);
     }
     
     
     /**
-     * Kick the specified client from the server by specifying a reason
+     * Kick the specified <tt>Client</tt> from the server
      * 
      * @author Daniele Pantaleone
-     * @param  client The client who is going to be kicked from the server
-     * @param  reason The reason why the client is going to be kicked
+     * @param  client The <tt>Client</tt> who is going to be kicked from the server
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public void kick(Client client, String reason) {
-        
-        if (reason == null) {
-            this.kick(client);
-            return;
-        }
-        
-        this.rcon.sendNoRead("kick " + client.getSlot() + " " + reason);
-    
+    public void kick(Client client) throws RconException {
+        this.kick(client.getSlot());
     }
     
     
     /**
-     * Kick the specified client from the server by specifying a reason
+     * Kick the specified <tt>Client</tt> from the server by specifying a reason
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be kicked from the server
-     * @param  reason The reason why the player with the specified slot is going to be kicked
+     * @param  slot The slot of the <tt>Client</tt> who is going to be kicked from the server
+     * @param  reason The reason why the <tt>Client</tt> is going to be kicked
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public void kick(int slot, String reason) throws UnsupportedOperationException {
+    public void kick(int slot, String reason) throws RconException {
         
         if (reason == null) {
             this.kick(slot);
@@ -1042,116 +906,142 @@ public class UrT42Console implements Console {
         this.rcon.sendNoRead("kick " + slot + " " + reason);
     
     }
-       
-
+    
+    
     /**
-     * Instantly kill a player
+     * Kick the specified <tt>Client</tt> from the server by specifying a reason
      * 
      * @author Daniele Pantaleone
-     * @param  client The client who is going to be killed
+     * @param  client The <tt>Client</tt> who is going to be kicked from the server
+     * @param  reason The reason why the <tt>Client</tt> is going to be kicked
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public void kill(Client client) {
-        this.rcon.sendNoRead("smite " + client.getSlot());
+    public void kick(Client client, String reason) throws RconException {
+        this.kick(client.getSlot(), reason);
     }
-    
+   
     
     /**
-     * Instantly kill a player
+     * Instantly kill a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be killed
+     * @param  slot The slot of the <tt>Client</tt> who is going to be killed
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public void kill(int slot) {
+    public void kill(int slot) throws RconException {
         this.rcon.sendNoRead("smite " + slot);
     }
     
     
     /**
-     * Change server current map
+     * Instantly kill a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
-     * @param  mapname The name of the map to load
+     * @param  client The <tt>Client</tt> who is going to be killed
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public void map(String mapname) {
+    public void kill(Client client) throws RconException {
+        this.kill(client.getSlot());
+    }
+    
+    
+    /**
+     * Spawn the server onto a new level
+     * 
+     * @author Daniele Pantaleone
+     * @param  mapname The name of the level to load
+     * @throws RconException If the RCON command fails in being executed
+     **/
+    public void map(String mapname) throws RconException {
         this.rcon.sendNoRead("map " + mapname);
     }
     
     
     /**
-     * Mute a player
+     * Mute a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone 
-     * @param  client The client who is going to be muted
+     * @param  slot The slot of the <tt>Client</tt> who is going to be muted
+     * @throws RconException If the <tt>Client</tt> couldn't be muted
      **/
-    public void mute(Client client) {
-        this.rcon.sendNoRead("mute " + client.getSlot());
-    }
-    
-    
-    /**
-     * Mute a player
-     * 
-     * @author Daniele Pantaleone 
-     * @param  slot The slot of the player who is going to be muted
-     **/
-    public void mute(int slot) {
+    public void mute(int slot) throws RconException {
         this.rcon.sendNoRead("mute " + slot);
     }
     
     
     /**
-     * Mute a player
+     * Mute a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone 
-     * @param  client The client who is going to be muted
-     * @param  seconds The amount of seconds after which the mute will expire
+     * @param  client The <tt>Client</tt> who is going to be muted
+     * @throws RconException If the <tt>Client</tt> couldn't be muted
      **/
-    public void mute(Client client, int seconds) {
-        this.rcon.sendNoRead("mute " + client.getSlot() + " " + seconds);
+    public void mute(Client client) throws RconException {
+        this.mute(client.getSlot());
     }
     
     
     /**
-     * Mute a player
+     * Mute a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone 
-     * @param  slot The slot of the player who is going to be muted
-     * @param  seconds The amount of seconds after which the mute will expire
+     * @param  slot The slot of the <tt>Client</tt> who is going to be muted
+     * @param  seconds The amount of seconds the <tt>Client</tt> will be muted
+     * @throws RconException If the <tt>Client</tt> couldn't be muted
      **/
-    public void mute(int slot, int seconds) {
+    public void mute(int slot, int seconds) throws RconException {
         this.rcon.sendNoRead("mute " + slot + " " + seconds);
     }
     
-     
+    
     /**
-     * Nuke a player
+     * Mute a <tt>Client</tt>
      * 
-     * @author Daniele Pantaleone
-     * @param  client The client who is going to be nuked
+     * @author Daniele Pantaleone 
+     * @param  client The <tt>Client</tt> who is going to be muted
+     * @param  seconds The amount of seconds the <tt>Client</tt> will be muted
+     * @throws RconException If the <tt>Client</tt> couldn't be muted
      **/
-    public void nuke(Client client) {
-        this.rcon.sendNoRead("nuke " + client.getSlot());
+    public void mute(Client client, int seconds) throws RconException {
+        this.mute(client.getSlot(), seconds);
     }
     
-    
+
     /**
-     * Nuke a player
+     * Nuke a <tt>Client</tt>
      * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be nuked
+     * @author Daniele Pantaleone 
+     * @param  slot The slot of the <tt>Client</tt> who is going to be nuked
+     * @throws RconException If the <tt>Client</tt> couldn't be nuked
      **/
-    public void nuke(int slot) {
+    public void nuke(int slot) throws RconException {
         this.rcon.sendNoRead("nuke " + slot);
     }
     
     
     /**
-     * Print a message to the in-game chat
+     * Nuke a <tt>Client</tt>
+     * 
+     * @author Daniele Pantaleone 
+     * @param  client The <tt>Client</tt> who is going to be nuked
+     * @throws RconException If the <tt>Client</tt> couldn't be nuked
+     **/
+    public void nuke(Client client) throws RconException {
+        this.nuke(client.getSlot());
+    }
+    
+    
+    /**
+     * Print a message in the game chat
      * 
      * @author Daniele Pantaleone
-     * @param  message The message to print
+     * @param  message The message to be printed
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public void say(String message) {
+    public void say(String message) throws RconException {
+        
+        if (message.trim().isEmpty())
+            return;
         
         if (message.length() > MAX_SAY_STRLEN) {
             
@@ -1165,16 +1055,17 @@ public class UrT42Console implements Console {
                 sentence = sentence.trim();
                 this.rcon.sendNoRead("say " + Color.WHITE + sentence);
                 
-                try { Thread.sleep(1000); } 
-                catch (InterruptedException e) {
-                    this.log.error(e);
+                try { 
+                    Thread.sleep(CHAT_DELAY); 
+                } catch (InterruptedException e) {
+                    // Do nothing here...
                 }
                 
             }
             
         } else {
             
-            // Normal say command
+            // No need to split here. Just send the command
             this.rcon.sendNoRead("say " + Color.WHITE + message);
             
         }
@@ -1188,8 +1079,9 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  command The command issued
      * @param  message The message to be printed
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public void sayLoudOrPm(Command command, String message) {
+    public void sayLoudOrPm(Command command, String message) throws RconException {
         
         switch (command.getPrefix()) {
             
@@ -1206,7 +1098,7 @@ public class UrT42Console implements Console {
         }
         
     }
-    
+      
     
     /**
      * Set a CVAR value
@@ -1214,144 +1106,131 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  name The name of the CVAR
      * @param  value The value to assign to the CVAR
+     * @throws RconException If the CVAR could not be set
      **/
-    public void setCvar(String name, Object value) {
+    public void setCvar(String name, Object value) throws RconException {
         this.rcon.sendNoRead("set " + name + " \"" + String.valueOf(value) + "\"");
     }
     
     
     /**
-     * Slap a player
+     * Set a CVAR value
      * 
      * @author Daniele Pantaleone
-     * @param  client The client who is going to be slapped
+     * @param  cvar The <tt>Cvar</tt> to be set on the server
+     * @throws RconException If the CVAR could not be set
      **/
-    public void slap(Client client) {
-        this.rcon.sendNoRead("slap " + client.getSlot());
+    public void setCvar(Cvar cvar) throws RconException {
+        this.setCvar(cvar.getName(), cvar.getString());
     }
     
     
     /**
-     * Slap a player
+     * Slap a <tt>Client</tt>
      * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the player who is going to be slapped
+     * @author Daniele Pantaleone 
+     * @param  slot The slot of the <tt>Client</tt> who is going to be slapped
+     * @throws RconException If the <tt>Client</tt> couldn't be slapped
      **/
-    public void slap(int slot) {
-        this.rcon.sendNoRead("slap " + slot);
+    public void slap(int slot) throws RconException {
+        this.rcon.sendNoRead("nuke " + slot);
     }
     
     
     /**
-     * Start recording a server side demo of a player
+     * Slap a <tt>Client</tt>
      * 
-     * @author Daniele Pantaleone
-     * @param  client The client whose we want to record a demo
+     * @author Daniele Pantaleone 
+     * @param  client The <tt>Client</tt> who is going to be slapped
+     * @throws RconException If the <tt>Client</tt> couldn't be slapped
      **/
-    public void startserverdemo(Client client) {
-        this.rcon.sendNoRead("startserverdemo " + client.getSlot());
+    public void slap(Client client) throws RconException {
+        this.slap(client.getSlot());
     }
 
     
     /**
-     * Start recording a server side demo of a player
+     * Start recording a server side demo of a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
-     * @param  slot The slot of the player whose we want to record a demo
+     * @param  slot The slot of the <tt>Client</tt> whose demo is going to be recorded
+     * @throws RconException If the demo recording couldn't be started
      **/
-    public void startserverdemo(int slot) {
+    public void startserverdemo(int slot) throws RconException {
         this.rcon.sendNoRead("startserverdemo " + slot);
     }
     
     
     /**
-     * Start recording a server side demo of all the online players
+     * Start recording a server side demo of a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> whose demo is going to be recorded
+     * @throws RconException If the demo recording couldn't be started
      **/
-    public void startserverdemo() {
+    public void startserverdemo(Client client) throws RconException {
+        this.startserverdemo(client.getSlot());
+    }
+    
+    
+    /**
+     * Start recording a server side demo of all the online clients
+     * 
+     * @author Daniele Pantaleone
+     * @throws RconException If the demo recording couldn't be started
+     **/
+    public void startserverdemo() throws RconException {
         this.rcon.sendNoRead("startserverdemo all");
     }
     
     
     /**
-     * Stop recording a server side demo of a player
+     * Stop recording a server side demo of a <tt>Client</tt>
      * 
-     * @author Daniele Pantaleone 
-     * @param  client The client whose we want to stop a demo recording
+     * @author Daniele Pantaleone
+     * @param  slot The slot of the <tt>Client</tt> whose demo is going to be stopped
+     * @throws RconException If the demo recording couldn't be stopped
      **/
-    public void stopserverdemo(Client client) {
-        this.rcon.sendNoRead("stopserverdemo " + client.getSlot());
-    }
-    
-    
-    /**
-     * Stop recording a server side demo of a player
-     * 
-     * @author Daniele Pantaleone 
-     * @param  slot The slot of the player whose we want to stop a demo recording
-     **/
-    public void stopserverdemo(int slot) {
+    public void stopserverdemo(int slot) throws RconException {
         this.rcon.sendNoRead("stopserverdemo " + slot);
     }
     
     
     /**
-     * Stop recording a server side demo of all the online players
+     * Stop recording a server side demo of a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> whose demo is going to be stopped
+     * @throws RconException If the demo recording couldn't be stopped
      **/
-    public void stopserverdemo() {
+    public void stopserverdemo(Client client) throws RconException {
+        this.stopserverdemo(client.getSlot());
+    }
+    
+    
+    /**
+     * Stop recording a server side demo of all the online clients
+     * 
+     * @author Daniele Pantaleone
+     * @throws RconException If the demo recording couldn't be stopped
+     **/
+    public void stopserverdemo() throws RconException {
         this.rcon.sendNoRead("stopserverdemo all");
     }
     
     
     /**
-     * Send a private message to a player
+     * Send a private message to a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
-     * @param  client The client you want to send the message
+     * @param  slot The slot of the <tt>Client</tt> who will receive the message
      * @param  message The message to be sent
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public void tell(Client client, String message) {
+    public void tell(int slot, String message) throws RconException {
         
-        if (message.length() > MAX_SAY_STRLEN) {
-            
-            // Splitting the message into multiple sentences
-            // In this way it won't overflow the game chat and it will print nicer
-            List<String> collection = Splitter.split(message, MAX_SAY_STRLEN);
-            
-            for (String sentence: collection) {
-                
-                // Sending the message
-                sentence = sentence.trim();
-                this.rcon.sendNoRead("tell " + client.getSlot() + " " + Color.WHITE + sentence);
-                
-                try { Thread.sleep(1000); } 
-                catch (InterruptedException e) {
-                    this.log.error(e);
-                }
-                
-            }
-            
-        } else {
-            
-            // Normal tell command
-            this.rcon.sendNoRead("tell " + client.getSlot() + " " + Color.WHITE + message);
-            
-        }
-        
-    }
-    
-    
-    /**
-     * Send a private message to a player
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the player you want to send the message
-     * @param  message The message to be sent
-     **/
-    public void tell(int slot, String message) {
+        if (message.trim().isEmpty())
+            return;
         
         if (message.length() > MAX_SAY_STRLEN) {
             
@@ -1365,16 +1244,17 @@ public class UrT42Console implements Console {
                 sentence = sentence.trim();
                 this.rcon.sendNoRead("tell " + slot + " " + Color.WHITE + sentence);
                 
-                try { Thread.sleep(1000); } 
-                catch (InterruptedException e) {
-                    this.log.error(e);
+                try { 
+                    Thread.sleep(CHAT_DELAY); 
+                } catch (InterruptedException e) {
+                    // Do nothing here...
                 }
                 
             }
             
         } else {
             
-            // Normal tell command
+            // No need to split here. Just send the command
             this.rcon.sendNoRead("tell " + slot + " " + Color.WHITE + message);
             
         }
@@ -1383,36 +1263,53 @@ public class UrT42Console implements Console {
     
     
     /**
-     * Unban a player from the server
+     * Send a private message to a <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
-     * @param  client The client we want to unban
+     * @param  client The <tt>Client</tt> who will receive the message
+     * @param  message The message to be sent
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public void unban(Client client) {
-        this.rcon.sendNoRead("removeip " + client.getIp().getHostAddress());
+    public void tell(Client client, String message) throws RconException {
+        this.tell(client.getSlot(), message);
     }
     
 
     /**
-     * Unban a player from the server
+     * Unban an IP address from the server
      * 
      * @author Daniele Pantaleone
-     * @param  ip The IP address of the player we want to unban
+     * @param  ip The IP address we want to unban
+     * @throws RconException If the IP address couldn't be unbanned
      **/
-    public void unban(String ip) {
+    public void unban(String ip) throws RconException {
         this.rcon.sendNoRead("removeip " + ip);
     }
     
     
     /**
+     * Unban a <tt>Client</tt> IP address from the server
+     * 
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> whose IP address we want to unban
+     * @throws RconException If the IP address couldn't be unbanned
+     **/
+    public void unban(Client client) throws RconException {
+        this.unban(client.getIp().getHostAddress());
+    }
+    
+    
+    /**
      * Write a message directly in the Urban Terror console<br>
-     * Try to avoid the use of this command: use instead the other optimized methods available in this class
+     * Try to avoid the use of this command: use instead the other 
+     * optimized methods available in this class
      * 
      * @author Daniele Pantaleone
      * @param  command The command to execute
+     * @throws RconException If the RCON command fails in being executed
      * @return The server response to the RCON command
      **/
-    public String write(String command)  {
+    public String write(String command) throws RconException {
         return this.rcon.sendRead(command);
     }
      
