@@ -7,10 +7,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
-
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
-
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 30 January, 2013
  * @package     com.orion.control
  **/
@@ -36,16 +36,16 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import com.orion.bot.Orion;
-import com.orion.dao.CallvoteDao;
-import com.orion.dao.MySqlCallvoteDao;
-import com.orion.domain.Callvote;
+import com.orion.dao.IpAliasDao;
+import com.orion.dao.MySqlIpAliasDao;
 import com.orion.domain.Client;
+import com.orion.domain.IpAlias;
 
-public class CallvoteC {
+public class IpAliasCtl {
         
     private final Log log;
     private final DateTimeZone timezone;
-    private final CallvoteDao dao;
+    private final IpAliasDao dao;
     
     
     /**
@@ -54,73 +54,59 @@ public class CallvoteC {
      * @author Daniele Pantaleone
      * @param  orion <tt>Orion</tt> object reference
      **/
-    public CallvoteC(Orion orion) {
+    public IpAliasCtl(Orion orion) {
         this.log = orion.log;
         this.timezone = orion.timezone;
-        this.dao = new MySqlCallvoteDao(orion);
+        this.dao = new MySqlIpAliasDao(orion);
     }
     
     
     /**
-     * Return a collection of <tt>Callvote</tt> objects matching the given query limit
-     * 
-     * @author Daniele Pantaleone
-     * @param  limit The number of </tt>Callvote</tt> objects to retrieve
-     * @throws ClassNotFoundException If the JDBC driver fails in being loaded
-     * @throws SQLException If the load query fails somehow
-     * @throws UnknownHostException If we can't generate an <tt>InetAddress</tt> object using a <tt>Client</tt> IP address
-     * @return A collection of </tt>Callvote</tt> objects matching the given query limit
-     **/
-    public List<Callvote> getByLimit(int limit) throws ClassNotFoundException, SQLException, UnknownHostException {
-        return this.dao.loadByLimit(limit);
-    }
-    
-    
-    /**
-     * Return a collection of <tt>Callvote</tt> objects matching the given <tt>Client</tt>
+     * Return a collection of <tt>IpAlias</tt> objects matching the given <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> object on which to perform the search
      * @throws ClassNotFoundException If the JDBC driver fails in being loaded
      * @throws SQLException If the load query fails somehow
-     * @return A collection of <tt>Callvote</tt> objects matching the given <tt>Client</tt>
+     * @throws UnknownHostException If we can't generate an <tt>InetAddress</tt> object using a <tt>Client</tt> IP address
+     * @return A collection of </tt>IpAlias</tt> objects matching the given <tt>Client</tt>
      **/
-    public List<Callvote> getByClient(Client client) throws ClassNotFoundException, SQLException, UnknownHostException {
+    public List<IpAlias> getByClient(Client client) throws ClassNotFoundException, SQLException, UnknownHostException {
         return this.dao.loadByClient(client);
     }
     
     
     /**
-     * Return a collection of <tt>Callvote</tt> objects matching the given <tt>Client</tt> and the given query limit
+     * Return an <tt>IpAlias</tt> object matching the given <tt>Client</tt> id and IP address
      * 
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> object on which to perform the search
-     * @param  limit The number of <tt>Callvote</tt> objects to retrieve
      * @throws ClassNotFoundException If the JDBC driver fails in being loaded
      * @throws SQLException If the load query fails somehow
-     * @return A collection of <tt>Callvote</tt> objects matching the given <tt>Client</tt> and the given query limit
+     * @throws UnknownHostException If we can't generate an <tt>InetAddress</tt> object using the <tt>Client</tt> IP address
+     * @return An <tt>IpAlias</tt> object matching the given <tt>Client</tt> id and IP address or <tt>null</tt> if we have no match
      **/
-    public List<Callvote> getByClientLimit(Client client, int limit) throws ClassNotFoundException, SQLException, UnknownHostException {
-        return this.dao.loadByClientLimit(client, limit);
+    public IpAlias getByClientIp(Client client) throws ClassNotFoundException, SQLException, UnknownHostException {
+        return this.dao.loadByClientIp(client);
     }
     
     
     /**
-     * Create a new entry in the database for the current object.
+     * Create a new entry in the database for the current object
      * 
      * @author Daniele Pantaleone
-     * @param  callvote The <tt>Callvote</tt> object whose informations needs to be stored
+     * @param  ipalias The <tt>IpAlias</tt> object whose informations needs to be stored
      * @throws ClassNotFoundException If the JDBC driver fails in being loaded
      * @throws SQLException If the insert query fails somehow
      **/
-    public void insert(Callvote callvote) throws ClassNotFoundException, SQLException {
+    public void insert(IpAlias ipalias) throws ClassNotFoundException, SQLException {
         
-        if (!callvote.getClient().isBot()) {
+        if (!ipalias.getClient().isBot()) {
             DateTime date = new DateTime(this.timezone);
-            callvote.setTimeAdd(date);
-            callvote.setTimeEdit(date);
-            this.log.trace("[SQL] INSERT `callvotes`: " + callvote.toString());
-            this.dao.insert(callvote);
+            ipalias.setTimeAdd(date);
+            ipalias.setTimeEdit(date);
+            this.log.trace("[SQL] INSERT `ipaliases`: " + ipalias.toString());
+            this.dao.insert(ipalias);
         }
         
     }
@@ -130,51 +116,50 @@ public class CallvoteC {
      * Update domain object in the database
      * 
      * @author Daniele Pantaleone
-     * @param  callvote The <tt>Callvote</tt> object whose informations needs to be updated
+     * @param  ipalias The <tt>IpAlias</tt> object whose informations needs to be updated
      * @throws ClassNotFoundException If the JDBC driver fails in being loaded
      * @throws SQLException If the update query fails somehow
      **/
-    public void update(Callvote callvote) throws ClassNotFoundException, SQLException {
+    public void update(IpAlias ipalias) throws ClassNotFoundException, SQLException {
         
-        if (!callvote.getClient().isBot()) {
-            callvote.setTimeEdit(new DateTime(this.timezone));
-            this.log.trace("[SQL] UPDATE `callvotes`: " + callvote.toString());
-            this.dao.update(callvote);
+        if (!ipalias.getClient().isBot()) {
+            ipalias.setTimeEdit(new DateTime(this.timezone));
+            this.log.trace("[SQL] UPDATE `ipaliases`: " + ipalias.toString());
+            this.dao.update(ipalias);
         }
         
     }
     
     
     /**
-     * Delete domain object from the database
+     * Delete domain object from the database.
      * 
      * @author Daniele Pantaleone
-     * @param  callvote The <tt>Callvote</tt> object whose informations needs to be deleted
+     * @param  ipalias The <tt>IpAlias</tt> object whose informations needs to be deleted
      * @throws ClassNotFoundException If the JDBC driver fails in being loaded
      * @throws SQLException If the delete query fails somehow
      **/
-    public void delete(Callvote callvote) throws ClassNotFoundException, SQLException {
+    public void delete(IpAlias ipalias) throws ClassNotFoundException, SQLException {
         
-        if (!callvote.getClient().isBot()) {
-            this.log.trace("[SQL] DELETE `callvotes`: " + callvote.toString());
-            this.dao.delete(callvote);
+        if (!ipalias.getClient().isBot()) {
+            this.log.trace("[SQL] DELETE `ipaliases`: " + ipalias.toString());
+            this.dao.delete(ipalias);
         }
         
     }
     
     
     /**
-     * Save the <tt>Callvote</tt> object in the database
+     * Save the <tt>IpAlias</tt> object in the database
      *
      * @author Daniele Pantaleone
-     * @param  client The <tt>Callvote</tt> object to be saved in the database
+     * @param  alias The <tt>IpAlias</tt> object to be saved in the database
      * @throws ClassNotFoundException If the JDBC driver fails in being loaded
      * @throws SQLException If the load query fails somehow
      **/
-    public void save(Callvote callvote) throws ClassNotFoundException, SQLException { 
-        if (callvote.getId() > 0) { this.update(callvote); } 
-        else { this.insert(callvote); }
+    public void save(IpAlias ipalias) throws ClassNotFoundException, SQLException { 
+        if (ipalias.getId() > 0) { this.update(ipalias); } 
+        else { this.insert(ipalias); }
     }
-
     
 }

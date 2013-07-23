@@ -38,7 +38,7 @@ import com.orion.dao.GroupDao;
 import com.orion.dao.MySqlGroupDao;
 import com.orion.domain.Group;
 
-public class GroupC {
+public class GroupCtl {
    
     private final Log log;
     private final GroupDao dao;
@@ -51,7 +51,7 @@ public class GroupC {
      * @author Daniele Pantaleone
      * @param  orion <tt>Orion</tt> object reference
      **/
-    public GroupC(Orion orion) {
+    public GroupCtl(Orion orion) {
         this.log = orion.log;
         this.dao = new MySqlGroupDao(orion.storage);
         this.groups = new LinkedList<Group>();

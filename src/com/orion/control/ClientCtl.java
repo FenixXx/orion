@@ -50,7 +50,7 @@ import com.orion.exception.RconException;
 import com.orion.urt.Color;
 import com.orion.urt.Team;
 
-public class ClientC {
+public class ClientCtl {
     
     private final Log log;
     private final Console console;
@@ -69,7 +69,7 @@ public class ClientC {
      * @author Daniele Pantaleone
      * @param  orion <tt>Orion</tt> object reference
      **/
-    public ClientC(Orion orion) {
+    public ClientCtl(Orion orion) {
         this.log = orion.log;
         this.console = orion.console;
         this.timezone = orion.timezone;

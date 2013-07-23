@@ -42,7 +42,7 @@ import com.orion.dao.PenaltyDao;
 import com.orion.domain.Client;
 import com.orion.domain.Penalty;
 
-public class PenaltyC {
+public class PenaltyCtl {
         
     private final Log log;
     private final DateTimeZone timezone;
@@ -55,7 +55,7 @@ public class PenaltyC {
      * @author Daniele Pantaleone
      * @param  orion <tt>Orion</tt> object reference
      **/
-    public PenaltyC(Orion orion) {
+    public PenaltyCtl(Orion orion) {
         this.log = orion.log;
         this.timezone = orion.timezone;
         this.dao = new MySqlPenaltyDao(orion);
