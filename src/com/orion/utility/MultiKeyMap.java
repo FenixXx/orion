@@ -31,7 +31,7 @@ import java.util.Map;
 
 public interface MultiKeyMap<K1, K2, V> {
     
-	
+    
     /**
      * Remove all of the mappings from this map.
      * The map will be empty after this call returns.

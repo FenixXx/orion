@@ -134,17 +134,17 @@ public class CommandProcessor implements Runnable {
                         
                     } catch (InvocationTargetException e) {
                         
-                    	if (e.getCause().getClass().equals(CommandRuntimeException.class)) {
-                    	
-                    		// Displaying the error in the game chat
-                        	this.console.tell(command.client, e.getCause().getMessage());
-                    		
-                    	} else if (e.getCause().getClass().equals(CommandSyntaxException.class)) {
+                        if (e.getCause().getClass().equals(CommandRuntimeException.class)) {
+                        
+                            // Displaying the error in the game chat
+                            this.console.tell(command.client, e.getCause().getMessage());
+                            
+                        } else if (e.getCause().getClass().equals(CommandSyntaxException.class)) {
                     
                             // Display a little help text so the user can 
                             // try again using the correct command syntax
                             Usage usage = method.getAnnotation(Usage.class);
-                        	this.console.tell(command.client, e.getCause().getMessage());
+                            this.console.tell(command.client, e.getCause().getMessage());
                             this.console.tell(command.client, "Usage: " + Color.YELLOW + usage.syntax());
                             continue;
                            

@@ -37,7 +37,7 @@ public class BooleanParser {
     private static final Map<String, Boolean> stringToBoolean;
     
     static {
-    	
+        
         stringToBoolean = new HashMap<String, Boolean>();
         
         stringToBoolean.put("true",  Boolean.TRUE);

@@ -66,18 +66,18 @@ public class Splitter {
                 
                 // Rolling back until we find an empty char for the split
                 while (message.charAt(endIndex - 1) != ' ') { 
-                	
-                	endIndex--;
-                	
-                	// This is to check if the string we have to
-                	// split is a CharSequence without spaces
-                	// If we do not check it here we may have 
-                	// and infinite loop which will crash the bot
-                	if (endIndex <= startIndex) {
-                		endIndex += maxLength - 1;
-                		break;
-                	}
-                	
+                    
+                    endIndex--;
+                    
+                    // This is to check if the string we have to
+                    // split is a CharSequence without spaces
+                    // If we do not check it here we may have 
+                    // and infinite loop which will crash the bot
+                    if (endIndex <= startIndex) {
+                        endIndex += maxLength - 1;
+                        break;
+                    }
+                    
                 }
                 
                 list.add(message.substring(startIndex, endIndex));
