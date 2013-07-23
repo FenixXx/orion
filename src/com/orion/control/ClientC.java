@@ -46,6 +46,7 @@ import com.orion.console.Console;
 import com.orion.dao.ClientDao;
 import com.orion.dao.MySqlClientDao;
 import com.orion.domain.Client;
+import com.orion.exception.RconException;
 import com.orion.urt.Color;
 import com.orion.urt.Team;
 
@@ -57,6 +58,9 @@ public class ClientC {
     private final ClientDao dao;
     
     private List<Client> clients;
+    
+    private static final String P_ID = "^@\\d+$";
+    private static final String P_NUMBER = "^\\d+$";
     
     
     /**
@@ -148,20 +152,22 @@ public class ClientC {
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> who is performing the search
      * @param  pattern The pattern matching the name so search
+     * @throws RconException If we didn't manage to find a single match and 
+     *         we were not able to warn the client using the game chat
      * @return The </tt>Client</tt> whose name matches the given pattern 
      **/
-    public Client getByMagic(Client client, String pattern) { 
+    public Client getByMagic(Client client, String pattern) throws RconException { 
         
-        // Don't bother if the pattern is null
-        if (pattern == null) return null;
+        if (pattern == null) 
+            return null;
         
         // Searching by slot
-        if (pattern.matches("^\\d+$")) {
+        if (pattern.matches(P_NUMBER)) {
             
             Client sclient = this.getBySlot(Integer.valueOf(pattern));
             if ((sclient == null) && (client != null)) {
                 // No client found for the given slot number
-                this.console.tell(client, "No client found in slot " + Color.RED + pattern); 
+                this.console.tell(client, "Could not find client in slot " + Color.RED + pattern); 
                 return null;
             }
             
@@ -175,7 +181,7 @@ public class ClientC {
         if (collection.size() == 0) {
    
             // No client found for the matching name pattern
-            this.console.tell(client, "No client in found matching " + Color.RED + pattern);
+            this.console.tell(client, "Could not find client matching " + Color.RED + pattern);
             return null;
             
         } else if (collection.size() > 1) {
@@ -214,21 +220,24 @@ public class ClientC {
      * @param  pattern The pattern matching the name so search
      * @throws ClassNotFoundException If the JDBC driver fails in being loaded
      * @throws SQLException If the load query fails somehow
-     * @throws UnknownHostException If we can't generate an <tt>InetAddress</tt> object using the <tt>Client</tt> IP address
+     * @throws UnknownHostException If we can't generate an <tt>InetAddress</tt> 
+     *         object using the <tt>Client</tt> IP address
+     * @throws RconException If we didn't manage to find a single match and 
+     *         we were not able to warn the client using the game chat
      * @return The </tt>Client</tt> whose name matches the given pattern 
      **/
-    public Client getByMagicFull(Client client, String pattern) throws ClassNotFoundException, SQLException, UnknownHostException { 
+    public Client getByMagicDB(Client client, String pattern) throws ClassNotFoundException, SQLException, UnknownHostException, RconException { 
         
         // Don't bother if the pattern is null
         if (pattern == null) return null;
         
         // Searching by id
-        if (pattern.matches("^@\\d+$")) {
+        if (pattern.matches(P_ID)) {
             
             Client sclient = this.getById(Integer.parseInt(pattern.substring(1)));
             if ((sclient == null) && (client != null)) {
                 // No client found for the given id
-                this.console.tell(client, "No client found with id " + Color.RED + pattern); 
+                this.console.tell(client, "Could not find client with id " + Color.RED + pattern); 
                 return null;
             }
             
@@ -237,12 +246,12 @@ public class ClientC {
         }
          
         // Searching by slot
-        if (pattern.matches("^\\d+$")) {
+        if (pattern.matches(P_NUMBER)) {
             
             Client sclient = this.getBySlot(Integer.valueOf(pattern));
             if ((sclient == null) && (client != null)) {
                 // No client found for the given slot number
-                this.console.tell(client, "No client found in slot " + Color.RED + pattern); 
+                this.console.tell(client, "Could not find client in slot " + Color.RED + pattern); 
                 return null;
             }
             
@@ -256,7 +265,7 @@ public class ClientC {
         if (collection.size() == 0) {
    
             // No client found for the matching name pattern
-            this.console.tell(client, "No client in found matching " + Color.RED + pattern);
+            this.console.tell(client, "Could not find client matching " + Color.RED + pattern);
             return null;
             
         } else if (collection.size() > 1) {
