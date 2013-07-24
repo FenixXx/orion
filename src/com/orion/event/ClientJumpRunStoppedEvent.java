@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.2
+ * @version     1.3
  * @copyright   Daniele Pantaleone, 1 February, 2013
  * @package     com.orion.event
  **/
@@ -33,7 +33,9 @@ public class ClientJumpRunStoppedEvent extends Event {
 
     private final Client client;
     private final int way;
-    private final int millis;
+    private final int way_time;
+    private final Integer attempt_num;
+    private final Integer attempt_max;
     
     /**
      * Object constructor
@@ -41,12 +43,33 @@ public class ClientJumpRunStoppedEvent extends Event {
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> who who started the jump run
      * @param  way The number of the jump run way
-     * @param  millis The time performed by the client
+     * @param  way_time The time performed by the <tt>Client</tt>
      **/
-    public ClientJumpRunStoppedEvent(Client client, int way, int millis) {  
+    public ClientJumpRunStoppedEvent(Client client, int way, int way_time) {  
         this.client = client;
         this.way = way;
-        this.millis = millis;
+        this.way_time = way_time;
+        this.attempt_num = null;
+        this.attempt_max = null;
+    }
+    
+    
+    /**
+     * Object constructor
+     * 
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> who who started the jump run
+     * @param  way The number of the jump run way
+     * @param  way_time The time performed by the <tt>Client</tt>
+     * @param  attempt_num The number of the attempt
+     * @param  attempt_max The number of attempts allowed on the server
+     **/
+    public ClientJumpRunStoppedEvent(Client client, int way, int way_time, int attempt_num, int attempt_max) {  
+        this.client = client;
+        this.way = way;
+        this.way_time = way_time;
+        this.attempt_num = attempt_num;
+        this.attempt_max = attempt_max;
     }
     
     
@@ -78,8 +101,31 @@ public class ClientJumpRunStoppedEvent extends Event {
      * @author Daniele Pantaleone
      * @return The amount of milliseconds of the jump run
      **/
-    public int getMillis() {
-        return this.millis;
+    public int getWayTime() {
+        return this.way_time;
+    }
+    
+    
+    /**
+     * Return the number of the attempt
+     * 
+     * @author Daniele Pantaleone
+     * @return The number of the attempt or <tt>null</tt> if they are unlimited
+     **/
+    public Integer getAttemptNum() {
+        return this.attempt_num;
+    }
+    
+    
+    /**
+     * Return the number of attempts allowed on the server
+     * 
+     * @author Daniele Pantaleone
+     * @return The number of attempts allowed on the server 
+     *         or <tt>null</tt> if they are unlimited
+     **/
+    public Integer getAttemptMax() {
+        return this.attempt_max;
     }
     
 }

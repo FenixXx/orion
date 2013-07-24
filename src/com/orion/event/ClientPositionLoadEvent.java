@@ -32,7 +32,6 @@ import com.orion.domain.Client;
 public class ClientPositionLoadEvent extends Event {
 
     private final Client client;
-    private final String location;
     private final float x;
     private final float y;
     private final float z;
@@ -45,11 +44,9 @@ public class ClientPositionLoadEvent extends Event {
      * @param  x The X coordinate
      * @param  y The Y coordinate
      * @param  z The Z coordinate
-     * @param  location The map location name
      **/
-    public ClientPositionLoadEvent(Client client, float x, float y, float z, String location) {
+    public ClientPositionLoadEvent(Client client, float x, float y, float z) {
         this.client = client;
-        this.location = location;
         this.x = x;
         this.y = y;
         this.z = z;
@@ -65,18 +62,7 @@ public class ClientPositionLoadEvent extends Event {
     public Client getClient() {
         return this.client;
     }
-    
-    
-    /**
-     * Return the map location name
-     * 
-     * @author Daniele Pantaleone
-     * @return The map location name
-     **/
-    public String getLocation() {
-        return this.location;
-    }
-    
+  
     
     /**
      * Return the X coordinate

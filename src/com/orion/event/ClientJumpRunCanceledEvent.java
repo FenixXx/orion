@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.2
+ * @version     1.3
  * @copyright   Daniele Pantaleone, 1 February, 2013
  * @package     com.orion.event
  **/
@@ -33,6 +33,8 @@ public class ClientJumpRunCanceledEvent extends Event {
 
     private final Client client;
     private final int way;
+    private final Integer attempt_num;
+    private final Integer attempt_max;
     
     /**
      * Object constructor
@@ -44,6 +46,25 @@ public class ClientJumpRunCanceledEvent extends Event {
     public ClientJumpRunCanceledEvent(Client client, int way) {  
         this.client = client;
         this.way = way;
+        this.attempt_num = null;
+        this.attempt_max = null;
+    }
+    
+    
+    /**
+     * Object constructor
+     * 
+     * @author Daniele Pantaleone
+     * @param  client The <tt>Client</tt> whose run has been canceled
+     * @param  way The number of the jump way
+     * @param  attempt_num The number of the attempt
+     * @param  attempt_max The number of attempts allowed on the server
+     **/
+    public ClientJumpRunCanceledEvent(Client client, int way, int attempt_num, int attempt_max) {  
+        this.client = client;
+        this.way = way;
+        this.attempt_num = attempt_num;
+        this.attempt_max = attempt_max;
     }
     
     
@@ -66,6 +87,29 @@ public class ClientJumpRunCanceledEvent extends Event {
      **/
     public int getWay() {
         return this.way;
+    }
+    
+    
+    /**
+     * Return the number of the attempt
+     * 
+     * @author Daniele Pantaleone
+     * @return The number of the attempt or <tt>null</tt> if they are unlimited
+     **/
+    public Integer getAttemptNum() {
+        return this.attempt_num;
+    }
+    
+    
+    /**
+     * Return the number of attempts allowed on the server
+     * 
+     * @author Daniele Pantaleone
+     * @return The number of attempts allowed on the server 
+     *         or <tt>null</tt> if they are unlimited
+     **/
+    public Integer getAttemptMax() {
+        return this.attempt_max;
     }
     
 }
