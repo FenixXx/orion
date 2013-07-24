@@ -34,8 +34,22 @@ import java.util.List;
 
 import com.google.common.collect.Ordering;
 
+/**
+ * The purpose of this class is to provide a convenient way to perform certain List operations.
+ * 
+ * @author Mathias Van Malderen
+ */
 public class ListUtil {
     
+	/**
+	 * Insert a value in an ordered List while preserving the ordering criteria by which that list is ordered.
+	 * This method assumes that the specified list is ordered according to the order defined by the specified comparator.
+	 * 
+	 * @param list the list in which the specified value is to be inserted
+	 * @param value	value to be inserted
+	 * @param comparator the comparator by which the list is ordered
+	 * @throws NullPointerException if any of the specified arguments is null
+	 */
     public static <V> void insertInOrder(final List<V> list, final V value, final Comparator<? super V> comparator) {
         
         checkNotNull(list);
@@ -50,6 +64,14 @@ public class ListUtil {
     }
     
     
+	/**
+	 * Insert a value in an ordered List while preserving the ordering criteria by which that list is ordered.
+	 * This method assumes that the list is ordered according to the natural order of the specified value.
+	 * 
+	 * @param list the list in which the specified value is to be inserted
+	 * @param value	value to be inserted
+	 * @throws NullPointerException if any of the specified arguments is null
+	 */
     public static <V extends Comparable<V>> void insertInOrder(final List<V> list, final V value) {
         insertInOrder(list, value, Ordering.natural());
     }
