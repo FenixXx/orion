@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.2.1
+ * @version     1.2.2
  * @copyright   Daniele Pantaleone, 10 February, 2013
  * @package     com.orion.console
  **/
@@ -155,8 +155,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void authpermban(Client client) throws UnsupportedOperationException, RconException, NullPointerException {
-        checkNotNull(client);
-        this.authpermban(client.getSlot());
+        this.authpermban(checkNotNull(client).getSlot());
     }
         
     
@@ -209,8 +208,7 @@ public class UrT42Console implements Console {
      * @return A <tt>Map</tt> containing the auth-whois command response
      **/
     public Map<String, String> authwhois(Client client) throws UnsupportedOperationException, RconException, ParserException, NullPointerException {
-        checkNotNull(client);
-        return this.authwhois(client.getSlot());
+        return this.authwhois(checkNotNull(client).getSlot());
     }
     
     
@@ -223,8 +221,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      **/
     public void ban(String ip) throws RconException, NullPointerException {
-        checkNotNull(ip);
-        this.rcon.sendNoRead("addip " + ip);
+        this.rcon.sendNoRead("addip " + checkNotNull(ip));
     }
     
     
@@ -237,8 +234,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void ban(Client client) throws RconException, NullPointerException {
-        checkNotNull(client);
-        this.ban(client.getIp().getHostAddress());
+        this.ban(checkNotNull(client).getIp().getHostAddress());
     }
     
     
@@ -252,9 +248,7 @@ public class UrT42Console implements Console {
      **/
     public void bigtext(String message) throws RconException {
         
-        checkNotNull(message);
-        
-        if (message.length() > MAX_SAY_STRLEN) {
+        if (checkNotNull(message).length() > MAX_SAY_STRLEN) {
             
             // Splitting the message into multiple sentences
             // In this way it won't overflow the game chat and it will print nicer
@@ -295,9 +289,7 @@ public class UrT42Console implements Console {
      **/
     public void broadcast(String message) throws RconException {
         
-        checkNotNull(message);
-        
-        if (message.length() > MAX_SAY_STRLEN) {
+        if (checkNotNull(message).length() > MAX_SAY_STRLEN) {
             
             // Splitting the message into multiple sentences
             // In this way it won't overflow the game chat and it will print nicer
@@ -388,8 +380,7 @@ public class UrT42Console implements Console {
      *         if the <tt>Client</tt> is not connected anymore
      **/
     public Map<String, String> dumpuser(Client client) throws RconException, NullPointerException {
-        checkNotNull(client);
-        return this.dumpuser(client.getSlot());
+        return this.dumpuser(checkNotNull(client).getSlot());
     }
       
     
@@ -417,12 +408,10 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void forceblue(Client client) throws RconException {
-        
-        checkNotNull(client);
-        
+
         // Do not execute if the client is already in the specified team
         // This will prevent to overflow the server with RCON commands
-        if (client.getTeam() != Team.BLUE)
+        if (checkNotNull(client).getTeam() != Team.BLUE)
             this.forceblue(client.getSlot());
     }
     
@@ -448,8 +437,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void forcefree(Client client) throws RconException, NullPointerException {
-        checkNotNull(client);
-        this.forcefree(client.getSlot());
+        this.forcefree(checkNotNull(client).getSlot());
     }
     
     
@@ -477,12 +465,10 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void forcered(Client client) throws RconException, NullPointerException {
-        
-        checkNotNull(client);
-        
+
         // Do not execute if the client is already in the specified team
         // This will prevent to overflow the server with RCON commands
-        if (client.getTeam() != Team.RED)
+        if (checkNotNull(client).getTeam() != Team.RED)
             this.forcered(client.getSlot());
     }
     
@@ -511,12 +497,10 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void forcespec(Client client) throws RconException {
-        
-        checkNotNull(client);
-        
+         
         // Do not execute if the client is already in the specified team
         // This will prevent to overflow the server with RCON commands
-        if (client.getTeam() != Team.RED)
+        if (checkNotNull(client).getTeam() != Team.RED)
             this.forcespec(client.getSlot());
     }
     
@@ -564,8 +548,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void forceteam(Client client, Team team) throws RconException {
-        checkNotNull(client);
-        this.forceteam(client.getSlot(), team);
+        this.forceteam(checkNotNull(client).getSlot(), team);
     }
         
     
@@ -575,26 +558,22 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  name The CVAR name
      * @throws RconException If the CVAR could not be retrieved form the server
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
+     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      * @return The <tt>Cvar</tt> object associated to the given CVAR name or <tt>null</tt> 
      *         if such CVAR is not set on the server
      **/
     public Cvar getCvar(String name) throws RconException, NullPointerException {
         
-        String value;
-        
-        checkNotNull(name);
-        
         try {
             
-            String result = this.rcon.sendRead(name); 
+            String result = this.rcon.sendRead(checkNotNull(name)); 
             
             Pattern pattern = Pattern.compile("\\s*\\\"[\\w+]*\\\"\\sis:\\\"(?<value>[\\w:\\.\\-\\\\/]*)\\\".*", Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(result);
             
             if (matcher.matches()) {
                 
-                value = matcher.group("value");
+                String value = matcher.group("value");
                 
                 if (!value.trim().isEmpty()) {
                     this.log.trace("Retrieved CVAR [" + name + "] : " + value);
@@ -667,10 +646,8 @@ public class UrT42Console implements Console {
         
         List<String> collection = new LinkedList<String>();
         
-        checkNotNull(search);
-        
         // Trimming and making lower case the search key
-        search = search.toLowerCase().trim();
+        search = checkNotNull(search).toLowerCase().trim();
         
         // Server map list not computed yet. Build the map list
         if (this.game.getMapList().isEmpty())
@@ -800,7 +777,7 @@ public class UrT42Console implements Console {
         }
         
         // We failed somehow
-        this.log.warn("Unable to compute nextmap name.....");
+        this.log.warn("Unable to compute nextmap name...");
         return null;
    
     }
@@ -924,8 +901,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void kick(Client client) throws RconException, NullPointerException {
-        checkNotNull(client);
-        this.kick(client.getSlot());
+        this.kick(checkNotNull(client).getSlot());
     }
     
     
@@ -959,8 +935,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void kick(Client client, String reason) throws RconException, NullPointerException {
-        checkNotNull(client);
-        this.kick(client.getSlot(), reason);
+        this.kick(checkNotNull(client).getSlot(), reason);
     }
    
     
@@ -985,8 +960,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void kill(Client client) throws RconException, NullPointerException {
-        checkNotNull(client);
-        this.kill(client.getSlot());
+        this.kill(checkNotNull(client).getSlot());
     }
     
     
@@ -999,8 +973,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      **/
     public void map(String mapname) throws RconException {
-        checkNotNull(mapname);
-        this.rcon.sendNoRead("map " + mapname);
+        this.rcon.sendNoRead("map " + checkNotNull(mapname));
     }
     
     
@@ -1025,8 +998,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void mute(Client client) throws RconException {
-        checkNotNull(client);
-        this.mute(client.getSlot());
+        this.mute(checkNotNull(client).getSlot());
     }
     
     
@@ -1053,8 +1025,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void mute(Client client, int seconds) throws RconException {
-        checkNotNull(client);
-        this.mute(client.getSlot(), seconds);
+        this.mute(checkNotNull(client).getSlot(), seconds);
     }
     
 
@@ -1079,8 +1050,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void nuke(Client client) throws RconException, NullPointerException {
-        checkNotNull(client);
-        this.nuke(client.getSlot());
+        this.nuke(checkNotNull(client).getSlot());
     }
     
     
@@ -1094,9 +1064,7 @@ public class UrT42Console implements Console {
      **/
     public void say(String message) throws RconException {
         
-        checkNotNull(message);
-        
-        if (message.length() > MAX_SAY_STRLEN) {
+        if (checkNotNull(message).length() > MAX_SAY_STRLEN) {
             
             // Splitting the message into multiple sentences
             // In this way it won't overflow the game chat and it will print nicer
@@ -1208,8 +1176,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void slap(Client client) throws RconException, NullPointerException {
-        checkNotNull(client);
-        this.slap(client.getSlot());
+        this.slap(checkNotNull(client).getSlot());
     }
 
     
@@ -1234,8 +1201,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void startserverdemo(Client client) throws RconException, NullPointerException {
-        checkNotNull(client);
-        this.startserverdemo(client.getSlot());
+        this.startserverdemo(checkNotNull(client).getSlot());
     }
     
     
@@ -1271,8 +1237,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void stopserverdemo(Client client) throws RconException, NullPointerException {
-        checkNotNull(client);
-        this.stopserverdemo(client.getSlot());
+        this.stopserverdemo(checkNotNull(client).getSlot());
     }
     
     
@@ -1298,9 +1263,7 @@ public class UrT42Console implements Console {
      **/
     public void tell(int slot, String message) throws RconException, NullPointerException {
         
-        checkNotNull(message);
-        
-        if (message.length() > MAX_SAY_STRLEN) {
+        if (checkNotNull(message).length() > MAX_SAY_STRLEN) {
             
             // Splitting the message into multiple sentences
             // In this way it won't overflow the game chat and it will print nicer
@@ -1340,8 +1303,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If one of the given parameters is <tt>null</tt>
      **/
     public void tell(Client client, String message) throws RconException, NullPointerException {
-        checkNotNull(client);
-        this.tell(client.getSlot(), message);
+        this.tell(checkNotNull(client).getSlot(), message);
     }
     
 
@@ -1354,8 +1316,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      **/
     public void unban(String ip) throws RconException, NullPointerException {
-        checkNotNull(ip);
-        this.rcon.sendNoRead("removeip " + ip);
+        this.rcon.sendNoRead("removeip " + checkNotNull(ip));
     }
     
     
@@ -1368,8 +1329,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void unban(Client client) throws RconException, NullPointerException {
-        checkNotNull(client);
-        this.unban(client.getIp().getHostAddress());
+        this.unban(checkNotNull(client).getIp().getHostAddress());
     }
     
     
@@ -1385,8 +1345,7 @@ public class UrT42Console implements Console {
      * @return The server response to the RCON command
      **/
     public String write(String command) throws RconException, NullPointerException {
-        checkNotNull(command);
-        return this.rcon.sendRead(command);
+        return this.rcon.sendRead(checkNotNull(command));
     }
      
 }
