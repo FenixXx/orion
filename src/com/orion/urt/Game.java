@@ -112,14 +112,16 @@ public class Game {
     
     
     /**
-     * Clear CVAR list and map list<br>
+     * Store a <tt>Cvar</tt> object in the CVAR list<br>
      * NOTE: this method doesn't query the game server
      * 
      * @author Daniele Pantaleone
+     * @param  name The CVAR name
+     * @param  value The CVAR value
      **/
-    public void clear() {
-        this.maplist.clear();
-        this.cvarlist.clear();
+    public void setCvar(String name, String value) {
+        this.cvarlist.put(name, new Cvar(name, value));
     }
+    
    
 }
