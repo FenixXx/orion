@@ -20,21 +20,21 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.2
- * @copyright   Daniele Pantaleone, 02 July, 2012
+ * @version     1.0
+ * @copyright   Daniele Pantaleone, 24 July, 2013
  * @package     com.orion.event
  **/
 
 package com.orion.event;
 
-public class GameRoundStartEvent extends Event {
+public class OrionStopEvent extends Event {
     
     /**
      * Object constructor
      * 
      * @author Daniele Pantaleone 
      **/
-    public GameRoundStartEvent() {
+    public OrionStopEvent() {
         
     }
 
