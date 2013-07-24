@@ -21,6 +21,8 @@
  * 
  * @author      Mathias Van Malderen
  * @version     1.0
+ * @copyright   Mathias Van Malderen, 23 July, 2013
+ * @package     com.orion.utility
  **/
 package com.orion.utility;
 

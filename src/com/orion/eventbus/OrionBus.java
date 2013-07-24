@@ -58,17 +58,17 @@ import com.orion.utility.ListUtil;
  * 5. Priorities on two levels:
  *      - runtime priority support at subscriber level
  *      - compile-time priority support at handler level
- * 6. Dead event detection.
  * 
  * Future features:
  * 
  * 1. Catch subtypes of specified event type.                       [TODO ]
- * 2. Optional condition for handler annotation,                    [MAYBE]
+ * 2. Dispatch dead events in a wrapped DeadEvent object.			[MAYBE]
+ * 3. Optional condition for handler annotation,                    [MAYBE]
  *    where the condition is a predicate of which
  *    the return value determines whether that handler
  *    will be called or not. This check is meant to be
  *    carried out every time before the handler is invoked.
- * 3. Weak reference support.                                       [MAYBE]
+ * 4. Weak reference support.                                       [MAYBE]
  * 
  * Designed for the following usage pattern:
  * 
@@ -231,17 +231,6 @@ public class OrionBus {
             try {
                 
                 Collection<Handler> handlers = getHandlersForType(event.getClass());
-                
-                if (handlers.isEmpty()) {
-                    
-                    // Dead event detected
-                    handlers = getHandlersForType(DeadEvent.class);
-                    if (handlers.isEmpty()) 
-                        return;
-                    
-                    event = new DeadEvent(event);
-                
-                }
                 
                 synchronized (handlersByType) {
                     

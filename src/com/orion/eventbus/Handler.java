@@ -30,7 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.orion.exception.HandlerInvocationException;
 import java.lang.reflect.Method;
 
-public class Handler {
+final class Handler {
     
     private final int subscriberPriority;
     private final int handlerPriority;
@@ -50,29 +50,29 @@ public class Handler {
     }
     
     
-    public final int getSubscriberPriority() {
+    int getSubscriberPriority() {
         return this.subscriberPriority;
     }
     
     
-    public final int getHandlerPriority() {
+    int getHandlerPriority() {
         return this.handlerPriority;
     }
     
     
-    public final Object getSubscriber() {
+    Object getSubscriber() {
         return this.subscriber;
     }
     
     
-    public final Class<?> getEventClass() {
+    Class<?> getEventClass() {
         return this.eventClass;
     }
     
     
-    public final void invoke(Object event) {
+    void invoke(Object event) {
         
-        if (!this.precondition.isSatisfied(subscriber)) 
+        if (!this.precondition.isSatisfied(subscriber))
             return;
         
         try {
@@ -85,7 +85,7 @@ public class Handler {
     }
     
     
-    public static class Builder {
+    static class Builder {
         
         private final Object subscriber;
         private final Method method;
@@ -96,32 +96,32 @@ public class Handler {
         private InvocationPrecondition invocationPrecondition = InvocationPrecondition.NONE;
         
         
-        public Builder(Object subscriber, Method method, Class<?> eventClass) {
+        Builder(Object subscriber, Method method, Class<?> eventClass) {
             this.subscriber = subscriber;
             this.method = method;
             this.eventClass = eventClass;
         }
         
         
-        public Builder handlerPriority(int priority) {
+        Builder handlerPriority(int priority) {
             this.handlerPriority = priority;
             return this;
         }
         
         
-        public Builder subscriberPriority(int priority) {
+        Builder subscriberPriority(int priority) {
             this.subscriberPriority = priority;
             return this;
         }
         
         
-        public Builder invocationPrecondition(InvocationPrecondition precondition) {
+        Builder invocationPrecondition(InvocationPrecondition precondition) {
             this.invocationPrecondition = precondition;
             return this;
         }
         
         
-        public Handler build() {
+        Handler build() {
             return new Handler(this);
         }
         
