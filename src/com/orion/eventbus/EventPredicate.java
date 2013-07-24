@@ -21,7 +21,7 @@
  * 
  * @author      Mathias Van Malderen
  * @version     1.0
- * @copyright   Mathias Van Malderen, 23 July, 2013
+ * @copyright   Mathias Van Malderen, 25 July, 2013
  * @package     com.orion.eventbus
  **/
 
