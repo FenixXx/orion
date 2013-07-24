@@ -20,12 +20,14 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.2
+ * @version     1.2.1
  * @copyright   Daniele Pantaleone, 10 February, 2013
  * @package     com.orion.console
  **/
 
 package com.orion.console;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -122,8 +124,10 @@ public class UrT42Console implements Console {
      * @param  mins The number of minutes of the ban
      * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
      * @throws RconException If the RCON command fails in being executed
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void authban(Client client, int days, int hours, int mins) throws UnsupportedOperationException, RconException {
+    public void authban(Client client, int days, int hours, int mins) throws UnsupportedOperationException, RconException, NullPointerException {
+        checkNotNull(client);
         this.authban(client.getSlot(), days, hours, mins);
     }
     
@@ -148,8 +152,10 @@ public class UrT42Console implements Console {
      * @param  client The <tt>Client</tt> who is going to be banned permanently
      * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
      * @throws RconException If the RCON command fails in being executed
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void authpermban(Client client) throws UnsupportedOperationException, RconException {
+    public void authpermban(Client client) throws UnsupportedOperationException, RconException, NullPointerException {
+        checkNotNull(client);
         this.authpermban(client.getSlot());
     }
         
@@ -199,9 +205,11 @@ public class UrT42Console implements Console {
      * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
      * @throws RconException If the RCON command fails in being executed
      * @throws ParserException If the auth-whois response couldn't be parsed correctly
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      * @return A <tt>Map</tt> containing the auth-whois command response
      **/
-    public Map<String, String> authwhois(Client client) throws UnsupportedOperationException, RconException, ParserException {
+    public Map<String, String> authwhois(Client client) throws UnsupportedOperationException, RconException, ParserException, NullPointerException {
+        checkNotNull(client);
         return this.authwhois(client.getSlot());
     }
     
@@ -212,8 +220,10 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  ip The IP address to be banned 
      * @throws RconException If the RCON command fails in being executed
+     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      **/
-    public void ban(String ip) throws RconException {
+    public void ban(String ip) throws RconException, NullPointerException {
+        checkNotNull(ip);
         this.rcon.sendNoRead("addip " + ip);
     }
     
@@ -224,8 +234,10 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> whose IP address is going to be banned
      * @throws RconException If the RCON command fails in being executed
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void ban(Client client) throws RconException {
+    public void ban(Client client) throws RconException, NullPointerException {
+        checkNotNull(client);
         this.ban(client.getIp().getHostAddress());
     }
     
@@ -236,11 +248,11 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  message The message to be printed
      * @throws RconException If the RCON command fails in being executed
+     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      **/
     public void bigtext(String message) throws RconException {
         
-        if (message.trim().isEmpty())
-            return;
+        checkNotNull(message);
         
         if (message.length() > MAX_SAY_STRLEN) {
             
@@ -279,8 +291,11 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  message The message to be sent
      * @throws RconException If the RCON commands fails in being executed
+     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      **/
     public void broadcast(String message) throws RconException {
+        
+        checkNotNull(message);
         
         if (message.length() > MAX_SAY_STRLEN) {
             
@@ -368,10 +383,12 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> whose informations needs to be retrieved
      * @throws RconException If the <tt>Client</tt> informations couldn't be retrieved
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      * @return A <tt>Map</tt> containing userinfo data or <tt>null</tt> 
      *         if the <tt>Client</tt> is not connected anymore
      **/
-    public Map<String, String> dumpuser(Client client) throws RconException {
+    public Map<String, String> dumpuser(Client client) throws RconException, NullPointerException {
+        checkNotNull(client);
         return this.dumpuser(client.getSlot());
     }
       
@@ -397,8 +414,12 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> who is going to be forced in the blue team
      * @throws RconException If the <tt>Client</tt> fails in being moved
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void forceblue(Client client) throws RconException {
+        
+        checkNotNull(client);
+        
         // Do not execute if the client is already in the specified team
         // This will prevent to overflow the server with RCON commands
         if (client.getTeam() != Team.BLUE)
@@ -424,8 +445,10 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> who is going to be forced in the free team
      * @throws RconException If the <tt>Client</tt> fails in being moved
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void forcefree(Client client) throws RconException {
+    public void forcefree(Client client) throws RconException, NullPointerException {
+        checkNotNull(client);
         this.forcefree(client.getSlot());
     }
     
@@ -451,8 +474,12 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> who is going to be forced in the red team
      * @throws RconException If the <tt>Client</tt> fails in being moved
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void forcered(Client client) throws RconException {
+    public void forcered(Client client) throws RconException, NullPointerException {
+        
+        checkNotNull(client);
+        
         // Do not execute if the client is already in the specified team
         // This will prevent to overflow the server with RCON commands
         if (client.getTeam() != Team.RED)
@@ -481,8 +508,12 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> who is going to be forced in the spectator team
      * @throws RconException If the <tt>Client</tt> fails in being moved
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void forcespec(Client client) throws RconException {
+        
+        checkNotNull(client);
+        
         // Do not execute if the client is already in the specified team
         // This will prevent to overflow the server with RCON commands
         if (client.getTeam() != Team.RED)
@@ -530,8 +561,10 @@ public class UrT42Console implements Console {
      * @param  client The <tt>Client</tt> who is going to be moved
      * @param  team The <tt>Team</tt> where to force the player in
      * @throws RconException If the <tt>Client</tt> fails in being moved
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void forceteam(Client client, Team team) throws RconException {
+        checkNotNull(client);
         this.forceteam(client.getSlot(), team);
     }
         
@@ -542,12 +575,15 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  name The CVAR name
      * @throws RconException If the CVAR could not be retrieved form the server
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      * @return The <tt>Cvar</tt> object associated to the given CVAR name or <tt>null</tt> 
      *         if such CVAR is not set on the server
      **/
-    public Cvar getCvar(String name) throws RconException {
+    public Cvar getCvar(String name) throws RconException, NullPointerException {
         
         String value;
+        
+        checkNotNull(name);
         
         try {
             
@@ -624,11 +660,14 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  search The name of the map to search (or a part of it)
      * @throws RconException If the list of available maps couldn't be computed
+     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      * @return A <tt>List</tt> of maps matching the given search key
      **/
-    public List<String> getMapSoundingLike(String search) throws RconException {
+    public List<String> getMapSoundingLike(String search) throws RconException, NullPointerException {
         
         List<String> collection = new LinkedList<String>();
+        
+        checkNotNull(search);
         
         // Trimming and making lower case the search key
         search = search.toLowerCase().trim();
@@ -882,8 +921,10 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> who is going to be kicked from the server
      * @throws RconException If the RCON command fails in being executed
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void kick(Client client) throws RconException {
+    public void kick(Client client) throws RconException, NullPointerException {
+        checkNotNull(client);
         this.kick(client.getSlot());
     }
     
@@ -915,8 +956,10 @@ public class UrT42Console implements Console {
      * @param  client The <tt>Client</tt> who is going to be kicked from the server
      * @param  reason The reason why the <tt>Client</tt> is going to be kicked
      * @throws RconException If the RCON command fails in being executed
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void kick(Client client, String reason) throws RconException {
+    public void kick(Client client, String reason) throws RconException, NullPointerException {
+        checkNotNull(client);
         this.kick(client.getSlot(), reason);
     }
    
@@ -939,8 +982,10 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> who is going to be killed
      * @throws RconException If the RCON command fails in being executed
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void kill(Client client) throws RconException {
+    public void kill(Client client) throws RconException, NullPointerException {
+        checkNotNull(client);
         this.kill(client.getSlot());
     }
     
@@ -951,8 +996,10 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  mapname The name of the level to load
      * @throws RconException If the RCON command fails in being executed
+     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      **/
     public void map(String mapname) throws RconException {
+        checkNotNull(mapname);
         this.rcon.sendNoRead("map " + mapname);
     }
     
@@ -975,8 +1022,10 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone 
      * @param  client The <tt>Client</tt> who is going to be muted
      * @throws RconException If the <tt>Client</tt> couldn't be muted
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void mute(Client client) throws RconException {
+        checkNotNull(client);
         this.mute(client.getSlot());
     }
     
@@ -1001,8 +1050,10 @@ public class UrT42Console implements Console {
      * @param  client The <tt>Client</tt> who is going to be muted
      * @param  seconds The amount of seconds the <tt>Client</tt> will be muted
      * @throws RconException If the <tt>Client</tt> couldn't be muted
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void mute(Client client, int seconds) throws RconException {
+        checkNotNull(client);
         this.mute(client.getSlot(), seconds);
     }
     
@@ -1025,8 +1076,10 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone 
      * @param  client The <tt>Client</tt> who is going to be nuked
      * @throws RconException If the <tt>Client</tt> couldn't be nuked
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void nuke(Client client) throws RconException {
+    public void nuke(Client client) throws RconException, NullPointerException {
+        checkNotNull(client);
         this.nuke(client.getSlot());
     }
     
@@ -1037,11 +1090,11 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  message The message to be printed
      * @throws RconException If the RCON command fails in being executed
+     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      **/
     public void say(String message) throws RconException {
         
-        if (message.trim().isEmpty())
-            return;
+        checkNotNull(message);
         
         if (message.length() > MAX_SAY_STRLEN) {
             
@@ -1080,8 +1133,12 @@ public class UrT42Console implements Console {
      * @param  command The command issued
      * @param  message The message to be printed
      * @throws RconException If the RCON command fails in being executed
+     * @throws NullPointerException If one of the given parameter is <tt>null</tt>
      **/
     public void sayLoudOrPm(Command command, String message) throws RconException {
+        
+        checkNotNull(command);
+        checkNotNull(message);
         
         switch (command.getPrefix()) {
             
@@ -1107,8 +1164,11 @@ public class UrT42Console implements Console {
      * @param  name The name of the CVAR
      * @param  value The value to assign to the CVAR
      * @throws RconException If the CVAR could not be set
+     * @throws NullPointerException If one of the given parameters is <tt>null</tt>
      **/
     public void setCvar(String name, Object value) throws RconException {
+        checkNotNull(name);
+        checkNotNull(value);
         this.rcon.sendNoRead("set " + name + " \"" + String.valueOf(value) + "\"");
     }
     
@@ -1119,8 +1179,10 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  cvar The <tt>Cvar</tt> to be set on the server
      * @throws RconException If the CVAR could not be set
+     * @throws NullPointerException If the given <tt>Cvar</tt> is <tt>null</tt>
      **/
     public void setCvar(Cvar cvar) throws RconException {
+        checkNotNull(cvar);
         this.setCvar(cvar.getName(), cvar.getString());
     }
     
@@ -1143,8 +1205,10 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone 
      * @param  client The <tt>Client</tt> who is going to be slapped
      * @throws RconException If the <tt>Client</tt> couldn't be slapped
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void slap(Client client) throws RconException {
+    public void slap(Client client) throws RconException, NullPointerException {
+        checkNotNull(client);
         this.slap(client.getSlot());
     }
 
@@ -1167,8 +1231,10 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> whose demo is going to be recorded
      * @throws RconException If the demo recording couldn't be started
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void startserverdemo(Client client) throws RconException {
+    public void startserverdemo(Client client) throws RconException, NullPointerException {
+        checkNotNull(client);
         this.startserverdemo(client.getSlot());
     }
     
@@ -1202,8 +1268,10 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> whose demo is going to be stopped
      * @throws RconException If the demo recording couldn't be stopped
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void stopserverdemo(Client client) throws RconException {
+    public void stopserverdemo(Client client) throws RconException, NullPointerException {
+        checkNotNull(client);
         this.stopserverdemo(client.getSlot());
     }
     
@@ -1226,11 +1294,11 @@ public class UrT42Console implements Console {
      * @param  slot The slot of the <tt>Client</tt> who will receive the message
      * @param  message The message to be sent
      * @throws RconException If the RCON command fails in being executed
+     * @throws NullPointerException If the given message is <tt>null</tt>
      **/
-    public void tell(int slot, String message) throws RconException {
+    public void tell(int slot, String message) throws RconException, NullPointerException {
         
-        if (message.trim().isEmpty())
-            return;
+        checkNotNull(message);
         
         if (message.length() > MAX_SAY_STRLEN) {
             
@@ -1269,8 +1337,10 @@ public class UrT42Console implements Console {
      * @param  client The <tt>Client</tt> who will receive the message
      * @param  message The message to be sent
      * @throws RconException If the RCON command fails in being executed
+     * @throws NullPointerException If one of the given parameters is <tt>null</tt>
      **/
-    public void tell(Client client, String message) throws RconException {
+    public void tell(Client client, String message) throws RconException, NullPointerException {
+        checkNotNull(client);
         this.tell(client.getSlot(), message);
     }
     
@@ -1281,8 +1351,10 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  ip The IP address we want to unban
      * @throws RconException If the IP address couldn't be unbanned
+     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      **/
-    public void unban(String ip) throws RconException {
+    public void unban(String ip) throws RconException, NullPointerException {
+        checkNotNull(ip);
         this.rcon.sendNoRead("removeip " + ip);
     }
     
@@ -1293,8 +1365,10 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> whose IP address we want to unban
      * @throws RconException If the IP address couldn't be unbanned
+     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void unban(Client client) throws RconException {
+    public void unban(Client client) throws RconException, NullPointerException {
+        checkNotNull(client);
         this.unban(client.getIp().getHostAddress());
     }
     
@@ -1307,9 +1381,11 @@ public class UrT42Console implements Console {
      * @author Daniele Pantaleone
      * @param  command The command to execute
      * @throws RconException If the RCON command fails in being executed
+     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      * @return The server response to the RCON command
      **/
-    public String write(String command) throws RconException {
+    public String write(String command) throws RconException, NullPointerException {
+        checkNotNull(command);
         return this.rcon.sendRead(command);
     }
      
