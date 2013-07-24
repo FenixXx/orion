@@ -30,9 +30,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AnnotationProcessor {
+class AnnotationProcessor {
     
-    public static List<Handler> process(Object obj, int priority) {
+    static List<Handler> process(Object obj, int priority) {
         
         List<Handler> collectedHandlers = new ArrayList<>();
         
@@ -58,7 +58,6 @@ public class AnnotationProcessor {
                 new Handler.Builder(obj, method, eventClass)
                     .handlerPriority(annotation.priority())
                     .subscriberPriority(priority)
-                    .invocationPrecondition(InvocationPrecondition.NONE)
                     .build());
         }
         

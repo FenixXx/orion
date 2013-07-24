@@ -37,14 +37,12 @@ final class Handler {
     private final Method method;
     private final Object subscriber;
     private final Class<?> eventClass;
-    private final InvocationPrecondition precondition;
     
     
     private Handler(Builder builder) {
         this.subscriber = checkNotNull(builder.subscriber);
         this.method = checkNotNull(builder.method);
         this.eventClass = checkNotNull(builder.eventClass);
-        this.precondition = checkNotNull(builder.invocationPrecondition);
         this.subscriberPriority = builder.subscriberPriority;
         this.handlerPriority = builder.handlerPriority;
     }
@@ -72,9 +70,6 @@ final class Handler {
     
     void invoke(Object event) {
         
-        if (!this.precondition.isSatisfied(subscriber))
-            return;
-        
         try {
             this.method.setAccessible(true);
             this.method.invoke(subscriber, event);
@@ -93,7 +88,6 @@ final class Handler {
         
         private int handlerPriority = Priority.NORMAL;
         private int subscriberPriority = Priority.NORMAL;
-        private InvocationPrecondition invocationPrecondition = InvocationPrecondition.NONE;
         
         
         Builder(Object subscriber, Method method, Class<?> eventClass) {
@@ -111,12 +105,6 @@ final class Handler {
         
         Builder subscriberPriority(int priority) {
             this.subscriberPriority = priority;
-            return this;
-        }
-        
-        
-        Builder invocationPrecondition(InvocationPrecondition precondition) {
-            this.invocationPrecondition = precondition;
             return this;
         }
         
