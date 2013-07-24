@@ -51,7 +51,6 @@ public class Splitter {
         
         // Building the container for our tokens
         List<String> list = new LinkedList<String>();
-        System.out.println(message);
         
         while (true) {
             
