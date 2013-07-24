@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 12 February, 2013
  * @package     com.orion.event
  **/
@@ -48,7 +48,6 @@ public class ClientPositionLoadEvent extends Event {
      * @param  location The map location name
      **/
     public ClientPositionLoadEvent(Client client, float x, float y, float z, String location) {
-        super(EventType.EVT_CLIENT_POSITION_LOAD);
         this.client = client;
         this.location = location;
         this.x = x;

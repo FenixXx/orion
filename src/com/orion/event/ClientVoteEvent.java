@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 8 September, 2012
  * @package     com.orion.event
  **/
@@ -43,7 +43,6 @@ public class ClientVoteEvent extends Event {
      * @param  data The vote value
      **/
     public ClientVoteEvent(Client client, int data) {  
-        super(EventType.EVT_CLIENT_VOTE);
         this.client = client;
         this.data = data;
     }

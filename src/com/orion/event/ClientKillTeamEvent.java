@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 02 July, 2012
  * @package     com.orion.event
  **/
@@ -46,7 +46,6 @@ public class ClientKillTeamEvent extends Event {
      * @param  mod The Urban Terror <tt>Mod</tt> of the kill
      **/
     public ClientKillTeamEvent(Client client, Client victim, Mod mod) {
-        super(EventType.EVT_CLIENT_KILL_TEAM);
         this.client = client;
         this.victim = victim;
         this.mod = mod;

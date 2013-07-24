@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 1 February, 2013
  * @package     com.orion.event
  **/
@@ -43,7 +43,6 @@ public class ClientJumpRunStartedEvent extends Event {
      * @param  way_num The number of the jump way
      **/
     public ClientJumpRunStartedEvent(Client client, int way) {  
-        super(EventType.EVT_CLIENT_JUMP_RUN_STARTED);
         this.client = client;
         this.way = way;
     }

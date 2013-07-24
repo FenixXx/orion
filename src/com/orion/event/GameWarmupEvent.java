@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 02 July, 2012
  * @package     com.orion.event
  **/
@@ -35,7 +35,7 @@ public class GameWarmupEvent extends Event {
      * @author Daniele Pantaleone 
      **/
     public GameWarmupEvent() {
-        super(EventType.EVT_GAME_WARMUP);
+        
     }
     
 }

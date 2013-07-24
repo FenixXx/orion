@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 03 February, 2013
  * @package     com.orion.event
  **/
@@ -40,7 +40,6 @@ public class ClientBombPlantedEvent extends Event {
      * @param  client The <tt>Client</tt> who planted the bomb
      **/
     public ClientBombPlantedEvent(Client client) {  
-        super(EventType.EVT_CLIENT_BOMB_PLANTED);
         this.client = client;
     }
     

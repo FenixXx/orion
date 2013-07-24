@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 19 January, 2013
  * @package     com.orion.event
  **/
@@ -40,7 +40,6 @@ public class SurvivorWinnerEvent extends Event {
      * @param  client The <tt>Client</tt> who won the round
      **/
     public SurvivorWinnerEvent(Client client) {
-        super(EventType.EVT_SURVIVOR_WINNER);
         this.client = client;
     }
     

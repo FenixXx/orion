@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 02 February, 2013
  * @package     com.orion.event
  **/
@@ -40,7 +40,6 @@ public class ClientBombHolderEvent extends Event {
      * @param  client The <tt>Client</tt> who is holding the bomb
      **/
     public ClientBombHolderEvent(Client client) {  
-        super(EventType.EVT_CLIENT_BOMB_HOLDER);
         this.client = client;
     }
     

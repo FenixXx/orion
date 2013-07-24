@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 15 July, 2012
  * @package     com.orion.event
  **/
@@ -41,7 +41,6 @@ public class ClientTeamChangeEvent extends Event {
      * @param  client The <tt>Client</tt> who changed team
      **/
     public ClientTeamChangeEvent(Client client) {
-        super(EventType.EVT_CLIENT_TEAM_CHANGE);
         this.client = client;
     }
     

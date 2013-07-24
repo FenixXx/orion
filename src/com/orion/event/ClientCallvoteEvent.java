@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 8 September, 2012
  * @package     com.orion.event
  **/
@@ -43,7 +43,6 @@ public class ClientCallvoteEvent extends Event {
      * @param  callvote The <tt>Callvote</tt> object
      **/
     public ClientCallvoteEvent(Client client, Callvote callvote) {  
-        super(EventType.EVT_CLIENT_CALLVOTE);
         this.client = client;
         this.callvote = callvote;
     }

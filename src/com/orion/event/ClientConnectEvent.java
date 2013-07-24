@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 02 July, 2012
  * @package     com.orion.event
  **/
@@ -40,7 +40,6 @@ public class ClientConnectEvent extends Event {
      * @param  client The connecting <tt>Client</tt> object
      **/
     public ClientConnectEvent(Client client) {  
-        super(EventType.EVT_CLIENT_CONNECT);
         this.client = client;
     }
     

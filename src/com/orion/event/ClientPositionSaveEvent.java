@@ -48,7 +48,6 @@ public class ClientPositionSaveEvent extends Event {
      * @param  location The map location name
      **/
     public ClientPositionSaveEvent(Client client, float x, float y, float z, String location) {
-        super(EventType.EVT_CLIENT_POSITION_SAVE);
         this.client = client;
         this.location = location;
         this.x = x;

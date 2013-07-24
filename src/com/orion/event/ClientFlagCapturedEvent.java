@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 13 February, 2013
  * @package     com.orion.event
  **/
@@ -40,7 +40,6 @@ public class ClientFlagCapturedEvent extends Event {
      * @param  client The <tt>Client</tt> who captured the flag
      **/
     public ClientFlagCapturedEvent(Client client) {  
-        super(EventType.EVT_CLIENT_FLAG_CAPTURED);
         this.client = client;
     }
     

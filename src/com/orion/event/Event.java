@@ -20,36 +20,37 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone, Mathias Van Malderen
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, Mathias Van Malderen, 02 July, 2012
  * @package     com.orion.event
  **/
 
 package com.orion.event;
 
+import org.joda.time.DateTime;
+
 public abstract class Event {
     
-    private final EventType type;
+    private final DateTime time;
     
     /**
      * Object constructor
      * 
      * @author Daniele Pantaleone 
-     * @param  type The <tt>EventType</tt>
      **/
-    public Event(EventType type) {
-        this.type = type;
+    public Event() {
+        this.time = new DateTime();
     }
     
     
     /**
-     * Return the type of the <tt>Event</tt>
+     * Return the time when the <tt>Event</tt> has been generated
      * 
      * @author Daniele Pantaleone
-     * @return The type of the <tt>Event</tt>
+     * @return The time when the <tt>Event</tt> has been generated
      **/
-    public EventType getType() {
-        return this.type;
+    public DateTime getTime() {
+        return this.time;
     }
       
 }

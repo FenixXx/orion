@@ -40,7 +40,6 @@ public class TeamSurvivorWinnerEvent extends Event {
      * @param  team The <tt>Team</tt> that won the round
      **/
     public TeamSurvivorWinnerEvent(Team team) {
-        super(EventType.EVT_TEAM_SURVIVOR_WINNER);
         this.team = team;
     }
     

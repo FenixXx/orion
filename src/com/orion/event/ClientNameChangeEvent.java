@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 06 July, 2012
  * @package     com.orion.event
  **/
@@ -41,7 +41,6 @@ public class ClientNameChangeEvent extends Event {
      * @param  client The <tt>Client</tt> who changed nickname
      **/
     public ClientNameChangeEvent(Client client) {
-        super(EventType.EVT_CLIENT_NAME_CHANGE);
         this.client = client;
     }
     

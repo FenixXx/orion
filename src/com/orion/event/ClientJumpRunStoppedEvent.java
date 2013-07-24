@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 1 February, 2013
  * @package     com.orion.event
  **/
@@ -44,7 +44,6 @@ public class ClientJumpRunStoppedEvent extends Event {
      * @param  millis The time performed by the client
      **/
     public ClientJumpRunStoppedEvent(Client client, int way, int millis) {  
-        super(EventType.EVT_CLIENT_JUMP_RUN_STOPPED);
         this.client = client;
         this.way = way;
         this.millis = millis;

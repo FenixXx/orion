@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 8 September, 2012
  * @package     com.orion.event
  **/
@@ -48,7 +48,6 @@ public class ClientRadioEvent extends Event {
      * @param  message The message attached to the radio command
      **/
     public ClientRadioEvent(Client client, int msg_group, int msg_id, String location, String message) {  
-        super(EventType.EVT_CLIENT_RADIO);
         this.client = client;
         this.msg_group = msg_group;
         this.msg_id = msg_id;

@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 19 January, 2013
  * @package     com.orion.event
  **/
@@ -49,7 +49,6 @@ public class ClientDamageTeamEvent extends Event {
      * @param  hitlocation The <tt>Hitlocation</tt> of this hit
      **/
     public ClientDamageTeamEvent(Client client, Client victim, Mod mod, Hitlocation hitlocation) {
-        super(EventType.EVT_CLIENT_DAMAGE_TEAM);
         this.client = client;
         this.victim = victim;
         this.mod = mod;

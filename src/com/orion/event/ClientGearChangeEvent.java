@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 06 July, 2012
  * @package     com.orion.event
  **/
@@ -41,7 +41,6 @@ public class ClientGearChangeEvent extends Event {
      * @param  client The <tt>Client</tt> who changed the gear
      **/
     public ClientGearChangeEvent(Client client) {
-        super(EventType.EVT_CLIENT_GEAR_CHANGE);
         this.client = client;
     }
     

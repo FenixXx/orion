@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 02 February, 2013
  * @package     com.orion.event
  **/
@@ -45,7 +45,6 @@ public class ClientItemPickupEvent extends Event {
      * @param  item The <tt>Item</tt> that has been picked up
      **/
     public ClientItemPickupEvent(Client client, Item item) {
-        super(EventType.EVT_CLIENT_ITEM_PICKUP);
         this.client = client;
         this.item = item;
     }

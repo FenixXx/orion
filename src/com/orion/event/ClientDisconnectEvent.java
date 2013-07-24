@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 02 July, 2012
  * @package     com.orion.event
  **/
@@ -40,7 +40,6 @@ public class ClientDisconnectEvent extends Event {
      * @param  client The <tt>Client</tt> who disconnected
      **/
     public ClientDisconnectEvent(Client client) {
-        super(EventType.EVT_CLIENT_DISCONNECT);
         this.client = client;
     }
     

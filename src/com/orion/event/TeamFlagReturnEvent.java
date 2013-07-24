@@ -40,7 +40,6 @@ public class TeamFlagReturnEvent extends Event {
      * @param  team The <tt>Team</tt> whose flag has been returned
      **/
     public TeamFlagReturnEvent(Team team) {
-        super(EventType.EVT_TEAM_FLAG_RETURN);
         this.team = team;
     }
     

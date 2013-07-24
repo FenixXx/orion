@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 1 February, 2013
  * @package     com.orion.event
  **/
@@ -42,7 +42,6 @@ public class ClientJumpRunCanceledEvent extends Event {
      * @param  way The number of the jump way
      **/
     public ClientJumpRunCanceledEvent(Client client, int way) {  
-        super(EventType.EVT_CLIENT_JUMP_RUN_CANCELED);
         this.client = client;
         this.way = way;
     }

@@ -43,7 +43,6 @@ public class ClientKillSelfEvent extends Event {
      * @param  mod The Urban Terror <tt>Mod</tt> of the kill
      **/
     public ClientKillSelfEvent(Client client, Mod mod) {
-        super(EventType.EVT_CLIENT_KILL_SELF);
         this.client = client;
         this.mod = mod;
     }

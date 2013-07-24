@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 19 January, 2013
  * @package     com.orion.event
  **/
@@ -40,7 +40,6 @@ public class ClientJoinEvent extends Event {
      * @param  client The joining <tt>Client</tt> object
      **/
     public ClientJoinEvent(Client client) {  
-        super(EventType.EVT_CLIENT_JOIN);
         this.client = client;
     }
     

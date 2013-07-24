@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.1
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 02 July, 2012
  * @package     com.orion.event
  **/
@@ -43,7 +43,6 @@ public class ClientSayTeamEvent extends Event {
      * @param  message The sentence said
      **/
     public ClientSayTeamEvent(Client client, String message) {
-        super(EventType.EVT_CLIENT_SAY_TEAM);
         this.client = client;
         this.message = message;
     }
