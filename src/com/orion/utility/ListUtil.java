@@ -36,8 +36,8 @@ import com.google.common.collect.Ordering;
 
 public class ListUtil {
     
-	public static <V> void insertInOrder(final List<V> list, final V value, final Comparator<? super V> comparator) {
-		
+    public static <V> void insertInOrder(final List<V> list, final V value, final Comparator<? super V> comparator) {
+        
         checkNotNull(list);
         checkNotNull(value);
         checkNotNull(comparator);

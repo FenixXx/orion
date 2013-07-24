@@ -62,7 +62,7 @@ import com.orion.utility.ListUtil;
  * Future features:
  * 
  * 1. Catch subtypes of specified event type.                       [TODO ]
- * 2. Dispatch dead events in a wrapped DeadEvent object.			[MAYBE]
+ * 2. Dispatch dead events in a wrapped DeadEvent object.            [MAYBE]
  * 3. Optional condition for handler annotation,                    [MAYBE]
  *    where the condition is a predicate of which
  *    the return value determines whether that handler
@@ -128,7 +128,7 @@ public class OrionBus {
 
             // Register all collected handlers for this subscriber.
             for (Handler h : handlers) {
-            	registerHandler(h);
+                registerHandler(h);
             }
             
         }
@@ -137,7 +137,7 @@ public class OrionBus {
     
     // Need to acquire a lock on handlersByType before calling this one.
     private void registerHandler(Handler handler) {
-    	List<Handler> insertList = this.handlersByType.get(handler.getEventClass());
+        List<Handler> insertList = this.handlersByType.get(handler.getEventClass());
         ListUtil.insertInOrder(insertList, handler, HANDLERS_BY_PRIORITY_DESCENDING);
     }
     
