@@ -24,50 +24,32 @@
  **/
 package com.orion.utility;
 
-import static com.google.common.base.Preconditions.*;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Ordering;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import com.google.common.collect.Ordering;
 
-// FIXME: Needs refactoring !!!
-public class ListMultimapUtil
-{
-    public static <K, V> void sort(final ListMultimap<K, V> listMultimap, final K key, final Comparator<? super V> comparator)
-    {
-        checkNotNull(listMultimap);
-        checkNotNull(key);
-        checkNotNull(comparator);
-        
-        Collections.sort(listMultimap.get(key), comparator);
-    }
+public class ListUtil {
     
-    
-    public static <K, V extends Comparable> void sort(final ListMultimap<K, V> listMultimap, final K key)
-    {
-        sort(listMultimap, key, Ordering.natural());
-    }
-    
-    
-    public static <K, V> void insertInOrder(final ListMultimap<K, V> listMultimap, final K key, final V value, final Comparator<? super V> comparator)
-    {
-        checkNotNull(listMultimap);
-        checkNotNull(key);
+	public static <V> void insertInOrder(final List<V> list, final V value, final Comparator<? super V> comparator) {
+		
+        checkNotNull(list);
         checkNotNull(value);
         checkNotNull(comparator);
         
-        final List<V> list = listMultimap.get(key);
         final int I = Collections.binarySearch(list, value, comparator);
         final int insertPos = ((I < 0) ? (-I - 1) : (I + 1));
         
         list.add(insertPos, value);
+        
     }
     
     
-    public static <K, V extends Comparable> void insertInOrder(final ListMultimap<K, V> listMultimap, final K key, final V value)
-    {
-        insertInOrder(listMultimap, key, value, Ordering.natural());
+    public static <V extends Comparable<V>> void insertInOrder(final List<V> list, final V value) {
+        insertInOrder(list, value, Ordering.natural());
     }
+    
 }

@@ -28,12 +28,7 @@
 package com.orion.eventbus;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
-import com.orion.exception.HandlerInvocationException;
-import com.orion.exception.VetoException;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -41,7 +36,14 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import com.orion.utility.ListMultimapUtil;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
+import com.orion.exception.HandlerInvocationException;
+import com.orion.exception.VetoException;
+import com.orion.utility.ListUtil;
 
 
 /**
@@ -115,7 +117,7 @@ public class OrionBus {
         checkNotNull(subscriber);
         
         // Fetch Handler meta data for the candidate subscriber
-        List<Handler> handlersList = AnnotationProcessor.process(subscriber, priority);
+        List<Handler> handlers = AnnotationProcessor.process(subscriber, priority);
         
         synchronized (this.handlersByType) {
             
@@ -125,12 +127,18 @@ public class OrionBus {
                 return;
 
             // Register all collected handlers for this subscriber.
-            for (Handler handler : handlersList) {
-                ListMultimapUtil.insertInOrder(this.handlersByType, handler.getEventClass(),
-                                               handler, HANDLERS_BY_PRIORITY_DESCENDING);
+            for (Handler h : handlers) {
+            	registerHandler(h);
             }
             
         }
+    }
+    
+    
+    // Need to acquire a lock on handlersByType before calling this one.
+    private void registerHandler(Handler handler) {
+    	List<Handler> insertList = this.handlersByType.get(handler.getEventClass());
+        ListUtil.insertInOrder(insertList, handler, HANDLERS_BY_PRIORITY_DESCENDING);
     }
     
     
@@ -138,7 +146,7 @@ public class OrionBus {
         
         Collection<Handler> allHandlers = this.handlersByType.values();
         
-        synchronized (handlersByType) {
+        synchronized (this.handlersByType) {
             
             for (Handler handler : allHandlers) {
                 
