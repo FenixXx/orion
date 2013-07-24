@@ -21,20 +21,22 @@
  * 
  * @author      Mathias Van Malderen
  * @version     1.0
+ * @copyright   Mathias Van Malderen, 23 July, 2013
+ * @package     com.orion.eventbus
  **/
+
 package com.orion.eventbus;
 
-public interface InvocationPrecondition
-{
+public interface InvocationPrecondition {
+    
     boolean isSatisfied(Object subscriber);
     
-    
-    InvocationPrecondition NONE = new InvocationPrecondition()
-    {
+    InvocationPrecondition NONE = new InvocationPrecondition() {
+        
         @Override
-        public boolean isSatisfied(Object subscriber)
-        {
+        public boolean isSatisfied(Object subscriber) {
             return true;
         }
+        
     };
 }

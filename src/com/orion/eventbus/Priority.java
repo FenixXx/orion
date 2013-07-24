@@ -21,12 +21,13 @@
  * 
  * @author      Mathias Van Malderen
  * @version     1.0
+ * @copyright   Mathias Van Malderen, 23 July, 2013
+ * @package     com.orion.eventbus
  **/
+
 package com.orion.eventbus;
 
-
-public interface Priority
-{
+public interface Priority {
     static final int LOWEST  = Integer.MIN_VALUE;
     static final int NORMAL  = 0;
     static final int HIGHEST = Integer.MAX_VALUE;

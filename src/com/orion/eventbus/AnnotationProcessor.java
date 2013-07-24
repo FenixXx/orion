@@ -21,6 +21,8 @@
  * 
  * @author      Mathias Van Malderen
  * @version     1.0
+ * @copyright   Mathias Van Malderen, 23 July, 2013
+ * @package     com.orion.eventbus
  **/
 package com.orion.eventbus;
 
@@ -28,28 +30,28 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-
-public class AnnotationProcessor
-{
-    public static List<Handler> process(Object obj, int priority)
-    {
+public class AnnotationProcessor {
+    
+    public static List<Handler> process(Object obj, int priority) {
+        
         List<Handler> collectedHandlers = new ArrayList<>();
         
-        for (Method method : obj.getClass().getMethods())
-        {
+        for (Method method : obj.getClass().getMethods()) {
+            
             EventHandler annotation = method.getAnnotation(EventHandler.class);
             
-            // Skip methods which aren't annotated with @EventHandler.
+            // Skip methods which aren't annotated with @EventHandler
             if (annotation == null) continue;
             
             Class<?>[] parameterTypes = method.getParameterTypes();
             
             // Verify the requirement that annotated @EventHandler methods must have
             // exactly one parameter for which its type defines which events shall be
-            // dispatched to this method.
-            if (parameterTypes.length != 1) throw new IllegalArgumentException(); // TODO: Add exception message
+            // dispatched to this method
+            if (parameterTypes.length != 1) 
+                throw new IllegalArgumentException(); // TODO: Add exception message
                         
-            // Collect handler info.
+            // Collect handler info
             Class<?> eventClass = parameterTypes[0];
             
             collectedHandlers.add(
@@ -62,4 +64,5 @@ public class AnnotationProcessor
         
         return collectedHandlers;
     }
+    
 }

@@ -21,16 +21,17 @@
  * 
  * @author      Mathias Van Malderen
  * @version     1.0
+ * @copyright   Mathias Van Malderen, 23 July, 2013
+ * @package     com.orion.eventbus
  **/
 package com.orion.eventbus;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkNotNull;
 import com.orion.exception.HandlerInvocationException;
 import java.lang.reflect.Method;
 
-
-public class Handler
-{
+public class Handler {
+    
     private final int subscriberPriority;
     private final int handlerPriority;
     private final Method method;
@@ -39,8 +40,7 @@ public class Handler
     private final InvocationPrecondition precondition;
     
     
-    private Handler(Builder builder)
-    {
+    private Handler(Builder builder) {
         this.subscriber = checkNotNull(builder.subscriber);
         this.method = checkNotNull(builder.method);
         this.eventClass = checkNotNull(builder.eventClass);
@@ -50,48 +50,43 @@ public class Handler
     }
     
     
-    public final int getSubscriberPriority()
-    {
-        return subscriberPriority;
+    public final int getSubscriberPriority() {
+        return this.subscriberPriority;
     }
     
     
-    public final int getHandlerPriority()
-    {
-        return handlerPriority;
+    public final int getHandlerPriority() {
+        return this.handlerPriority;
     }
     
     
-    public final Object getSubscriber()
-    {
-        return subscriber;
+    public final Object getSubscriber() {
+        return this.subscriber;
     }
     
     
-    public final Class<?> getEventClass()
-    {
-        return eventClass;
+    public final Class<?> getEventClass() {
+        return this.eventClass;
     }
     
     
-    public final void invoke(Object event)
-    {
-        if (!precondition.isSatisfied(subscriber)) return;
+    public final void invoke(Object event) {
         
-        try
-        {
-            method.setAccessible(true);
-            method.invoke(subscriber, event);
-        }
-        catch (ReflectiveOperationException ex)
-        {
+        if (!this.precondition.isSatisfied(subscriber)) 
+            return;
+        
+        try {
+            this.method.setAccessible(true);
+            this.method.invoke(subscriber, event);
+        } catch (ReflectiveOperationException ex) {
             throw new HandlerInvocationException(ex);
         }
+        
     }
     
     
-    public static class Builder
-    {
+    public static class Builder {
+        
         private final Object subscriber;
         private final Method method;
         private final Class<?> eventClass;
@@ -101,39 +96,35 @@ public class Handler
         private InvocationPrecondition invocationPrecondition = InvocationPrecondition.NONE;
         
         
-        public Builder(Object subscriber, Method method, Class<?> eventClass)
-        {
+        public Builder(Object subscriber, Method method, Class<?> eventClass) {
             this.subscriber = subscriber;
             this.method = method;
             this.eventClass = eventClass;
         }
         
         
-        public Builder handlerPriority(int priority)
-        {
+        public Builder handlerPriority(int priority) {
             this.handlerPriority = priority;
             return this;
         }
         
         
-        public Builder subscriberPriority(int priority)
-        {
+        public Builder subscriberPriority(int priority) {
             this.subscriberPriority = priority;
             return this;
         }
         
         
-        public Builder invocationPrecondition(InvocationPrecondition precondition)
-        {
+        public Builder invocationPrecondition(InvocationPrecondition precondition) {
             this.invocationPrecondition = precondition;
             return this;
         }
         
         
-        public Handler build()
-        {
+        public Handler build() {
             return new Handler(this);
         }
+        
     }
     
 }

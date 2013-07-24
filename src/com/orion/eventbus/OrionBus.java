@@ -21,10 +21,13 @@
  * 
  * @author      Mathias Van Malderen
  * @version     1.0
+ * @copyright   Mathias Van Malderen, 23 July, 2013
+ * @package     com.orion.eventbus
  **/
+
 package com.orion.eventbus;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ListMultimap;
@@ -69,84 +72,77 @@ import com.orion.utility.ListMultimapUtil;
  * 
  * - Most of the subscribers are registered before the first event gets posted.
  * - Subscribers are very rarely registered in the time interval between the very first and very last event.
- * - 
- * 
- * Definitions:
- * 
- * 
- * @author Mathias Van Malderen
- */
-public class OrionBus
-{
+ **/
+
+public class OrionBus {
+    
     private final BlockingQueue<Object> eventQueue;
     private final ListMultimap<Class<?>, Handler> handlersByType;
     private final Thread dispatchThread;
     
     
-    private OrionBus(BlockingQueue<Object> eventQueue)
-    {
+    private OrionBus(BlockingQueue<Object> eventQueue) {
+        
         this.eventQueue = checkNotNull(eventQueue);
-        this.handlersByType = Multimaps.synchronizedListMultimap(
-                ArrayListMultimap.<Class<?>, Handler> create());
+        this.handlersByType = Multimaps.synchronizedListMultimap(ArrayListMultimap.<Class<?>, Handler> create());
         
         // Initialize Event Dispatcher
-        dispatchThread = new Thread(new EventDispatcher(), "Orion Event Dispatcher");
-        dispatchThread.setDaemon(true); // do not prevent the JVM from exiting
-        dispatchThread.start(); // FIXME ???
+        this.dispatchThread = new Thread(new EventDispatcher(), "Orion Event Dispatcher");
+        this.dispatchThread.setDaemon(true); // do not prevent the JVM from exiting
+        this.dispatchThread.start(); // FIXME ???
     }
     
     
-    public void post(Object event)
-    {
+    public void post(Object event) {
+        
         checkNotNull(event);
         
-        try
-        {
+        try {
             eventQueue.put(event);
-        }
-        catch (InterruptedException ex)
-        {
+        } catch (InterruptedException ex) {
             throw new RuntimeException(ex);
         }
+        
     }
 
 
     /**
      * @param subscriber
      * @param priority 
-     */
-    public void register(Object subscriber, int priority)
-    {
+     **/
+    public void register(Object subscriber, int priority) {
+        
         checkNotNull(subscriber);
         
-        // Fetch Handler metadata for the candidate subscriber.
+        // Fetch Handler meta data for the candidate subscriber
         List<Handler> handlersList = AnnotationProcessor.process(subscriber, priority);
         
-        synchronized (handlersByType)
-        {
-            // Skip registration if this object is already a subscriber.
-            if (isSubscriber(subscriber)) return;
+        synchronized (this.handlersByType) {
+            
+            // Skip registration if this 
+            // object is already a subscriber
+            if (isSubscriber(subscriber)) 
+                return;
 
             // Register all collected handlers for this subscriber.
-            for (Handler handler : handlersList)
-            {
-                ListMultimapUtil.insertInOrder(handlersByType, handler.getEventClass(),
-                        handler, HANDLERS_BY_PRIORITY_DESCENDING);
+            for (Handler handler : handlersList) {
+                ListMultimapUtil.insertInOrder(this.handlersByType, handler.getEventClass(),
+                                               handler, HANDLERS_BY_PRIORITY_DESCENDING);
             }
+            
         }
     }
     
     
-    private boolean isSubscriber(Object obj)
-    {
-        Collection<Handler> allHandlers = handlersByType.values();
+    private boolean isSubscriber(Object obj) {
         
-        synchronized (handlersByType)
-        {
-            for (Handler handler : allHandlers)
-            {
-                if (handler.getSubscriber() == obj)
-                {
+        Collection<Handler> allHandlers = this.handlersByType.values();
+        
+        synchronized (handlersByType) {
+            
+            for (Handler handler : allHandlers) {
+                
+                if (handler.getSubscriber() == obj) {
                     return true;
                 }
             }
@@ -160,133 +156,134 @@ public class OrionBus
      * Register a subscriber with normal priority
      * 
      * @param subscriber 
-     */
-    public void register(Object subscriber)
-    {
+     **/
+    public void register(Object subscriber) {
         register(subscriber, Priority.NORMAL);
     }
     
     
-    public void unregister(Object subscriber)
-    {
-        Collection<Handler> allHandlers = handlersByType.values();
+    public void unregister(Object subscriber) {
         
-        synchronized (handlersByType)
-        {
+        Collection<Handler> allHandlers = this.handlersByType.values();
+        
+        synchronized (this.handlersByType) {
+            
             Iterator<Handler> it = allHandlers.iterator();
             
-            while (it.hasNext())
-            {
-                if (it.next().getSubscriber() == subscriber)
-                {
+            while (it.hasNext()) {
+                
+                if (it.next().getSubscriber() == subscriber) {
                     it.remove();
                 }
+                
             }
         }
     }
     
     
-    public boolean hasPendingEvents()
-    {
-        return (eventQueue.size() > 0);
+    public boolean hasPendingEvents() {
+        return eventQueue.size() > 0;
     }
     
     
-    public static OrionBus createBounded(int capacity)
-    {
+    public static OrionBus createBounded(int capacity) {
         return new OrionBus(new ArrayBlockingQueue<>(capacity));
     }
     
     
-    public static OrionBus createUnbounded()
-    {
+    public static OrionBus createUnbounded() {
         return new OrionBus(new LinkedBlockingQueue<>());
     }
     
     
-    private Collection<Handler> getHandlersForType(Class<?> eventClass)
-    {
+    private Collection<Handler> getHandlersForType(Class<?> eventClass) {
         return handlersByType.get(eventClass);
     }
     
     
-    private class EventDispatcher implements Runnable
-    {
+    private class EventDispatcher implements Runnable {
+        
         @Override
-        public void run()
-        {
-            try
-            {
-                while (true)
-                {
+        public void run() {
+            
+            try {
+              
+                while (true) {
                     dispatchEvent(eventQueue.take());
                 }
-            }
-            catch (InterruptedException ex)
-            {
+            
+            } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
         }
 
         
-        private void dispatchEvent(Object event)
-        {
-            try
-            {
+        private void dispatchEvent(Object event) {
+            
+            try {
+                
                 Collection<Handler> handlers = getHandlersForType(event.getClass());
                 
-                if (handlers.isEmpty())
-                {
+                if (handlers.isEmpty()) {
+                    
                     // Dead event detected
                     handlers = getHandlersForType(DeadEvent.class);
-                    if (handlers.isEmpty()) return;
-                    else event = new DeadEvent(event);
+                    if (handlers.isEmpty()) 
+                        return;
+                    
+                    event = new DeadEvent(event);
+                
                 }
                 
-                synchronized (handlersByType)
-                {                    
-                    for (Handler h : handlers)
-                    {
+                synchronized (handlersByType) {
+                    
+                    for (Handler h : handlers) {
                         h.invoke(event);
                     }
                 }
-            }
-            catch (HandlerInvocationException ex)
-            {
-                if (!isVetoCause(ex))
-                {
+                
+            } catch (HandlerInvocationException ex) {
+                
+                if (!isVetoCause(ex)) {
                     // the event wasn't vetoed
                 }
-            }
-            catch (Throwable t)
-            {
+                
+            } catch (Throwable t) {
+                
                 // an unexpected error occured
                 t.printStackTrace();
+                
             }
         }
         
         
-        private boolean isVetoCause(Throwable t)
-        {
-            // Find out whether VetoException is an underlying cause of this Throwable.
-            do { if (t instanceof VetoException) return true; }
-            while ((t = t.getCause()) != null);
+        private boolean isVetoCause(Throwable t) {
+            
+            // Find out whether VetoException is an 
+            // underlying cause of this Throwable
+            do { 
+                
+                if (t instanceof VetoException) 
+                    return true; 
+            
+            } while ((t = t.getCause()) != null);
             
             return false;
+            
         }
     }
     
     
-    private static final Comparator<Handler> HANDLERS_BY_PRIORITY_DESCENDING = new Comparator<Handler>()
-    {
+    private static final Comparator<Handler> HANDLERS_BY_PRIORITY_DESCENDING = new Comparator<Handler>() {
+        
         @Override
-        public int compare(Handler h1, Handler h2)
-        {
+        public int compare(Handler h1, Handler h2) {
             return ComparisonChain.start()
                 .compare(h2.getSubscriberPriority(), h1.getSubscriberPriority())
                 .compare(h2.getHandlerPriority(), h1.getHandlerPriority())
                 .result();
         }
+        
     };
 }
 

@@ -21,23 +21,25 @@
  * 
  * @author      Mathias Van Malderen
  * @version     1.0
+ * @copyright   Mathias Van Malderen, 23 July, 2013
+ * @package     com.orion.eventbus
  **/
+
 package com.orion.eventbus;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-
-public class DeadEvent
-{
+public class DeadEvent {
+    
     private Object event;
     
-    public DeadEvent(Object event)
-    {
+    
+    public DeadEvent(Object event) {
         this.event = checkNotNull(event);
     }
     
-    public Object getEvent()
-    {
-        return event;
+    
+    public Object getEvent() {
+        return this.event;
     }
 }
