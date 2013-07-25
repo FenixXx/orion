@@ -28,11 +28,11 @@
 package com.orion.eventbus;
 
 public final class Priority {
-	
-	private Priority() {
-		throw new AssertionError();
-	}
-	
+    
+    private Priority() {
+        throw new AssertionError();
+    }
+    
     public static final int LOWEST  = Integer.MIN_VALUE;
     public static final int NORMAL  = 0;
     public static final int HIGHEST = Integer.MAX_VALUE;
