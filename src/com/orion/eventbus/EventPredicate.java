@@ -21,7 +21,7 @@
  * 
  * @author      Mathias Van Malderen
  * @version     1.0
- * @copyright   Mathias Van Malderen, 23 July, 2013
+ * @copyright   Mathias Van Malderen, 25 July, 2013
  * @package     com.orion.eventbus
  **/
 
@@ -34,6 +34,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface EventHandler {
-    int priority() default Priority.NORMAL;
+public @interface EventPredicate {
+
 }

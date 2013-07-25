@@ -27,8 +27,14 @@
 
 package com.orion.eventbus;
 
-public interface Priority {
-    static final int LOWEST  = Integer.MIN_VALUE;
-    static final int NORMAL  = 0;
-    static final int HIGHEST = Integer.MAX_VALUE;
+public final class Priority {
+    
+    private Priority() {
+        throw new AssertionError();
+    }
+    
+    public static final int LOWEST  = Integer.MIN_VALUE;
+    public static final int NORMAL  = 0;
+    public static final int HIGHEST = Integer.MAX_VALUE;
+    
 }

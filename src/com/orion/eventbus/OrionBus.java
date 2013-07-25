@@ -61,13 +61,20 @@ import com.orion.utility.ListUtil;
  * 
  * Future features:
  * 
- * 1. Catch subtypes of specified event type.                       [TODO ]
- * 2. Dispatch dead events in a wrapped DeadEvent object.            [MAYBE]
- * 3. Optional condition for handler annotation,                    [MAYBE]
- *    where the condition is a predicate of which
- *    the return value determines whether that handler
- *    will be called or not. This check is meant to be
- *    carried out every time before the handler is invoked.
+ * 1. Support for predicate methods that determine whether          [TODO ]
+ *    an event is to be dispatched to a subscriber or not.
+ *    This predicate method is to be called every time before
+ *    an actual handler which it applies to, is called.
+ *    The support will be implemented using an @EventPredicate
+ *    annotation which - by default - applies to all annotated
+ *    handler methods. Only basic support will be implemented.
+ *    There's however room to enhance this feature to support
+ *    more sophisticated method matching, but this will not be
+ *    implemented until required.
+ * 2. Support for checking whether the bus has subscribers wanting  [TODO ]
+ *    to receive a specified event type.
+ * 3. Catch subtypes of specified event type.                       [TODO ]
+ * 3. Dispatch dead events in a wrapped DeadEvent object.           [MAYBE]
  * 4. Weak reference support.                                       [MAYBE]
  * 
  * Designed for the following usage pattern:

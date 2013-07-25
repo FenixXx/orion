@@ -24,6 +24,7 @@
  * @copyright   Mathias Van Malderen, 23 July, 2013
  * @package     com.orion.eventbus
  **/
+
 package com.orion.eventbus;
 
 import static com.google.common.base.Preconditions.checkNotNull;
