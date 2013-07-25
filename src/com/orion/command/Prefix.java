@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 15 February, 2013
  * @package     com.orion.command
  **/
@@ -38,12 +38,12 @@ public enum Prefix {
     BIG    ('&');
     
     private static final Map<Character, Prefix> prefixByChar = new HashMap<Character, Prefix>();
-    private final char name;
+    private final char character;
     
     
     static {  
         for (Prefix p : EnumSet.allOf(Prefix.class)) {  
-            Prefix.prefixByChar.put(p.name, p);  
+            Prefix.prefixByChar.put(p.character, p);  
         }  
     }  
     
@@ -52,15 +52,15 @@ public enum Prefix {
      * Object constructor
      * 
      * @author Daniele Pantaleone
-     * @param  identifier The <tt>Prefix</tt> identifier
+     * @param  c The <tt>Prefix</tt> character
      **/
-    private Prefix(Character identifier) {
-        this.name = identifier;
+    private Prefix(Character c) {
+        this.character = c;
     }
     
     
     public char getChar() {
-        return name;
+        return this.character;
     }
     
     
@@ -68,16 +68,16 @@ public enum Prefix {
      * Return the Prefix associated to the given identifier
      * 
      * @author Daniele Pantaleone
-     * @param  name The <tt>Prefix</tt> identifier
+     * @param  c The <tt>Prefix</tt> character
      * @throws IndexOutOfBoundsException If the given <tt>Prefix</tt> is not mapped
      * @return The <tt>Prefix</tt> associated to the given identifier
      **/
-    public static Prefix getByChar(Character name) throws IndexOutOfBoundsException {
+    public static Prefix getByChar(Character c) throws IndexOutOfBoundsException {
         
-        if (!prefixByChar.containsKey(name)) 
-            throw new IndexOutOfBoundsException("Unable to match prefix identifier: " + name);
+        if (!prefixByChar.containsKey(c)) 
+            throw new IndexOutOfBoundsException("Could nto match prefix identifier: " + c);
         
-        return prefixByChar.get(name);
+        return prefixByChar.get(c);
         
     }
     
