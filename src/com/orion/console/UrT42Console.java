@@ -127,8 +127,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
     public void authban(Client client, int days, int hours, int mins) throws UnsupportedOperationException, RconException, NullPointerException {
-        checkNotNull(client);
-        this.authban(client.getSlot(), days, hours, mins);
+        this.authban(checkNotNull(client).getSlot(), days, hours, mins);
     }
     
     
