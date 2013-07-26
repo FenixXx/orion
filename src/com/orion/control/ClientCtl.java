@@ -294,18 +294,17 @@ public class ClientCtl {
   
     
     /**
-     * Return the <tt>Client</tt> object matching the specified <tt>Client</tt> guid<br>
+     * Return the <tt>Client</tt> object matching the specified <tt>Client</tt> GUID<br>
      * The search is performed only on the storage layer
      * 
      * @author Daniele Pantaleone
-     * @param  guid The <tt>Client</tt> guid
+     * @param  guid The <tt>Client</tt> GUID
      * @throws ClassNotFoundException If the JDBC driver fails in being loaded
      * @throws SQLException If the load query fails somehow
      * @throws UnknownHostException If we can't generate an <tt>InetAddress</tt> object using the <tt>Client</tt> IP address
-     * @return A <tt>Client</tt> object matching the given guid or <tt>null</tt> if we have no match
+     * @return A <tt>Client</tt> object matching the given GUID or <tt>null</tt> if we have no match
      **/
     public Client getByGuid(String guid) throws ClassNotFoundException, SQLException, UnknownHostException {
-        // Loading data from the storage
         return this.dao.loadByGuid(guid); 
     }
     
@@ -322,7 +321,6 @@ public class ClientCtl {
      * @return A <tt>Client</tt> object matching the given auth login or <tt>null</tt> if we have no match
      **/
     public Client getByAuth(String auth) throws ClassNotFoundException, SQLException, UnknownHostException {
-        // Loading data from the storage
         return this.dao.loadByAuth(auth);  
     }
     
@@ -380,7 +378,7 @@ public class ClientCtl {
      * @throws UnknownHostException If we can't generate an <tt>InetAddress</tt> object using the <tt>Client</tt> IP address
      * @return A collection of <tt>Client</tt> objects whose <tt>Group</tt> level is equal to the given one
      **/
-    public List<Client> getByGroupFull(int level) throws ClassNotFoundException, UnknownHostException, SQLException {
+    public List<Client> getByGroupDB(int level) throws ClassNotFoundException, UnknownHostException, SQLException {
         return this.dao.loadByGroup(level);
         
     }
@@ -397,7 +395,7 @@ public class ClientCtl {
      * @throws UnknownHostException If we can't generate an <tt>InetAddress</tt> object using the <tt>Client</tt> IP address 
      * @return A collection of <tt>Client</tt> objects whose <tt>Group</tt> keyword is equal to the specified one
      **/
-    public List<Client> getByGroupFull(String keyword) throws ClassNotFoundException, UnknownHostException, SQLException {
+    public List<Client> getByGroupDB(String keyword) throws ClassNotFoundException, UnknownHostException, SQLException {
     	return this.dao.loadByGroup(keyword);
     }
     
