@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.2
  * @copyright   Daniele Pantaleone, 19 January, 2013
  * @package     com.orion.parser
  **/
@@ -30,6 +30,7 @@ package com.orion.parser;
 import java.util.List;
 import java.util.Map;
 
+import com.orion.exception.RconException;
 import com.orion.urt.Gametype;
 import com.orion.urt.Hitlocation;
 import com.orion.urt.Item;
@@ -133,10 +134,11 @@ public interface Parser {
      * returning the collection
      * 
      * @author Daniele Pantaleone
+     * @throws RconException If we could not retrieve the current gametype
      * @return A <tt>List</tt> of available <tt>Team</tt> objects according to
      *         the current played <tt>Gametype</tt>
      **/
-    public abstract List<Team> getAvailableTeams();
+    public abstract List<Team> getAvailableTeams() throws RconException;
     
     
     /**
