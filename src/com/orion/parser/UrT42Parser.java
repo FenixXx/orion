@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.2
+ * @version     1.2.1
  * @copyright   Daniele Pantaleone, 12 February, 2013
  * @package     com.orion.parser
  **/
@@ -1132,7 +1132,7 @@ public class UrT42Parser implements Parser {
                         
                         // Client info couldn't be retrieved using the GUID. At this point we can't do more
                         // We'll consider this connection as first one and we'll build the necessary structures
-                        this.log.debug("Could not authenticate client connecting on slot " + slot + " using GUID", e2);
+                        this.log.debug("Could not authenticate client connecting on slot " + slot + " using GUID", e3);
                         this.log.debug("Client connecting on slot " + slot + " will be handled as a new client...");
                     
                     }
