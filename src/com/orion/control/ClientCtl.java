@@ -35,6 +35,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.goreclan.rcon.RconException;
+
 import org.apache.commons.logging.Log;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -46,7 +48,6 @@ import com.orion.console.Console;
 import com.orion.dao.ClientDao;
 import com.orion.dao.MySqlClientDao;
 import com.orion.domain.Client;
-import com.orion.exception.RconException;
 import com.orion.urt.Color;
 import com.orion.urt.Team;
 
