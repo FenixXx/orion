@@ -30,7 +30,8 @@ package com.orion.parser;
 import java.util.List;
 import java.util.Map;
 
-import com.orion.exception.RconException;
+import net.goreclan.rcon.RconException;
+
 import com.orion.urt.Gametype;
 import com.orion.urt.Hitlocation;
 import com.orion.urt.Item;

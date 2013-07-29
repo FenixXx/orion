@@ -41,6 +41,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.goreclan.rcon.RconException;
+
 import org.apache.commons.logging.Log;
 import org.joda.time.DateTime;
 import org.joda.time.Hours;
@@ -100,7 +102,6 @@ import com.orion.eventbus.OrionBus;
 import com.orion.exception.ClientNotFoundException;
 import com.orion.exception.ExpectedParameterException;
 import com.orion.exception.ParserException;
-import com.orion.exception.RconException;
 import com.orion.urt.Cvar;
 import com.orion.urt.Game;
 import com.orion.urt.Gametype;
