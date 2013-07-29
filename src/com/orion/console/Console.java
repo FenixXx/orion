@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.2.1
+ * @version     1.3
  * @copyright   Daniele Pantaleone, 10 February, 2013
  * @package     com.orion.console
  **/
@@ -32,10 +32,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import net.goreclan.rcon.RconException;
+
 import com.orion.command.Command;
 import com.orion.domain.Client;
 import com.orion.exception.ParserException;
-import com.orion.exception.RconException;
 import com.orion.urt.Cvar;
 import com.orion.urt.Team;
 

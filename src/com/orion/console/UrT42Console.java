@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.2.2
+ * @version     1.3
  * @copyright   Daniele Pantaleone, 10 February, 2013
  * @package     com.orion.console
  **/
@@ -42,18 +42,19 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.goreclan.rcon.JRcon;
+import net.goreclan.rcon.RconException;
+
 import org.apache.commons.logging.Log;
 
 import com.orion.bot.Orion;
 import com.orion.command.Command;
 import com.orion.domain.Client;
 import com.orion.exception.ParserException;
-import com.orion.exception.RconException;
 import com.orion.urt.Color;
 import com.orion.urt.Cvar;
 import com.orion.urt.Game;
 import com.orion.urt.Team;
-import com.orion.utility.Rcon;
 import com.orion.utility.Splitter;
 
 public class UrT42Console implements Console {
@@ -63,7 +64,7 @@ public class UrT42Console implements Console {
     
     private static final int MAX_SAY_STRLEN = 62;
     
-    private final Rcon rcon;
+    private final JRcon rcon;
     private final Log log;
     
     private Game game;
@@ -84,7 +85,7 @@ public class UrT42Console implements Console {
         
         this.log = orion.log;
         this.game = orion.game;
-        this.rcon = new Rcon(address, port, password, this.log);
+        this.rcon = new JRcon(address, port, password);
         this.log.debug("Urban Terror 4.2 console initialized");
         
     }
@@ -109,7 +110,7 @@ public class UrT42Console implements Console {
         if (!this.game.isCvar("auth_owners"))
             throw new UnsupportedOperationException("auth owners is not correctly set");
         
-        this.rcon.sendNoRead("auth-ban " + slot + " " + days + " " + hours + " " + mins);
+        this.rcon.send("auth-ban " + slot + " " + days + " " + hours + " " + mins);
         
     }
     
@@ -174,7 +175,7 @@ public class UrT42Console implements Console {
             throw new UnsupportedOperationException("auth system is disabled");
         
         Map<String, String> data = new HashMap<String, String>();
-        String result = this.rcon.sendRead("auth-whois " + slot);
+        String result = this.rcon.send("auth-whois " + slot, true);
         
         // Collecting FS Auth System informations
         Pattern pattern = Pattern.compile("^auth:\\s*id:\\s*(?<slot>\\d+)\\s*-\\s*name:\\s*(?<name>\\w+)\\s*-\\s*login:\\s*(?<login>\\w*)\\s*-\\s*notoriety:\\s*(?<notoriety>.*)\\s*-\\s*level:\\s*(?<level>\\d+)\\s*-\\s*(?<rank>.*)$", Pattern.CASE_INSENSITIVE);
@@ -220,7 +221,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      **/
     public void ban(String ip) throws RconException, NullPointerException {
-        this.rcon.sendNoRead("addip " + checkNotNull(ip));
+        this.rcon.send("addip " + checkNotNull(ip));
     }
     
     
@@ -258,7 +259,7 @@ public class UrT42Console implements Console {
                 // in between the messages since the a bigtext overlap a previous
                 // printed message with a new one. It would be unreadable
                 sentence = sentence.trim();
-                this.rcon.sendNoRead("bigtext \"" + Color.WHITE + sentence + "\"");
+                this.rcon.send("bigtext \"" + Color.WHITE + sentence + "\"");
             
                 try { 
                     Thread.sleep(CENTER_SCREEN_DELAY); 
@@ -271,7 +272,7 @@ public class UrT42Console implements Console {
         } else {
             
             // No need to split here. Just send the command
-            this.rcon.sendNoRead("bigtext \"" + Color.WHITE + message + "\"");
+            this.rcon.send("bigtext \"" + Color.WHITE + message + "\"");
             
         }
         
@@ -298,7 +299,7 @@ public class UrT42Console implements Console {
             
                 // Sending the message
                 sentence = sentence.trim();
-                this.rcon.sendNoRead(Color.WHITE + sentence);
+                this.rcon.send(Color.WHITE + sentence);
                 
                 try { 
                     Thread.sleep(CHAT_DELAY); 
@@ -311,7 +312,7 @@ public class UrT42Console implements Console {
         } else {
             
             // No need to split here. Just send the command
-            this.rcon.sendNoRead(Color.WHITE + message);
+            this.rcon.send(Color.WHITE + message);
             
         }
         
@@ -325,7 +326,7 @@ public class UrT42Console implements Console {
      * @throws RconException If the RCON commands fails in being executed
      **/
     public void cyclemap() throws RconException {
-        this.rcon.sendNoRead("cyclemap");
+        this.rcon.send("cyclemap");
     }
     
     
@@ -340,7 +341,7 @@ public class UrT42Console implements Console {
      **/
     public Map<String, String> dumpuser(int slot) throws RconException {
         
-        String result = this.rcon.sendRead("dumpuser " + slot);
+        String result = this.rcon.send("dumpuser " + slot, true);
         
         // This is the string we expect from the /rcon dumpuser <slot> command.
         // We need to parse it and build an HashMap containing the client data.
@@ -394,7 +395,7 @@ public class UrT42Console implements Console {
         // Since we do not have a Client object as input, we cannot match the current
         // client team. The RCON command is going to be executed anyway
         // NOTE: Use the previous version of the command if possible
-        this.rcon.sendNoRead("forceteam " + slot + " blue");
+        this.rcon.send("forceteam " + slot + " blue");
     }
     
     
@@ -423,7 +424,7 @@ public class UrT42Console implements Console {
      * @throws RconException If the <tt>Client</tt> fails in being moved
      **/
     public void forcefree(int slot) throws RconException {
-        this.rcon.sendNoRead("forceteam " + slot + " free");
+        this.rcon.send("forceteam " + slot + " free");
     }
     
     
@@ -451,7 +452,7 @@ public class UrT42Console implements Console {
         // Since we do not have a Client object as input, we cannot match the current
         // client team. The RCON command is going to be executed anyway
         // NOTE: Use the previous version of the command if possible
-        this.rcon.sendNoRead("forceteam " + slot + " red");
+        this.rcon.send("forceteam " + slot + " red");
     }
     
     
@@ -483,7 +484,7 @@ public class UrT42Console implements Console {
         // Since we do not have a Client object as input, we cannot match the current
         // client team. The RCON command is going to be executed anyway
         // NOTE: Use the previous version of the command if possible
-        this.rcon.sendNoRead("forceteam " + slot + " spectator");
+        this.rcon.send("forceteam " + slot + " spectator");
     }
     
     
@@ -565,7 +566,7 @@ public class UrT42Console implements Console {
         
         try {
             
-            String result = this.rcon.sendRead(checkNotNull(name)); 
+            String result = this.rcon.send(checkNotNull(name), true); 
             
             Pattern pattern = Pattern.compile("\\s*\\\"[\\w+]*\\\"\\sis:\\\"(?<value>[\\w:\\.\\-\\\\/]*)\\\".*", Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(result);
@@ -615,7 +616,7 @@ public class UrT42Console implements Console {
      **/
     public List<String> getMapList() throws RconException {
         
-        String result = this.rcon.sendRead("fdir *.bsp");
+        String result = this.rcon.send("fdir *.bsp", true);
 
         List<String> maplist = new LinkedList<String>();
         Pattern pattern = Pattern.compile("^*maps/(?<mapname>.*).bsp$");
@@ -791,7 +792,7 @@ public class UrT42Console implements Console {
      **/
     public List<List<String>> getPlayers() throws RconException {
         
-        String result = this.rcon.sendRead("players");
+        String result = this.rcon.send("players", true);
 
         // This is the string we expect from the /rcon players command
         // We need to parse it and build an Array with players informations
@@ -839,7 +840,7 @@ public class UrT42Console implements Console {
      **/
     public List<List<String>> getStatus() throws RconException {
         
-        String result = this.rcon.sendRead("status");
+        String result = this.rcon.send("status", true);
         
         // This is the string we expect from the /rcon status command
         // We need to parse it and build an Array with players informations
@@ -887,7 +888,7 @@ public class UrT42Console implements Console {
      * @throws RconException If the RCON command fails in being executed
      **/
     public void kick(int slot) throws RconException {
-        this.rcon.sendNoRead("kick " + slot);
+        this.rcon.send("kick " + slot);
     }
     
     
@@ -919,7 +920,7 @@ public class UrT42Console implements Console {
             return;
         }
         
-        this.rcon.sendNoRead("kick " + slot + " " + reason);
+        this.rcon.send("kick " + slot + " " + reason);
     
     }
     
@@ -946,7 +947,7 @@ public class UrT42Console implements Console {
      * @throws RconException If the RCON command fails in being executed
      **/
     public void kill(int slot) throws RconException {
-        this.rcon.sendNoRead("smite " + slot);
+        this.rcon.send("smite " + slot);
     }
     
     
@@ -972,7 +973,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      **/
     public void map(String mapname) throws RconException {
-        this.rcon.sendNoRead("map " + checkNotNull(mapname));
+        this.rcon.send("map " + checkNotNull(mapname));
     }
     
     
@@ -984,7 +985,7 @@ public class UrT42Console implements Console {
      * @throws RconException If the <tt>Client</tt> couldn't be muted
      **/
     public void mute(int slot) throws RconException {
-        this.rcon.sendNoRead("mute " + slot);
+        this.rcon.send("mute " + slot);
     }
     
     
@@ -1010,7 +1011,7 @@ public class UrT42Console implements Console {
      * @throws RconException If the <tt>Client</tt> couldn't be muted
      **/
     public void mute(int slot, int seconds) throws RconException {
-        this.rcon.sendNoRead("mute " + slot + " " + seconds);
+        this.rcon.send("mute " + slot + " " + seconds);
     }
     
     
@@ -1036,7 +1037,7 @@ public class UrT42Console implements Console {
      * @throws RconException If the <tt>Client</tt> couldn't be nuked
      **/
     public void nuke(int slot) throws RconException {
-        this.rcon.sendNoRead("nuke " + slot);
+        this.rcon.send("nuke " + slot);
     }
     
     
@@ -1073,7 +1074,7 @@ public class UrT42Console implements Console {
                 
                 // Sending the message
                 sentence = sentence.trim();
-                this.rcon.sendNoRead("say " + Color.WHITE + sentence);
+                this.rcon.send("say " + Color.WHITE + sentence);
                 
                 try { 
                     Thread.sleep(CHAT_DELAY); 
@@ -1086,7 +1087,7 @@ public class UrT42Console implements Console {
         } else {
             
             // No need to split here. Just send the command
-            this.rcon.sendNoRead("say " + Color.WHITE + message);
+            this.rcon.send("say " + Color.WHITE + message);
             
         }
         
@@ -1136,7 +1137,7 @@ public class UrT42Console implements Console {
     public void setCvar(String name, Object value) throws RconException {
         checkNotNull(name);
         checkNotNull(value);
-        this.rcon.sendNoRead("set " + name + " \"" + String.valueOf(value) + "\"");
+        this.rcon.send("set " + name + " \"" + String.valueOf(value) + "\"");
     }
     
     
@@ -1162,7 +1163,7 @@ public class UrT42Console implements Console {
      * @throws RconException If the <tt>Client</tt> couldn't be slapped
      **/
     public void slap(int slot) throws RconException {
-        this.rcon.sendNoRead("nuke " + slot);
+        this.rcon.send("nuke " + slot);
     }
     
     
@@ -1187,7 +1188,7 @@ public class UrT42Console implements Console {
      * @throws RconException If the demo recording couldn't be started
      **/
     public void startserverdemo(int slot) throws RconException {
-        this.rcon.sendNoRead("startserverdemo " + slot);
+        this.rcon.send("startserverdemo " + slot);
     }
     
     
@@ -1211,7 +1212,7 @@ public class UrT42Console implements Console {
      * @throws RconException If the demo recording couldn't be started
      **/
     public void startserverdemo() throws RconException {
-        this.rcon.sendNoRead("startserverdemo all");
+        this.rcon.send("startserverdemo all");
     }
     
     
@@ -1223,7 +1224,7 @@ public class UrT42Console implements Console {
      * @throws RconException If the demo recording couldn't be stopped
      **/
     public void stopserverdemo(int slot) throws RconException {
-        this.rcon.sendNoRead("stopserverdemo " + slot);
+        this.rcon.send("stopserverdemo " + slot);
     }
     
     
@@ -1247,7 +1248,7 @@ public class UrT42Console implements Console {
      * @throws RconException If the demo recording couldn't be stopped
      **/
     public void stopserverdemo() throws RconException {
-        this.rcon.sendNoRead("stopserverdemo all");
+        this.rcon.send("stopserverdemo all");
     }
     
     
@@ -1272,7 +1273,7 @@ public class UrT42Console implements Console {
                 
                 // Sending the message
                 sentence = sentence.trim();
-                this.rcon.sendNoRead("tell " + slot + " " + Color.WHITE + sentence);
+                this.rcon.send("tell " + slot + " " + Color.WHITE + sentence);
                 
                 try { 
                     Thread.sleep(CHAT_DELAY); 
@@ -1285,7 +1286,7 @@ public class UrT42Console implements Console {
         } else {
             
             // No need to split here. Just send the command
-            this.rcon.sendNoRead("tell " + slot + " " + Color.WHITE + message);
+            this.rcon.send("tell " + slot + " " + Color.WHITE + message);
             
         }
 
@@ -1315,7 +1316,7 @@ public class UrT42Console implements Console {
      * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      **/
     public void unban(String ip) throws RconException, NullPointerException {
-        this.rcon.sendNoRead("removeip " + checkNotNull(ip));
+        this.rcon.send("removeip " + checkNotNull(ip));
     }
     
     
@@ -1344,7 +1345,7 @@ public class UrT42Console implements Console {
      * @return The server response to the RCON command
      **/
     public String write(String command) throws RconException, NullPointerException {
-        return this.rcon.sendRead(checkNotNull(command));
+        return this.rcon.send(checkNotNull(command), true);
     }
      
 }
