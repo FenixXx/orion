@@ -16,6 +16,7 @@ This software is not connected in any way to other game servers management tools
 * Apache Log4J (http://logging.apache.org/log4j/1.2/)
 * Google Guava (https://code.google.com/p/guava-libraries/)
 * Joda Time (http://joda-time.sourceforge.net/)
+* JRcon (https://github.com/FenixXx/JRcon)
 * MaxMind GeoIP API (http://dev.maxmind.com/geoip/legacy/downloadable)
 
 ## Requirements
