@@ -54,8 +54,7 @@ public class EventProcessor implements Runnable {
      * @author Daniele Pantaleone
      * @param  log Main logger object reference
      * @param  eventBus A <tt>BlockingQueue</tt> from where to fetch events
-     * @param  regMethod A <tt>Multimap</tt> which associate each <tt>Event</tt> to
-     *                    a method
+     * @param  regMethod A <tt>Multimap</tt> which associate each <tt>Event</tt> to a method
      **/
     public EventProcessor(Log log, 
                           BlockingQueue<Event> eventBus, 
