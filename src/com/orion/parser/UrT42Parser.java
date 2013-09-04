@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.2.1
+ * @version     1.3
  * @copyright   Daniele Pantaleone, 12 February, 2013
  * @package     com.orion.parser
  **/
@@ -31,7 +31,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -51,10 +50,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.eventbus.EventBus;
-import com.orion.bot.Orion;
-import com.orion.command.Command;
-import com.orion.command.Prefix;
 import com.orion.console.Console;
 import com.orion.control.ClientCtl;
 import com.orion.control.GroupCtl;
@@ -91,6 +86,7 @@ import com.orion.event.ClientSayPrivateEvent;
 import com.orion.event.ClientSayTeamEvent;
 import com.orion.event.ClientTeamChangeEvent;
 import com.orion.event.ClientVoteEvent;
+import com.orion.event.Event;
 import com.orion.event.GameExitEvent;
 import com.orion.event.GameRoundStartEvent;
 import com.orion.event.GameStartEvent;
@@ -98,12 +94,8 @@ import com.orion.event.GameWarmupEvent;
 import com.orion.event.SurvivorWinnerEvent;
 import com.orion.event.TeamFlagReturnEvent;
 import com.orion.event.TeamSurvivorWinnerEvent;
-import com.orion.eventbus.OrionBus;
-import com.orion.exception.ClientNotFoundException;
 import com.orion.exception.ExpectedParameterException;
 import com.orion.exception.ParserException;
-import com.orion.urt.Cvar;
-import com.orion.urt.Game;
 import com.orion.urt.Gametype;
 import com.orion.urt.Hitlocation;
 import com.orion.urt.Item;
@@ -123,16 +115,13 @@ public class UrT42Parser implements Parser {
     private static final Map<String, Team> teamByName = new HashMap<String, Team>();
     private static final Multimap<Gametype, Team> teamsByGametype = LinkedListMultimap.create();
     
-    private final Orion orion;
-    private final Console console;
     private final Log log;
+    private final Console console;
     
     private final GroupCtl groupCtl;
     private final ClientCtl clientCtl;
     
-    private OrionBus eventBus;
-    
-    private Game game;
+    private BlockingQueue<Event> eventBus;
     
     static {
         
@@ -395,21 +384,24 @@ public class UrT42Parser implements Parser {
      * Object constructor
      * 
      * @author Daniele Pantaleone 
-     * @param  orion <tt>Orion</tt> object reference
+     * @param  log Main logger object reference
+     * @param  console Main console object reference
+     * @param  groupCtl The <tt>Group</tt> controller object reference
+     * @param  clientCtl The <tt>Client</tt> controller object reference
+     * @param  eventBus A <tt>BlockingQueue</tt> where to push generated events
      **/
-    public UrT42Parser(Orion orion) {
+    public UrT42Parser(Log log,
+                       Console console,
+                       GroupCtl groupCtl,
+                       ClientCtl clientCtl,
+                       BlockingQueue<Event> eventBus) {
         
-        this.orion = orion;
-        this.console = orion.console;
-        this.log = orion.log;
-        
-        this.groupCtl = orion.groupCtl;
-        this.clientCtl = orion.clientCtl;
-        
-        this.eventBus = orion.eventBus;
+        this.log = log;
+        this.console = console;
+        this.groupCtl = groupCtl;
+        this.clientCtl = clientCtl;
+        this.eventBus = eventBus;
 
-        this.game = orion.game;
-          
         this.log.debug("Urban Terror 4.2 parser initialized");
         
     }
@@ -575,12 +567,8 @@ public class UrT42Parser implements Parser {
      *         the current played <tt>Gametype</tt>
      **/
     public List<Team> getAvailableTeams() throws RconException {
-        
-        if (!this.game.isCvar("g_gametype"))
-            this.game.setCvar(this.console.getCvar("g_gametype"));
-        
-        return new LinkedList<Team>(teamsByGametype.get(gametypeByCode.get(this.game.getCvar("g_gametype").getInt())));
-    
+        Gametype gametype = gametypeByCode.get(this.console.getCvar("g_gametype"));
+        return new LinkedList<Team>(teamsByGametype.get(gametype));
     }
     
     
@@ -608,10 +596,10 @@ public class UrT42Parser implements Parser {
             // Check to have a proper client object before the event generation
             checkNotNull(client, "could not retrieve client on slot %s", slot);
             
-            this.eventBus.post(new ClientBombDefusedEvent(client));
+            this.eventBus.put(new ClientBombDefusedEvent(client));
             this.log.trace("[EVENT] ClientBombDefusedEvent [ client : " + client.getSlot() + " ]");
             
-        } catch (NullPointerException e) {        
+        } catch (NullPointerException | InterruptedException e) {        
             
             // Logging the Exception
             this.log.error("[EVENT] ClientBombDefusedEvent", e);   
@@ -640,10 +628,10 @@ public class UrT42Parser implements Parser {
              // Check to have a proper client object before the event generation
              checkNotNull(client, "could not retrieve client on slot %s", slot);
             
-             this.eventBus.post(new ClientBombHolderEvent(client));
+             this.eventBus.put(new ClientBombHolderEvent(client));
              this.log.trace("[EVENT] ClientBombHolderEvent [ client : " + client.getSlot() + " ]");
             
-         } catch (NullPointerException e) {            
+         } catch (NullPointerException | InterruptedException e) {            
             
              // Logging the Exception
              this.log.error("[EVENT] ClientBombHolderEvent", e);
@@ -672,10 +660,10 @@ public class UrT42Parser implements Parser {
             // Check to have a proper client object before the event generation
             checkNotNull(client, "could not retrieve client on slot %s", slot);
             
-            this.eventBus.post(new ClientBombPlantedEvent(client));
+            this.eventBus.put(new ClientBombPlantedEvent(client));
             this.log.trace("[EVENT] ClientBombPlantedEvent [ client : " + client.getSlot() + " ]");
             
-        } catch (NullPointerException e) {
+        } catch (NullPointerException | InterruptedException e) {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientBombPlantedEvent", e);
@@ -714,10 +702,10 @@ public class UrT42Parser implements Parser {
                                             .data(data)
                                             .build();
             
-            this.eventBus.post(new ClientCallvoteEvent(client, callvote));
+            this.eventBus.put(new ClientCallvoteEvent(client, callvote));
             this.log.trace("[EVENT] ClientCallvoteEvent [ client : " + client.getSlot() + " | type : " + callvote.getType() + " | data : " + callvote.getData() + " ]");
             
-        } catch (NullPointerException e) {
+        } catch (NullPointerException | InterruptedException e) {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientCallvoteEvent", e);
@@ -746,10 +734,10 @@ public class UrT42Parser implements Parser {
             // Check to have a proper client object before the event generation
             checkNotNull(client, "could not retrieve client on slot %s", slot);
             
-            this.eventBus.post(new ClientJoinEvent(client));
+            this.eventBus.put(new ClientJoinEvent(client));
             this.log.trace("[EVENT] ClientJoinEvent [ client : " + client.getSlot() + " ]");
             
-        } catch (NullPointerException e)  {
+        } catch (NullPointerException | InterruptedException e)  {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientJoinEvent", e);
@@ -819,10 +807,10 @@ public class UrT42Parser implements Parser {
             // Check to have a proper client object before the event generation
             checkNotNull(client, "could not retrieve client on slot %s", slot);
             
-            this.eventBus.post(new ClientDisconnectEvent(client));
+            this.eventBus.put(new ClientDisconnectEvent(client));
             this.log.trace("[EVENT] ClientDisconnectEvent [ client : " + client.getSlot() + " ]");
             
-        } catch (NullPointerException e)  {
+        } catch (NullPointerException | InterruptedException e)  {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientDisconnectEvent", e);
@@ -856,18 +844,18 @@ public class UrT42Parser implements Parser {
             Integer amax = Integer.valueOf(matcher.group("amax"));
             
            if (anum != null && amax != null) {
-               this.eventBus.post(new ClientJumpRunCanceledEvent(client, way, anum, amax));
+               this.eventBus.put(new ClientJumpRunCanceledEvent(client, way, anum, amax));
                this.log.trace("[EVENT] ClientJumpRunCanceledEvent [ client : " + client.getSlot() + 
                                                                 " | way : " + way + 
                                                                 " | attempt_num : " + anum + 
                                                                 " | attempt_max : " + amax + " ]");
            } else {
-               this.eventBus.post(new ClientJumpRunCanceledEvent(client, way));
+               this.eventBus.put(new ClientJumpRunCanceledEvent(client, way));
                this.log.trace("[EVENT] ClientJumpRunCanceledEvent [ client : " + client.getSlot() + 
                                                                 " | way : " + way + " ]");
            }
             
-        } catch (NullPointerException e)  {
+        } catch (NullPointerException | InterruptedException e)  {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientJumpRunCanceledEvent", e);
@@ -901,18 +889,18 @@ public class UrT42Parser implements Parser {
             Integer amax = Integer.valueOf(matcher.group("amax"));
             
            if (anum != null && amax != null) {
-               this.eventBus.post(new ClientJumpRunStartedEvent(client, way, anum, amax));
+               this.eventBus.put(new ClientJumpRunStartedEvent(client, way, anum, amax));
                this.log.trace("[EVENT] ClientJumpRunStartedEvent [ client : " + client.getSlot() + 
                                                                " | way : " + way + 
                                                                " | attempt_num : " + anum + 
                                                                " | attempt_max : " + amax + " ]");
            } else {
-               this.eventBus.post(new ClientJumpRunStartedEvent(client, way));
+               this.eventBus.put(new ClientJumpRunStartedEvent(client, way));
                this.log.trace("[EVENT] ClientJumpRunStartedEvent [ client : " + client.getSlot() + 
                                                                " | way : " + way + " ]");
            }
             
-        } catch (NullPointerException e)  {
+        } catch (NullPointerException | InterruptedException e)  {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientJumpRunStartedEvent", e);
@@ -947,20 +935,20 @@ public class UrT42Parser implements Parser {
             Integer amax = Integer.valueOf(matcher.group("amax"));
             
            if (anum != null && amax != null) {
-               this.eventBus.post(new ClientJumpRunStoppedEvent(client, way, wtime, anum, amax));
+               this.eventBus.put(new ClientJumpRunStoppedEvent(client, way, wtime, anum, amax));
                this.log.trace("[EVENT] ClientJumpRunStoppedEvent [ client : " + client.getSlot() + 
                                                                " | way : " + way + 
                                                                " | way_time : " + wtime +
                                                                " | attempt_num : " + anum + 
                                                                " | attempt_max : " + amax + " ]");
            } else {
-               this.eventBus.post(new ClientJumpRunStoppedEvent(client, way, wtime));
+               this.eventBus.put(new ClientJumpRunStoppedEvent(client, way, wtime));
                this.log.trace("[EVENT] ClientJumpRunStoppedEvent [ client : " + client.getSlot() + 
                                                                " | way : " + way + 
                                                                " | way_time : " + wtime +" ]");
            }
             
-        } catch (NullPointerException e)  {
+        } catch (NullPointerException | InterruptedException e)  {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientJumpRunStoppedEvent", e);
@@ -993,14 +981,14 @@ public class UrT42Parser implements Parser {
             float y = Float.parseFloat(matcher.group("y"));
             float z = Float.parseFloat(matcher.group("z"));
             
-            this.eventBus.post(new ClientPositionLoadEvent(client, x, y, z));
+            this.eventBus.put(new ClientPositionLoadEvent(client, x, y, z));
             this.log.trace("[EVENT] ClientPositionLoadEvent [ client : " + client.getSlot() + 
                                                           " | x : " + x + 
                                                           " | y : " + y + 
                                                           " | z : " + z + " ]");
             
             
-        } catch (NullPointerException e)  {
+        } catch (NullPointerException | InterruptedException e)  {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientPositionLoadEvent", e);
@@ -1033,14 +1021,14 @@ public class UrT42Parser implements Parser {
             float y = Float.parseFloat(matcher.group("y"));
             float z = Float.parseFloat(matcher.group("z"));
             
-            this.eventBus.post(new ClientPositionSaveEvent(client, x, y, z));
+            this.eventBus.put(new ClientPositionSaveEvent(client, x, y, z));
             this.log.trace("[EVENT] ClientPositionSaveEvent [ client : " + client.getSlot() + 
                                                           " | x : " + x + 
                                                           " | y : " + y + 
                                                           " | z : " + z + " ]");
             
             
-        } catch (NullPointerException e)  {
+        } catch (NullPointerException | InterruptedException e)  {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientPositionSaveEvent", e);
@@ -1075,13 +1063,13 @@ public class UrT42Parser implements Parser {
                 String gear = userinfo.get("gear");
                 if ((client.getGear() == null) || (!client.getGear().equals(gear))) {
                     client.setGear(gear);
-                    this.eventBus.post(new ClientGearChangeEvent(client));
+                    this.eventBus.put(new ClientGearChangeEvent(client));
                     this.log.trace("[EVENT] ClientGearChangeEvent [ client : " + client.getSlot() + " ]");
                 }
             
             }
             
-        } catch (NullPointerException e1) {
+        } catch (NullPointerException | InterruptedException e1) {
             
             Client client = null;
             Map<String, String> authinfo = null;
@@ -1179,10 +1167,10 @@ public class UrT42Parser implements Parser {
                 this.clientCtl.add(client);
                 this.clientCtl.save(client);
                 
-                this.eventBus.post(new ClientConnectEvent(client));
+                this.eventBus.put(new ClientConnectEvent(client));
                 this.log.trace("[EVENT] ClientConnectEvent [ client : " + slot + " ]");
                 
-            } catch (UnknownHostException | ClassNotFoundException | SQLException e) {
+            } catch (UnknownHostException | ClassNotFoundException | SQLException | InterruptedException e) {
                 
                 // Logging the Exception
                 this.log.error("[EVENT] ClientConnectEvent", e);
@@ -1222,7 +1210,7 @@ public class UrT42Parser implements Parser {
                 String name = userinfo.get("n").replaceAll("\\^[0-9]{1}", "");
                 if (!client.getName().toLowerCase().equals(name.toLowerCase())) {
                     client.setName(name);
-                    this.eventBus.post(new ClientNameChangeEvent(client));
+                    this.eventBus.put(new ClientNameChangeEvent(client));
                     this.log.trace("[EVENT] ClientNameChangeEvent [ client : " + client.getSlot() + " ]");
                 }
             }
@@ -1236,7 +1224,7 @@ public class UrT42Parser implements Parser {
                     
                     if (client.getTeam() != team) {
                         client.setTeam(team);
-                        this.eventBus.post(new ClientTeamChangeEvent(client));
+                        this.eventBus.put(new ClientTeamChangeEvent(client));
                         this.log.trace("[EVENT] ClientTeamChangeEvent [ client : " + client.getSlot() + " ]");
                     }
                     
@@ -1249,7 +1237,7 @@ public class UrT42Parser implements Parser {
                 
             }
             
-        } catch (NullPointerException e) {
+        } catch (NullPointerException | InterruptedException e) {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientNameChangeEvent | ClientTeamChangeEvent", e);
@@ -1281,17 +1269,17 @@ public class UrT42Parser implements Parser {
             
                 case 0:
                     checkNotNull(client, "[EVENT] ClientFlagDroppedEvent: could not retrieve client on slot %s", slot);
-                    this.eventBus.post(new ClientFlagDroppedEvent(client));
+                    this.eventBus.put(new ClientFlagDroppedEvent(client));
                     this.log.trace("[EVENT] ClientFlagDroppedEvent [ client : " + client.getSlot() + " ]");
                     break;
                 case 1:
                     checkNotNull(client, "[EVENT] ClientFlagReturnedEvent: could not retrieve client on slot %s", slot);
-                    this.eventBus.post(new ClientFlagReturnedEvent(client));
+                    this.eventBus.put(new ClientFlagReturnedEvent(client));
                     this.log.trace("[EVENT] ClientFlagReturnedEvent [ client : " + client.getSlot() + " ]");
                     break;
                 case 2:
                     checkNotNull(client, "[EVENT] ClientFlagCapturedEvent: could not retrieve client on slot %s", slot);
-                    this.eventBus.post(new ClientFlagCapturedEvent(client));
+                    this.eventBus.put(new ClientFlagCapturedEvent(client));
                     this.log.trace("[EVENT] ClientFlagCapturedEvent [ client : " + client.getSlot() + " ]");
                     break;
             
@@ -1299,7 +1287,7 @@ public class UrT42Parser implements Parser {
             
             }
         
-        } catch (NullPointerException e) {
+        } catch (NullPointerException | InterruptedException e) {
            
             // Logging the Exception
             this.log.error(e.getMessage());
@@ -1323,10 +1311,10 @@ public class UrT42Parser implements Parser {
         try {
             
             Team team = getTeamByName(matcher.group("team"));
-            this.eventBus.post(new TeamFlagReturnEvent(team));
+            this.eventBus.put(new TeamFlagReturnEvent(team));
             this.log.trace("[EVENT] TeamFlagReturnEvent [ team : " + team.name() + " ]");
         
-        } catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException | InterruptedException e) {
             
             // Logging the Exception
             this.log.error("[EVENT] TeamFlagReturnEvent", e);
@@ -1361,7 +1349,7 @@ public class UrT42Parser implements Parser {
             if (aclient == vclient) {
                 
                 checkNotNull(vclient, "[EVENT] ClientDamageSelfEvent: could not retrieve victim client on slot %s", vslot);
-                this.eventBus.post(new ClientDamageSelfEvent(vclient, mod, hitloc));
+                this.eventBus.put(new ClientDamageSelfEvent(vclient, mod, hitloc));
                 this.log.trace("[EVENT] ClientDamageSelfEvent [ client : " + vclient.getSlot() + 
                                                             " | mod : " + mod.name() + 
                                                             " | hitlocation : " + hitloc.name() + " ]");
@@ -1370,7 +1358,7 @@ public class UrT42Parser implements Parser {
                 
                 checkNotNull(vclient, "[EVENT] ClientDamageTeamEvent: could not retrieve victim client on slot %s", vslot);
                 checkNotNull(aclient, "[EVENT] ClientDamageTeamEvent: could not retrieve attacker client on slot %s", vslot);
-                this.eventBus.post(new ClientDamageTeamEvent(aclient, vclient, mod, hitloc));
+                this.eventBus.put(new ClientDamageTeamEvent(aclient, vclient, mod, hitloc));
                 this.log.trace("[EVENT] ClientDamageTeamEvent [ attacker : " + aclient.getSlot() + 
                                                             " | victim : " + vclient.getSlot() + 
                                                             " | mod : " + mod.name() + 
@@ -1381,7 +1369,7 @@ public class UrT42Parser implements Parser {
                 
                 checkNotNull(vclient, "[EVENT] ClientDamageEvent: could not retrieve victim client on slot %s", vslot);
                 checkNotNull(aclient, "[EVENT] ClientDamageEvent: could not retrieve attacker client on slot %s", vslot);
-                this.eventBus.post(new ClientDamageEvent(aclient, vclient, mod, hitloc));
+                this.eventBus.put(new ClientDamageEvent(aclient, vclient, mod, hitloc));
                 this.log.trace("[EVENT] ClientDamageEvent [ attacker : " + aclient.getSlot() + 
                                                         " | victim : " + vclient.getSlot() + 
                                                         " | mod : " + mod.name() + 
@@ -1390,7 +1378,7 @@ public class UrT42Parser implements Parser {
                 
             }
             
-        } catch (NullPointerException | IndexOutOfBoundsException e) {
+        } catch (NullPointerException | IndexOutOfBoundsException | InterruptedException e) {
             
             // Logging the Exception
             this.log.error(e.getMessage());
@@ -1410,16 +1398,20 @@ public class UrT42Parser implements Parser {
         
         // 0:00 InitGame: \sv_allowdownload\0\g_matchmode\1\g_gametype\4\sv_maxclients\20\sv_floodprotect\0...
         // 0:00 InitGame: \sv_allowdownload\0\g_matchmode\1\g_gametype\4\sv_maxclients\20\sv_floodprotect\0...
-        String infostring = matcher.group("infostring");
-        Map<String, String> data = this.parseInfoString(infostring); 
         
-        // Update the CVAR list with new values
-        for (Map.Entry<String, String> entry : data.entrySet())
-            this.game.setCvar(entry.getKey(), entry.getValue());
+        try {
         
-        this.eventBus.post(new GameStartEvent());
-        this.log.trace("[EVENT] GameStartEvent [ data : " + infostring + " ]");       
+            String infostring = matcher.group("infostring");            
+            this.eventBus.put(new GameStartEvent());
+            this.log.trace("[EVENT] GameStartEvent [ data : " + infostring + " ]");       
+        
+        } catch (InterruptedException e) {
             
+            // Logging the Exception
+            this.log.error("[EVENT] GameStartEvent", e);
+        
+        }
+        
     }
     
     
@@ -1433,15 +1425,19 @@ public class UrT42Parser implements Parser {
         
         // 0:00 InitRound: \sv_allowdownload\0\g_matchmode\1\g_gametype\4\sv_maxclients\20\sv_floodprotect\0...
         // 0:00 InitRound: \sv_allowdownload\0\g_matchmode\1\g_gametype\4\sv_maxclients\20\sv_floodprotect\0...
-        String infostring = matcher.group("infostring");
-        Map<String, String> data = this.parseInfoString(infostring); 
         
-        // Update the CVAR list with new values
-        for (Map.Entry<String, String> entry : data.entrySet())
-            this.game.setCvar(entry.getKey(), entry.getValue());
+        try {
+            
+            String infostring = matcher.group("infostring");            
+            this.eventBus.put(new GameRoundStartEvent());
+            this.log.trace("[EVENT] GameRoundStartEvent [ data : " + infostring + " ]");       
         
-        this.eventBus.post(new GameRoundStartEvent());
-        this.log.trace("[EVENT] GameRoundStartEvent [ data : " + infostring + " ]");
+        } catch (InterruptedException e) {
+            
+            // Logging the Exception
+            this.log.error("[EVENT] GameRoundStartEvent", e);
+        
+        }
 
     }
     
@@ -1466,10 +1462,10 @@ public class UrT42Parser implements Parser {
             checkNotNull(client, "could not retrieve client on slot %s", slot);
             
             Item item = getItemByName(matcher.group("item"));
-            this.eventBus.post(new ClientItemPickupEvent(client, item));
+            this.eventBus.put(new ClientItemPickupEvent(client, item));
             this.log.trace("[EVENT] ClientItemPickupEvent [ client : " + client.getSlot() + " | item : " + item.name() + " ]");
             
-        } catch (NullPointerException | IndexOutOfBoundsException e) {
+        } catch (NullPointerException | IndexOutOfBoundsException | InterruptedException e) {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientItemPickupEvent", e);
@@ -1521,7 +1517,7 @@ public class UrT42Parser implements Parser {
                 case MOD_TRIGGER_HURT:
                 case UT_MOD_SPLODED:
                     
-                    this.eventBus.post(new ClientKillSelfEvent(vclient, mod));
+                    this.eventBus.put(new ClientKillSelfEvent(vclient, mod));
                     this.log.trace("[EVENT] ClientKillSelfEvent [ victim : " + vclient.getSlot() + 
                                                               " | mod : " + mod.name() + " ]");
                     
@@ -1531,20 +1527,20 @@ public class UrT42Parser implements Parser {
                     
                     if ((aclient == vclient) && (aclient.getTeam() != Team.SPECTATOR)) {
                         
-                        this.eventBus.post(new ClientKillSelfEvent(vclient, mod));
+                        this.eventBus.put(new ClientKillSelfEvent(vclient, mod));
                         this.log.trace("[EVENT] ClientKillSelfEvent [ victim : " + vclient.getSlot() + 
                                                                   " | mod : " + mod.name() + " ]");
                         
                     } else if ((aclient.getTeam() == vclient.getTeam()) && (aclient.getTeam() != Team.SPECTATOR) && (aclient.getTeam() != Team.FREE)) {
                         
-                        this.eventBus.post(new ClientKillTeamEvent(aclient, vclient, mod));
+                        this.eventBus.put(new ClientKillTeamEvent(aclient, vclient, mod));
                         this.log.trace("[EVENT] ClientKillTeamEvent [ victim : " + vclient.getSlot() + 
                                                                   " | attacker : " + aclient.getSlot() + 
                                                                   " | mod : " + mod.name() + " ]");
                         
                     } else {
                         
-                        this.eventBus.post(new ClientKillEvent(aclient, vclient, mod));
+                        this.eventBus.put(new ClientKillEvent(aclient, vclient, mod));
                         this.log.trace("[EVENT] ClientKillEvent [ victim : " + vclient.getSlot() + 
                                                               " | attacker : " + aclient.getSlot() + 
                                                               " | mod : " + mod.name() + " ]");
@@ -1556,7 +1552,7 @@ public class UrT42Parser implements Parser {
             }
             
             
-        } catch (NullPointerException | IndexOutOfBoundsException e) {
+        } catch (NullPointerException | IndexOutOfBoundsException | InterruptedException e) {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientKillSelfEvent | ClientKillTeamEvent | ClientKillEvent", e);
@@ -1590,14 +1586,14 @@ public class UrT42Parser implements Parser {
             String location = matcher.group("location");
             String message = matcher.group("message");
             
-            this.eventBus.post(new ClientRadioEvent(client, msg_group, msg_id, location, message));
+            this.eventBus.put(new ClientRadioEvent(client, msg_group, msg_id, location, message));
             this.log.trace("[EVENT] ClientRadioEvent [ client : " + client.getSlot() + 
                                                    " | msg_group : " + msg_group + 
                                                    " | msg_id : " + msg_id + 
                                                    " | location : " + location + 
                                                    " | message : " + message + " ]");
             
-        } catch (NullPointerException e) {
+        } catch (NullPointerException | InterruptedException e) {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientRadioEvent", e);
@@ -1651,13 +1647,13 @@ public class UrT42Parser implements Parser {
             } else {
                 
                 // Normal client say event
-                this.eventBus.post(new ClientSayEvent(client, message));
+                this.eventBus.put(new ClientSayEvent(client, message));
                 this.log.trace("[EVENT] ClientSayEvent [ client : " + client.getSlot() + 
                                                      " | message : " + message + " ]");
             
             }
             
-        } catch (NullPointerException | ExpectedParameterException e) {
+        } catch (NullPointerException | ExpectedParameterException | InterruptedException e) {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientSayEvent", e);
@@ -1716,14 +1712,14 @@ public class UrT42Parser implements Parser {
             } else {
                 
                 // Normal client say private event
-                this.eventBus.post(new ClientSayPrivateEvent(client, target, message));
+                this.eventBus.put(new ClientSayPrivateEvent(client, target, message));
                 this.log.trace("[EVENT] ClientSayPrivateEvent [ client : " + client.getSlot() + 
                                                             " | target : " + target.getSlot() + 
                                                             " | message : " + message + " ]");
             
             }
             
-        } catch (NullPointerException | ExpectedParameterException e) {
+        } catch (NullPointerException | ExpectedParameterException | InterruptedException e) {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientSayPrivateEvent", e);
@@ -1777,13 +1773,13 @@ public class UrT42Parser implements Parser {
             } else {
                 
                 // Normal client say team event
-                this.eventBus.post(new ClientSayTeamEvent(client, message));
+                this.eventBus.put(new ClientSayTeamEvent(client, message));
                 this.log.trace("[EVENT] ClientSayTeamEvent [ client : " + client.getSlot() + 
                                                          " | message : " + message + " ]");
             
             }
             
-        } catch (NullPointerException | ExpectedParameterException e) {
+        } catch (NullPointerException | ExpectedParameterException | InterruptedException e) {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientSayTeamEvent", e);
@@ -1804,9 +1800,17 @@ public class UrT42Parser implements Parser {
         // 0:00 ShutdownGame:
         // 0:00 ShutdownGame:
         
-        this.game.getMapList().clear();
-        this.eventBus.post(new GameExitEvent());
-        this.log.trace("[EVENT] GameExitEvent");
+        try {
+            
+            this.eventBus.put(new GameExitEvent());
+            this.log.trace("[EVENT] GameExitEvent");
+
+        } catch (InterruptedException e) {
+            
+            // Logging the Exception
+            this.log.error("[EVENT] GameExitEvent", e);
+        
+        }
     
     }
     
@@ -1832,10 +1836,10 @@ public class UrT42Parser implements Parser {
                 // Check to have a proper client object before the event generation
                 checkNotNull(client, "could not retrieve client on slot %s", slot);
                 
-                this.eventBus.post(new SurvivorWinnerEvent(client));
+                this.eventBus.put(new SurvivorWinnerEvent(client));
                 this.log.trace("[EVENT] SurvivorWinnerEvent [ client : " + client.getSlot() + " ]");
                 
-            } catch (NullPointerException e) {
+            } catch (NullPointerException | InterruptedException e) {
                 
                 // Logging the Exception
                 this.log.error("[EVENT] SurvivorWinnerEvent", e);
@@ -1847,10 +1851,10 @@ public class UrT42Parser implements Parser {
             try {
                 
                 Team team = this.getTeamByName(matcher.group("data"));
-                this.eventBus.post(new TeamSurvivorWinnerEvent(team));
+                this.eventBus.put(new TeamSurvivorWinnerEvent(team));
                 this.log.trace("[EVENT] TeamSurvivorWinnerEvent [ team : " + team.name() + " ]");
             
-            } catch (IndexOutOfBoundsException e) {
+            } catch (IndexOutOfBoundsException | InterruptedException e) {
                     
                 // Logging the Exception
                 this.log.error("[EVENT] TeamSurvivorWinnerEvent", e);
@@ -1882,10 +1886,10 @@ public class UrT42Parser implements Parser {
             // Check to have a proper client object before the event generation
             checkNotNull(client, "could not retrieve client on slot %s", slot);
             
-            this.eventBus.post(new ClientVoteEvent(client, data));
+            this.eventBus.put(new ClientVoteEvent(client, data));
             this.log.trace("[EVENT] ClientVoteEvent [ client : " + client.getSlot() + " | data : " + data + " ]");
             
-        } catch (NullPointerException e) {
+        } catch (NullPointerException | InterruptedException e) {
             
             // Logging the Exception
             this.log.error("[EVENT] ClientVoteEvent", e);
@@ -1906,8 +1910,17 @@ public class UrT42Parser implements Parser {
         // 0:00 Warmup:
         // 0:00 Warmup:
         
-        this.eventBus.post(new GameWarmupEvent());
-        this.log.trace("[EVENT] GameWarmupEvent");
+        try {
+            
+            this.eventBus.put(new GameWarmupEvent());
+            this.log.trace("[EVENT] GameWarmupEvent");
+            
+        } catch (InterruptedException e) {
+            
+            // Logging the Exception
+            this.log.error("[EVENT] GameWarmupEvent", e);
+        
+        }
         
     }
     
