@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.0
+ * @version     1.1
  * @copyright   Daniele Pantaleone, 4 September, 2013
  * @package     com.orion.misc
  **/
@@ -29,12 +29,14 @@ package com.orion.misc;
 
 import java.lang.reflect.Method;
 
+import com.orion.domain.Group;
 import com.orion.plugin.Plugin;
 
 public class RegisteredMethod {
     
     private Method method;
     private Plugin plugin;
+    private Group  group;
     
     
     /**
@@ -45,8 +47,22 @@ public class RegisteredMethod {
      * @param  plugin The <tt>Plugin</tt> object from which to execute the <tt>Method</tt>
      **/
     public RegisteredMethod(Method method, Plugin plugin) {
+        this(method, plugin, null);
+    }
+    
+    
+    /**
+     * Object constructor
+     * 
+     * @author Daniele Pantaleone
+     * @param  method The <tt>Method</tt> to be executed
+     * @param  plugin The <tt>Plugin</tt> object from which to execute the <tt>Method</tt>
+     * @param  group The minimum <tt>Group</tt> that can access this method
+     **/
+    public RegisteredMethod(Method method, Plugin plugin, Group group) {
         this.setMethod(method);
         this.setPlugin(plugin);
+        this.setGroup(group);
     }
 
     
@@ -73,6 +89,17 @@ public class RegisteredMethod {
     
     
     /**
+     * Return the minimum <tt>Group</tt> that can access this method
+     * 
+     * @author Daniele Pantaleone
+     * @return The minimum <tt>Group</tt> that can access this method
+     **/
+    public Group getGroup() {
+        return group;
+    }
+    
+    
+    /**
      * Set the <tt>Method</tt> to be executed
      * 
      * @author Daniele Pantaleone
@@ -91,6 +118,17 @@ public class RegisteredMethod {
      **/
     public void setPlugin(Plugin plugin) {
         this.plugin = plugin;
+    }
+    
+    
+    /**
+     * Set the minimum <tt>Group</tt> that can access this method
+     * 
+     * @author Daniele Pantaleone
+     * @param  group The minimum <tt>Group</tt> that can access this method
+     **/
+    public void setGroup(Group group) {
+        this.group = group;
     }
 
 }
