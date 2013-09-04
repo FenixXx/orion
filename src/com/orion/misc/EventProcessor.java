@@ -86,6 +86,8 @@ public class EventProcessor implements Runnable {
             
             try {
                 
+                // FIXME: need to handle OrionStopEvent
+                
                 if (Thread.interrupted()) {
                     throw new InterruptedException();
                 }
