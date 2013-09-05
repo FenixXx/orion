@@ -104,7 +104,7 @@ public class CommandProcessor implements Runnable {
                 
                 // Check if the command actually exists
                 if (!this.regMethod.containsKey(command.getHandle())) {
-                    this.console.tell(command.getClient(), "Could not find command: " + Color.YELLOW + command.getPrefix().getChar() + Color.RED + command.getHandle());
+                    this.console.sayPrivate(command.getClient(), "Could not find command: " + Color.YELLOW + command.getPrefix().getChar() + Color.RED + command.getHandle());
                     continue;
                 }
                 
@@ -112,7 +112,7 @@ public class CommandProcessor implements Runnable {
                 
                 // Checking correct client minLevel
                 if ((command.getClient().getGroup().getLevel() < r.getGroup().getLevel()) && (!command.isForce())) {
-                    this.console.tell(command.getClient(), "You have no sufficient access to " + Color.YELLOW + command.getPrefix().getChar() + Color.RED + command.getHandle());
+                    this.console.sayPrivate(command.getClient(), "You have no sufficient access to " + Color.YELLOW + command.getPrefix().getChar() + Color.RED + command.getHandle());
                     continue;
                 }
                 
@@ -121,7 +121,7 @@ public class CommandProcessor implements Runnable {
                 
                 // Discard if disabled
                 if (!plugin.isEnabled()) {
-                    this.console.tell(command.getClient(), "Could not execute command " + Color.YELLOW + command.getPrefix().getChar() + command.getHandle() + ": " + Color.RED + "plugin disabled");
+                    this.console.sayPrivate(command.getClient(), "Could not execute command " + Color.YELLOW + command.getPrefix().getChar() + command.getHandle() + ": " + Color.RED + "plugin disabled");
                     continue;
                 }
                        
@@ -135,7 +135,7 @@ public class CommandProcessor implements Runnable {
                     if (e.getCause().getClass().equals(CommandRuntimeException.class)) {
                         
                         // Displaying the error in the game chat
-                        this.console.tell(command.getClient(), e.getCause().getMessage());
+                        this.console.sayPrivate(command.getClient(), e.getCause().getMessage());
                         continue;
                         
                     }
@@ -145,14 +145,14 @@ public class CommandProcessor implements Runnable {
                         // Display a little help text so the user can 
                         // try again using the correct command syntax
                         Usage usage = method.getAnnotation(Usage.class);
-                        this.console.tell(command.getClient(), e.getCause().getMessage());
-                        this.console.tell(command.getClient(), "Usage: " + Color.YELLOW + usage.syntax());
+                        this.console.sayPrivate(command.getClient(), e.getCause().getMessage());
+                        this.console.sayPrivate(command.getClient(), "Usage: " + Color.YELLOW + usage.syntax());
                         continue;
                        
                     } 
                         
                     // Informing the client of the Exception and log it. We'll keep processing anyway...
-                    this.console.tell(command.getClient(), "There was an error processing your command");
+                    this.console.sayPrivate(command.getClient(), "There was an error processing your command");
                     this.log.error("[" + r.getPlugin().getClass().getSimpleName() + "] Could not process command " + command.getPrefix().getChar() + command.getHandle(), e);
                     continue;
                 

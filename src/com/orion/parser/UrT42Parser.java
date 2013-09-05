@@ -96,6 +96,7 @@ import com.orion.event.TeamFlagReturnEvent;
 import com.orion.event.TeamSurvivorWinnerEvent;
 import com.orion.exception.ExpectedParameterException;
 import com.orion.exception.ParserException;
+import com.orion.urt.Cvar;
 import com.orion.urt.Gametype;
 import com.orion.urt.Hitlocation;
 import com.orion.urt.Item;
@@ -117,11 +118,11 @@ public class UrT42Parser implements Parser {
     
     private final Log log;
     private final Console console;
-    
     private final GroupCtl groupCtl;
     private final ClientCtl clientCtl;
     
     private BlockingQueue<Event> eventBus;
+    private Map<String, Cvar> cvarList;
     
     static {
         
@@ -389,18 +390,22 @@ public class UrT42Parser implements Parser {
      * @param  groupCtl The <tt>Group</tt> controller object reference
      * @param  clientCtl The <tt>Client</tt> controller object reference
      * @param  eventBus A <tt>BlockingQueue</tt> where to push generated events
+     * @param  cvarList A <tt>Map</tt> of <tt>Cvar</tt> objects shared 
+     *                  by the Parser and the Console
      **/
     public UrT42Parser(Log log,
                        Console console,
                        GroupCtl groupCtl,
                        ClientCtl clientCtl,
-                       BlockingQueue<Event> eventBus) {
+                       BlockingQueue<Event> eventBus,
+                       Map<String, Cvar> cvarList) {
         
         this.log = log;
         this.console = console;
         this.groupCtl = groupCtl;
         this.clientCtl = clientCtl;
         this.eventBus = eventBus;
+        this.cvarList = cvarList;
 
         this.log.debug("Urban Terror 4.2 parser initialized");
         

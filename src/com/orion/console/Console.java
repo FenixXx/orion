@@ -20,149 +20,34 @@
  * THE SOFTWARE.
  * 
  * @author      Daniele Pantaleone
- * @version     1.3
+ * @version     1.4
  * @copyright   Daniele Pantaleone, 10 February, 2013
  * @package     com.orion.console
  **/
 
 package com.orion.console;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import net.goreclan.rcon.RconException;
 
 import com.orion.command.Command;
 import com.orion.domain.Client;
-import com.orion.exception.ParserException;
 import com.orion.urt.Cvar;
 import com.orion.urt.Team;
 
 public interface Console {
     
-    /**
-     * Ban a <tt>Client</tt> from the server using the FS Auth System
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> who is going to be banned
-     * @param  days The number of days of the ban
-     * @param  hours The number of hours of the ban
-     * @param  mins The number of minutes of the ban
-     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
-     * @throws RconException If the RCON command fails in being executed
-     **/
-    public void authban(int slot, int days, int hours, int mins) throws UnsupportedOperationException, RconException;
-    
     
     /**
-     * Ban a <tt>Client</tt> from the server using the FS Auth System
+     * Ban a <tt>Client</tt> from the server permanently
      * 
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> who is going to be banned
-     * @param  days The number of days of the ban
-     * @param  hours The number of hours of the ban
-     * @param  mins The number of minutes of the ban
-     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
      * @throws RconException If the RCON command fails in being executed
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void authban(Client client, int days, int hours, int mins) throws UnsupportedOperationException, RconException, NullPointerException;
-    
-    
-    /**
-     * Permban a <tt>Client</tt> from the server using the FS Auth System
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> who is going to be banned permanently
-     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
-     * @throws RconException If the RCON command fails in being executed
-     **/
-    public void authpermban(int slot) throws UnsupportedOperationException, RconException;
-    
-    
-    /**
-     * Permban a <tt>Client</tt> from the server using the FS Auth System
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The <tt>Client</tt> who is going to be banned permanently
-     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
-     * @throws RconException If the RCON command fails in being executed
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
-     **/
-    public void authpermban(Client client) throws UnsupportedOperationException, RconException, NullPointerException;
-        
-    
-    /**
-     * Fetch FS Auth System informations for the specified <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> whose informations needs to be retrieved
-     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
-     * @throws RconException If the RCON command fails in being executed
-     * @throws ParserException If the auth-whois response couldn't be parsed correctly
-     * @return A <tt>Map</tt> containing the auth-whois command response
-     **/
-    public Map<String, String> authwhois(int slot) throws UnsupportedOperationException, RconException, ParserException;
-    
-    
-    /**
-     * Fetch FS Auth System informations for the specified <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The <tt>Client</tt> whose informations needs to be retrieved
-     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
-     * @throws RconException If the RCON command fails in being executed
-     * @throws ParserException If the auth-whois response couldn't be parsed correctly
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
-     * @return A <tt>Map</tt> containing the auth-whois command response
-     **/
-    public Map<String, String> authwhois(Client client) throws UnsupportedOperationException, RconException, ParserException, NullPointerException;
-    
-    
-    /**
-     * Ban an IP address from the server permanently
-     * 
-     * @author Daniele Pantaleone
-     * @param  ip The IP address to be banned 
-     * @throws RconException If the RCON command fails in being executed
-     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
-     **/
-    public void ban(String ip) throws RconException, NullPointerException;
-    
-    
-    /**
-     * Ban a <tt>Client</tt> IP address from the server permanently
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The <tt>Client</tt> whose IP address is going to be banned
-     * @throws RconException If the RCON command fails in being executed
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
-     **/
-    public void ban(Client client) throws RconException, NullPointerException;
-    
-    
-    /**
-     * Write a bold message in the middle of the screen
-     * 
-     * @author Daniele Pantaleone
-     * @param  message The message to be printed
-     * @throws RconException If the RCON command fails in being executed
-     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
-     **/
-    public void bigtext(String message) throws RconException, NullPointerException;
-    
-    
-    /**
-     * Broadcast a message in the top-left screen
-     * 
-     * @author Daniele Pantaleone
-     * @param  message The message to be sent
-     * @throws RconException If the RCON commands fails in being executed
-     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
-     **/
-    public void broadcast(String message) throws RconException, NullPointerException;
+    public abstract void ban(Client client) throws RconException; 
     
     
     /**
@@ -171,127 +56,7 @@ public interface Console {
      * @author Daniele Pantaleone
      * @throws RconException If the RCON commands fails in being executed
      **/
-    public void cyclemap() throws RconException;
-    
-    
-    /**
-     * Retrieve userinfo data for the specified <tt>Client</tt> slot number
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> whose informations needs to be retrieved
-     * @throws RconException If the <tt>Client</tt> informations couldn't be retrieved
-     * @return A <tt>Map</tt> containing userinfo data or <tt>null</tt> 
-     *         if the <tt>Client</tt> is not connected anymore
-     **/
-    public Map<String, String> dumpuser(int slot) throws RconException;
-    
-    
-    /**
-     * Retrieve userinfo data for the specified <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The <tt>Client</tt> whose informations needs to be retrieved
-     * @throws RconException If the <tt>Client</tt> informations couldn't be retrieved
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
-     * @return A <tt>Map</tt> containing userinfo data or <tt>null</tt> 
-     *         if the <tt>Client</tt> is not connected anymore
-     **/
-    public Map<String, String> dumpuser(Client client) throws RconException, NullPointerException;
-      
-    
-    /**
-     * Force a <tt>Client</tt> in the blue team
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> who is going to be forced in the blue team
-     * @throws RconException If the <tt>Client</tt> fails in being moved
-     **/
-    public void forceblue(int slot) throws RconException;
-    
-    
-    /**
-     * Force a <tt>Client</tt> in the blue team
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The <tt>Client</tt> who is going to be forced in the blue team
-     * @throws RconException If the <tt>Client</tt> fails in being moved
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
-     **/
-    public void forceblue(Client client) throws RconException, NullPointerException;
-    
-    
-    /**
-     * Force a <tt>Client</tt> in the free team (aka autojoin)
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> who is going to be forced in the free team
-     * @throws RconException If the <tt>Client</tt> fails in being moved
-     **/
-    public void forcefree(int slot) throws RconException;
-    
-    
-    /**
-     * Force a <tt>Client</tt> in the free team (aka autojoin)
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The <tt>Client</tt> who is going to be forced in the free team
-     * @throws RconException If the <tt>Client</tt> fails in being moved
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
-     **/
-    public void forcefree(Client client) throws RconException, NullPointerException;
-    
-    
-    /**
-     * Force a <tt>Client</tt> in the red team
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> who is going to be forced in the red team
-     * @throws RconException If the <tt>Client</tt> fails in being moved
-     **/
-    public void forcered(int slot) throws RconException;
-    
-    
-    /**
-     * Force a <tt>Client</tt> in the red team
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The <tt>Client</tt> who is going to be forced in the red team
-     * @throws RconException If the <tt>Client</tt> fails in being moved
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
-     **/
-    public void forcered(Client client) throws RconException, NullPointerException;
-    
-    
-    /**
-     * Force a <tt>Client</tt> in the spectator team
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> who is going to be forced in the spectator team
-     * @throws RconException If the <tt>Client</tt> fails in being moved
-     **/
-    public void forcespec(int slot) throws RconException;
-    
-    
-    /**
-     * Force a <tt>Client</tt> in the spectator team
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The <tt>Client</tt> who is going to be forced in the spectator team
-     * @throws RconException If the <tt>Client</tt> fails in being moved
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
-     **/
-    public void forcespec(Client client) throws RconException, NullPointerException;
-    
-    
-    /**
-     * Force a <tt>Client</tt> in the specified team
-     *
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> who is going to be moved
-     * @param  team The <tt>Team</tt> where to force the player in
-     * @throws RconException If the <tt>Client</tt> fails in being moved
-     **/
-    public void forceteam(int slot, Team team) throws RconException;
+    public abstract void cyclemap() throws RconException;
     
     
     /**
@@ -303,7 +68,7 @@ public interface Console {
      * @throws RconException If the <tt>Client</tt> fails in being moved
      * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void forceteam(Client client, Team team) throws RconException, NullPointerException;
+    public abstract void forceteam(Client client, Team team) throws RconException;
         
     
     /**
@@ -312,11 +77,10 @@ public interface Console {
      * @author Daniele Pantaleone
      * @param  name The CVAR name
      * @throws RconException If the CVAR could not be retrieved form the server
-     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      * @return The <tt>Cvar</tt> object associated to the given CVAR name or <tt>null</tt> 
      *         if such CVAR is not set on the server
      **/
-    public Cvar getCvar(String name) throws RconException, NullPointerException;
+    public abstract Cvar getCvar(String name) throws RconException;
     
         
     /**
@@ -326,7 +90,7 @@ public interface Console {
      * @throws RconException If the current map name couldn't be retrieved
      * @return The current map name 
      **/
-    public String getMap() throws RconException;
+    public abstract String getMap() throws RconException;
     
     
     /**
@@ -336,7 +100,7 @@ public interface Console {
      * @throws RconException If the map list couldn't be retrieved
      * @return A <tt>List</tt> of all the maps available on the server
      **/
-    public List<String> getMapList() throws RconException;
+    public abstract List<String> getMapList() throws RconException;
     
     
     /**
@@ -345,10 +109,9 @@ public interface Console {
      * @author Daniele Pantaleone
      * @param  search The name of the map to search (or a part of it)
      * @throws RconException If the list of available maps couldn't be computed
-     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
      * @return A <tt>List</tt> of maps matching the given search key
      **/
-    public List<String> getMapSoundingLike(String search) throws RconException, NullPointerException;
+    public abstract List<String> getMapSoundingLike(String search) throws RconException;
     
     
     /**
@@ -356,64 +119,18 @@ public interface Console {
      * 
      * @author Daniele Pantaleone
      * @throws RconException If an RCON command fails in being executed
-     * @throws FileNotFoundException If the mapcycle file couldn't be found
-     * @throws IOException If there is an error while reading the mapcycle file
-     * @return The name of the nextmap set on the server or <tt>null</tt> 
-     *         if it can't be computed
      **/
-    public String getNextMap() throws RconException, FileNotFoundException, IOException;
-    
- 
-    /**
-     * Return a <tt>List</tt> containing the result of the <tt>/rcon players</tt> command
-     * 
-     * @author Daniele Pantaleone
-     * @throws RconException If we couldn't fetch informations from the server
-     * @return A <tt>List</tt> containing players informations
-     **/
-    public List<List<String>> getPlayers() throws RconException;
-    
-    
-    /**
-     * Return a <tt>List</tt> containing the result of the <tt>/rcon status</tt> command
-     * 
-     * @author Daniele Pantaleone
-     * @throws RconException If we couldn't fetch informations from the server
-     * @return A <tt>List</tt> containing status informations
-     **/
-    public List<List<String>> getStatus() throws RconException;
-    
-    
-    /**
-     * Kick the specified <tt>Client</tt> from the server
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The slot of the <tt>Client</tt> who is going to be kicked from the server
-     * @throws RconException If the RCON command fails in being executed
-     **/
-    public void kick(int slot) throws RconException;
-    
-    
+    public abstract String getNextMap() throws RconException;
+
+
     /**
      * Kick the specified <tt>Client</tt> from the server
      * 
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> who is going to be kicked from the server
      * @throws RconException If the RCON command fails in being executed
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void kick(Client client) throws RconException, NullPointerException;
-    
-    
-    /**
-     * Kick the specified <tt>Client</tt> from the server by specifying a reason
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> who is going to be kicked from the server
-     * @param  reason The reason why the <tt>Client</tt> is going to be kicked
-     * @throws RconException If the RCON command fails in being executed
-     **/
-    public void kick(int slot, String reason) throws RconException;
+    public abstract void kick(Client client) throws RconException;
     
     
     /**
@@ -423,21 +140,10 @@ public interface Console {
      * @param  client The <tt>Client</tt> who is going to be kicked from the server
      * @param  reason The reason why the <tt>Client</tt> is going to be kicked
      * @throws RconException If the RCON command fails in being executed
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void kick(Client client, String reason) throws RconException, NullPointerException;
+    public abstract void kick(Client client, String reason) throws RconException;
    
-    
-    /**
-     * Instantly kill a <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> who is going to be killed
-     * @throws RconException If the RCON command fails in being executed
-     **/
-    public void kill(int slot) throws RconException;
-    
-    
+  
     /**
      * Instantly kill a <tt>Client</tt>
      * 
@@ -445,7 +151,7 @@ public interface Console {
      * @param  client The <tt>Client</tt> who is going to be killed
      * @throws RconException If the RCON command fails in being executed
      **/
-    public void kill(Client client) throws RconException;
+    public abstract void kill(Client client) throws RconException;
     
     
     /**
@@ -454,19 +160,8 @@ public interface Console {
      * @author Daniele Pantaleone
      * @param  mapname The name of the level to load
      * @throws RconException If the RCON command fails in being executed
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void map(String mapname) throws RconException, NullPointerException;
-    
-    
-    /**
-     * Mute a <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone 
-     * @param  slot The slot of the <tt>Client</tt> who is going to be muted
-     * @throws RconException If the <tt>Client</tt> couldn't be muted
-     **/
-    public void mute(int slot) throws RconException;
+    public abstract void map(String mapname) throws RconException;
     
     
     /**
@@ -475,21 +170,9 @@ public interface Console {
      * @author Daniele Pantaleone 
      * @param  client The <tt>Client</tt> who is going to be muted
      * @throws RconException If the <tt>Client</tt> couldn't be muted
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void mute(Client client) throws RconException, NullPointerException;
-    
-    
-    /**
-     * Mute a <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone 
-     * @param  slot The slot of the <tt>Client</tt> who is going to be muted
-     * @param  seconds The amount of seconds the <tt>Client</tt> will be muted
-     * @throws RconException If the <tt>Client</tt> couldn't be muted
-     **/
-    public void mute(int slot, int seconds) throws RconException;
-    
+    public abstract void mute(Client client) throws RconException;
+  
     
     /**
      * Mute a <tt>Client</tt>
@@ -498,19 +181,8 @@ public interface Console {
      * @param  client The <tt>Client</tt> who is going to be muted
      * @param  seconds The amount of seconds the <tt>Client</tt> will be muted
      * @throws RconException If the <tt>Client</tt> couldn't be muted
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void mute(Client client, int seconds) throws RconException, NullPointerException;
-    
-
-    /**
-     * Nuke a <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone 
-     * @param  slot The slot of the <tt>Client</tt> who is going to be nuked
-     * @throws RconException If the <tt>Client</tt> couldn't be nuked
-     **/
-    public void nuke(int slot) throws RconException;
+    public abstract void mute(Client client, int seconds) throws RconException;
     
     
     /**
@@ -519,9 +191,8 @@ public interface Console {
      * @author Daniele Pantaleone 
      * @param  client The <tt>Client</tt> who is going to be nuked
      * @throws RconException If the <tt>Client</tt> couldn't be nuked
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void nuke(Client client) throws RconException, NullPointerException;
+    public abstract void nuke(Client client) throws RconException;
     
     
     /**
@@ -530,137 +201,18 @@ public interface Console {
      * @author Daniele Pantaleone
      * @param  message The message to be printed
      * @throws RconException If the RCON command fails in being executed
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
      **/
-    public void say(String message) throws RconException, NullPointerException;
+    public abstract void say(String message) throws RconException;
     
     
     /**
-     * Print an in-game message with visibility regulated by the command object
+     * Write a bold message in the middle of the screen
      * 
      * @author Daniele Pantaleone
-     * @param  command The command issued
      * @param  message The message to be printed
      * @throws RconException If the RCON command fails in being executed
-     * @throws NullPointerException If one of the given parameters is <tt>null</tt>
      **/
-    public void sayLoudOrPm(Command command, String message) throws RconException, NullPointerException;
-      
-    
-    /**
-     * Set a CVAR value
-     * 
-     * @author Daniele Pantaleone
-     * @param  name The name of the CVAR
-     * @param  value The value to assign to the CVAR
-     * @throws RconException If the CVAR could not be set
-     * @throws NullPointerException If one of the given parameters <tt>null</tt>
-     **/
-    public void setCvar(String name, Object value) throws RconException, NullPointerException;
-    
-    
-    /**
-     * Set a CVAR value
-     * 
-     * @author Daniele Pantaleone
-     * @param  cvar The <tt>Cvar</tt> to be set on the server
-     * @throws RconException If the CVAR could not be set
-     * @throws NullPointerException If the given <tt>Cvar</tt> is <tt>null</tt>
-     **/
-    public void setCvar(Cvar cvar) throws RconException, NullPointerException;
-    
-    
-    /**
-     * Slap a <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone 
-     * @param  slot The slot of the <tt>Client</tt> who is going to be slapped
-     * @throws RconException If the <tt>Client</tt> couldn't be slapped
-     **/
-    public void slap(int slot) throws RconException;
-    
-    
-    /**
-     * Slap a <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone 
-     * @param  client The <tt>Client</tt> who is going to be slapped
-     * @throws RconException If the <tt>Client</tt> couldn't be slapped
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
-     **/
-    public void slap(Client client) throws RconException, NullPointerException;
-
-    
-    /**
-     * Start recording a server side demo of a <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> whose demo is going to be recorded
-     * @throws RconException If the demo recording couldn't be started
-     **/
-    public void startserverdemo(int slot) throws RconException;
-    
-    
-    /**
-     * Start recording a server side demo of a <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The <tt>Client</tt> whose demo is going to be recorded
-     * @throws RconException If the demo recording couldn't be started
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
-     **/
-    public void startserverdemo(Client client) throws RconException, NullPointerException;
-    
-    
-    /**
-     * Start recording a server side demo of all the online clients
-     * 
-     * @author Daniele Pantaleone
-     * @throws RconException If the demo recording couldn't be started
-     **/
-    public void startserverdemo() throws RconException;
-    
-    
-    /**
-     * Stop recording a server side demo of a <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> whose demo is going to be stopped
-     * @throws RconException If the demo recording couldn't be stopped
-     **/
-    public void stopserverdemo(int slot) throws RconException;
-    
-    
-    /**
-     * Stop recording a server side demo of a <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The <tt>Client</tt> whose demo is going to be stopped
-     * @throws RconException If the demo recording couldn't be stopped
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
-     **/
-    public void stopserverdemo(Client client) throws RconException, NullPointerException;
-    
-    
-    /**
-     * Stop recording a server side demo of all the online clients
-     * 
-     * @author Daniele Pantaleone
-     * @throws RconException If the demo recording couldn't be stopped
-     **/
-    public void stopserverdemo() throws RconException;
-    
-    
-    /**
-     * Send a private message to a <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> who will receive the message
-     * @param  message The message to be sent
-     * @throws RconException If the RCON command fails in being executed
-     * @throws NullPointerException If the given message is <tt>null</tt>
-     **/
-    public void tell(int slot, String message) throws RconException, NullPointerException;
+    public abstract void sayBig(String message) throws RconException;
     
     
     /**
@@ -670,44 +222,74 @@ public interface Console {
      * @param  client The <tt>Client</tt> who will receive the message
      * @param  message The message to be sent
      * @throws RconException If the RCON command fails in being executed
-     * @throws NullPointerException If one of the given parameters is <tt>null</tt>
      **/
-    public void tell(Client client, String message) throws RconException, NullPointerException;
+    public abstract void sayPrivate(Client client, String message) throws RconException;
     
-
+    
     /**
-     * Unban an IP address from the server
+     * Print an in-game message with visibility regulated by the command object
      * 
      * @author Daniele Pantaleone
-     * @param  ip The IP address we want to unban
-     * @throws RconException If the IP address couldn't be unbanned
-     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
+     * @param  command The command issued
+     * @param  message The message to be printed
+     * @throws RconException If the RCON command fails in being executed
      **/
-    public void unban(String ip) throws RconException, NullPointerException;
+    public abstract void sayLoudOrPm(Command command, String message) throws RconException;
+      
+    
+    /**
+     * Set a CVAR value
+     * 
+     * @author Daniele Pantaleone
+     * @param  name The name of the CVAR
+     * @param  value The value to assign to the CVAR
+     * @throws RconException If the CVAR could not be set
+     **/
+    public abstract void setCvar(String name, Object value) throws RconException;
     
     
     /**
-     * Unban a <tt>Client</tt> IP address from the server
+     * Slap a <tt>Client</tt>
+     * 
+     * @author Daniele Pantaleone 
+     * @param  client The <tt>Client</tt> who is going to be slapped
+     * @throws RconException If the <tt>Client</tt> couldn't be slapped
+     **/
+    public abstract void slap(Client client) throws RconException;
+    
+    
+    /**
+     * Unban a <tt>Client</tt> from the server
      * 
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> whose IP address we want to unban
-     * @throws RconException If the IP address couldn't be unbanned
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
+     * @throws RconException If the <tt>Client</tt> could not be unbanned
      **/
-    public void unban(Client client) throws RconException, NullPointerException;
+    public abstract void unban(Client client) throws RconException;
     
     
     /**
-     * Write a message directly in the Urban Terror console<br>
-     * Try to avoid the use of this command: use instead the other 
-     * optimized methods available in this class
+     * Write an RCON command in the remote
+     * console without returning the server response
      * 
      * @author Daniele Pantaleone
      * @param  command The command to execute
      * @throws RconException If the RCON command fails in being executed
-     * @throws NullPointerException If the given <tt>String</tt> is <tt>null</tt>
-     * @return The server response to the RCON command
      **/
-    public abstract String write(String command) throws RconException, NullPointerException;
+    public abstract void write(String command) throws RconException;
+    
+    
+    /**
+     * Write an RCON command in the remote console. Will return
+     * the server response if specified in the command execution,
+     * otherwise it will return <tt>null</tt>
+     * 
+     * @author Daniele Pantaleone
+     * @param  command The command to execute
+     * @throws RconException If the RCON command fails in being executed
+     * @return The server response to the RCON command if specified 
+     *         in the command execution, otherwise <tt>null</tt>
+     **/
+    public abstract String write(String command, boolean read) throws RconException;
      
 }
