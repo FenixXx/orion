@@ -57,7 +57,10 @@ public class Splitter {
             if (endIndex >= message.length()) {
       
                 // Rolling back until endIndex is not valid
-                while (endIndex  > message.length()) { endIndex--; } 
+                while (endIndex  > message.length()) { 
+                    endIndex--; 
+                }
+                
                 list.add(message.substring(startIndex, endIndex));
                 break;
                 
