@@ -31,8 +31,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.BlockingQueue;
 
-import net.goreclan.rcon.RconException;
-
 import org.apache.commons.logging.Log;
 import org.joda.time.DateTime;
 
@@ -41,6 +39,7 @@ import com.orion.command.Command;
 import com.orion.console.Console;
 import com.orion.exception.CommandRuntimeException;
 import com.orion.exception.CommandSyntaxException;
+import com.orion.exception.RconException;
 import com.orion.plugin.Plugin;
 import com.orion.urt.Color;
 import com.orion.utility.MultiKeyMap;
