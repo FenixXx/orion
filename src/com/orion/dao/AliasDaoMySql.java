@@ -27,8 +27,6 @@
 
 package com.orion.dao;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -41,11 +39,11 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import com.orion.bot.Orion;
+import com.orion.domain.Alias;
 import com.orion.domain.Client;
-import com.orion.domain.IpAlias;
 import com.orion.storage.DataSourceManager;
 
-public class MySqlIpAliasDao implements IpAliasDao {
+public class AliasDaoMySql implements AliasDao {
     
     private final DateTimeZone timezone;
     private final DataSourceManager storage;
@@ -53,41 +51,40 @@ public class MySqlIpAliasDao implements IpAliasDao {
     private PreparedStatement statement;
     private ResultSet resultset;
     
-    private static final String LOAD_BY_CLIENT = "SELECT `id`, `ip`, `num_used`, `time_add`, `time_edit` FROM `ipaliases` WHERE `client_id` = ? ORDER BY `num_used` DESC, `time_edit` DESC"; ;
-    private static final String LOAD_BY_CLIENT_IP = "SELECT `id`, `ip`, `num_used`, `time_add`, `time_edit` FROM `ipaliases` WHERE `client_id` = ? AND `ip` = ?";                                         
-    private static final String INSERT = "INSERT INTO `ipaliases` (`client_id`, `ip`, `time_add`, `time_edit`) VALUES (?,?,?,?)";
-    private static final String UPDATE = "UPDATE `ipaliases` SET `client_id` = ?, `ip` = ?, `num_used` = ?, `time_edit` = ? WHERE `id` = ?";
-    private static final String DELETE = "DELETE FROM `ipaliases` WHERE `id` = ?";
+    private static final String LOAD_BY_CLIENT = "SELECT `id`, `name`, `num_used`, `time_add`, `time_edit` FROM `aliases` WHERE `client_id` = ? ORDER BY `num_used` DESC, `time_edit` DESC";
+    private static final String LOAD_BY_CLIENT_NAME = "SELECT `id`, `name`, `num_used`, `time_add`, `time_edit` FROM `aliases` WHERE `client_id` = ? AND `name` = ?";    
+    private static final String INSERT = "INSERT INTO `aliases` (`client_id`, `name`, `time_add`, `time_edit`) VALUES (?,?,?,?)";
+    private static final String UPDATE = "UPDATE `aliases` SET `client_id` = ?, `name` = ?, `num_used` = ?, `time_edit` = ? WHERE `id` = ?";
+    private static final String DELETE = "DELETE FROM `aliases` WHERE `id` = ?";
         
     
     /**
-     * Object constructor
+     * Object constructor.
      * 
      * @author Daniele Pantaleone
      * @param  orion <tt>Orion</tt> object reference
      **/
-    public MySqlIpAliasDao(Orion orion) {
+    public AliasDaoMySql(Orion orion) {
         this.timezone = orion.timezone;
         this.storage = orion.storage;
     }
     
     
     /**
-     * Return a collection of <tt>IpAlias</tt> objects matching the given <tt>Client</tt>
+     * Return a collection of <tt>Alias</tt> objects matching the given <tt>Client</tt>
      * 
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> object on which to perform the search
      * @throws ClassNotFoundException If the JDBC driver fails in being loaded
      * @throws SQLException If the load query fails somehow
-     * @throws UnknownHostException If we can't generate an <tt>InetAddress</tt> object using a <tt>Client</tt> IP address
-     * @return A collection of </tt>IpAlias</tt> objects matching the given <tt>Client</tt>
+     * @return A collection of <tt>Alias</tt> objects matching the given <tt>Client</tt>
      **/
-    public List<IpAlias> loadByClient(Client client) throws ClassNotFoundException, SQLException, UnknownHostException {
+    public List<Alias> loadByClient(Client client) throws ClassNotFoundException, SQLException {
         
         this.statement = this.storage.getConnection().prepareStatement(LOAD_BY_CLIENT);
         this.statement.setInt(1, client.getId());
         this.resultset = this.statement.executeQuery();
-        List<IpAlias> collection = this.getCollectionFromResultSet(this.resultset, client);
+        List<Alias> collection = this.getCollectionFromResultSet(this.resultset, client);
         this.resultset.close();
         this.statement.close();
         
@@ -97,20 +94,19 @@ public class MySqlIpAliasDao implements IpAliasDao {
     
     
     /**
-     * Return an <tt>IpAlias</tt> object matching the given <tt>Client</tt> id and IP address
+     * Return an <tt>Alias</tt> object matching the given <tt>Client</tt> id and name
      * 
      * @author Daniele Pantaleone
      * @param  client The <tt>Client</tt> object on which to perform the search
      * @throws ClassNotFoundException If the JDBC driver fails in being loaded
      * @throws SQLException If the load query fails somehow
-     * @throws UnknownHostException If we can't generate an <tt>InetAddress</tt> object using the <tt>Client</tt> IP address
-     * @return An <tt>IpAlias</tt> object matching the given <tt>Client</tt> id and IP address or <tt>null</tt> if we have no match
+     * @return An <tt>Alias</tt> object matching the given <tt>Client</tt> id and name or <tt>null</tt> if we have no match
      **/
-    public IpAlias loadByClientIp(Client client) throws ClassNotFoundException, SQLException, UnknownHostException {
+    public Alias loadByClientName(Client client) throws ClassNotFoundException, SQLException {
         
-        this.statement = this.storage.getConnection().prepareStatement(LOAD_BY_CLIENT_IP);
+        this.statement = this.storage.getConnection().prepareStatement(LOAD_BY_CLIENT_NAME);
         this.statement.setInt(1, client.getId());
-        this.statement.setString(2, client.getIp().getHostAddress());
+        this.statement.setString(2, client.getName());
         this.resultset = this.statement.executeQuery();
         
         if (!this.resultset.next()) {    
@@ -119,41 +115,40 @@ public class MySqlIpAliasDao implements IpAliasDao {
             return null;
         }
         
-        IpAlias ipalias = this.getObjectFromCursor(this.resultset, client);
+        Alias alias = this.getObjectFromCursor(this.resultset, client);
         this.resultset.close();
         this.statement.close();
         
-        return ipalias;
+        return alias;
             
     }
-    
 
     
     /**
-     * Create a new entry in the database for the current object
+     * Create a new entry in the database for the current object.
      * 
      * @author Daniele Pantaleone
-     * @param  ipalias The <tt>IpAlias</tt> object whose informations needs to be stored
+     * @param  alias The <tt>Alias</tt> object whose informations needs to be stored
      * @throws ClassNotFoundException If the JDBC driver fails in being loaded
      * @throws SQLException If the insert query fails somehow
      **/
-    public void insert(IpAlias ipalias) throws ClassNotFoundException, SQLException { 
+    public void insert(Alias alias) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS);
-        this.statement.setInt(1, ipalias.getClient().getId());
-        this.statement.setString(2, ipalias.getIp().getHostAddress());
-        this.statement.setLong(3, ipalias.getTimeAdd().getMillis());
-        this.statement.setLong(4, ipalias.getTimeEdit().getMillis());
+        this.statement.setInt(1, alias.getClient().getId());
+        this.statement.setString(2, alias.getName());
+        this.statement.setLong(3, alias.getTimeAdd().getMillis());
+        this.statement.setLong(4, alias.getTimeEdit().getMillis());
         
-        // Executing the statement.
+        // Executing the statement
         this.statement.executeUpdate();
         
         // Retrieving the generated primary key
         this.resultset = this.statement.getGeneratedKeys();
-        if (!this.resultset.next()) throw new SQLException("Unable to retrieve generated primary key from `ipaliases` table");
+        if (!this.resultset.next()) throw new SQLException("Unable to retrieve generated primary key from `aliases` table");
         
         // Storing the new generated client id
-        ipalias.setId(this.resultset.getInt(1));
+        alias.setId(this.resultset.getInt(1));
         
         this.resultset.close();
         this.statement.close();
@@ -162,21 +157,21 @@ public class MySqlIpAliasDao implements IpAliasDao {
     
     
     /**
-     * Update domain object in the database
+     * Update domain object in the database.
      * 
      * @author Daniele Pantaleone
-     * @param  ipalias The <tt>IpAlias</tt> object whose informations needs to be updated
+     * @param  alias The <tt>Alias</tt> object whose informations needs to be updated
      * @throws ClassNotFoundException If the JDBC driver fails in being loaded
      * @throws SQLException If the update query fails somehow
      **/
-    public void update(IpAlias ipalias) throws ClassNotFoundException, SQLException { 
+    public void update(Alias alias) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(UPDATE);
-        this.statement.setInt(1, ipalias.getClient().getId());
-        this.statement.setString(2, ipalias.getIp().getHostAddress());
-        this.statement.setInt(3, ipalias.getNumUsed());
-        this.statement.setLong(4, ipalias.getTimeEdit().getMillis());
-        this.statement.setInt(5, ipalias.getId());
+        this.statement.setInt(1, alias.getClient().getId());
+        this.statement.setString(2, alias.getName());
+        this.statement.setInt(3, alias.getNumUsed());
+        this.statement.setLong(4, alias.getTimeEdit().getMillis());
+        this.statement.setInt(5, alias.getId());
         
         // Executing the statement.
         this.statement.executeUpdate();
@@ -189,14 +184,14 @@ public class MySqlIpAliasDao implements IpAliasDao {
      * Delete domain object from the database.
      * 
      * @author Daniele Pantaleone
-     * @param  ipalias The <tt>IpAlias</tt> object whose informations needs to be deleted
+     * @param  alias The <tt>Alias</tt> object whose informations needs to be deleted
      * @throws ClassNotFoundException If the JDBC driver fails in being loaded
      * @throws SQLException If the delete query fails somehow
      **/
-    public void delete(IpAlias ipalias) throws ClassNotFoundException, SQLException { 
+    public void delete(Alias alias) throws ClassNotFoundException, SQLException { 
         
         this.statement = this.storage.getConnection().prepareStatement(DELETE);
-        this.statement.setInt(1, ipalias.getId());
+        this.statement.setInt(1, alias.getId());
         
         // Executing the statement.
         this.statement.executeUpdate();
@@ -211,23 +206,22 @@ public class MySqlIpAliasDao implements IpAliasDao {
     
     
     /**
-     * Return a collection of <tt>IpAlias</tt> objects accessible through the <tt>List</tt> interface
+     * Return a collection of <tt>Alias</tt> objects accessible through the <tt>List</tt> interface
      * 
      * @author Daniele Pantaleone
      * @param  resultset The <tt>ResultSet</tt> object from which to fetch data
-     * @param  client The <tt>Client</tt> who those <tt>IpAlias</tt> objects belong to
+     * @param  client The <tt>Client</tt> who those <tt>Alias</tt> objects belong to
      * @throws SQLException If one of the <tt>ResultSet</tt> objects is not consistent
-     * @throws UnknownHostException If we can't generate an <tt>InetAddress</tt> object using a <tt>Client</tt> IP address
-     * @return A collection of <tt>IpAlias</tt> objects matching the given <tt>ResultSet</tt>
+     * @return A collection of <tt>Alias</tt> objects matching the given <tt>ResultSet</tt>
      **/
-    private List<IpAlias> getCollectionFromResultSet(ResultSet resultset, Client client) throws SQLException, UnknownHostException {
+    private List<Alias> getCollectionFromResultSet(ResultSet resultset, Client client) throws SQLException {
         
-        List<IpAlias> collection = new LinkedList<IpAlias>();
+        List<Alias> collection = new LinkedList<Alias>();
         
         while (resultset.next()) { 
             // Appending all the objects to the collection.
-            IpAlias ipalias = this.getObjectFromCursor(resultset, client);
-            collection.add(ipalias);
+            Alias alias = this.getObjectFromCursor(resultset, client);
+            collection.add(alias);
         }       
         
         return Collections.unmodifiableList(collection);
@@ -236,23 +230,22 @@ public class MySqlIpAliasDao implements IpAliasDao {
     
     
     /**
-     * Return an <tt>IpAlias</tt> object matching the given <tt>ResultSet</tt> tuple
+     * Return an <tt>Alias</tt> object matching the given <tt>ResultSet</tt> tuple
      * 
      * @author Daniele Pantaleone
-     * @param  resultset The <tt>ResultSet</tt> object from which to build the <tt>IpAlias</tt> object
-     * @param  client The <tt>Client</tt> who this <tt>IpAlias</tt> belongs to
+     * @param  resultset The <tt>ResultSet</tt> object from which to build the <tt>Alias</tt> object
+     * @param  client The <tt>Client</tt> who this <tt>Alias</tt> belongs to
      * @throws SQLException If the <tt>ResultSet</tt> object is not consistent
-     * @throws UnknownHostException If we can't generate an <tt>InetAddress</tt> object using the <tt>Client</tt> IP address
      * @return An <tt>Alias</tt> object matching the given <tt>ResultSet</tt> tuple
      **/
-    private IpAlias getObjectFromCursor(ResultSet resultset, Client client) throws SQLException, UnknownHostException {
+    private Alias getObjectFromCursor(ResultSet resultset, Client client) throws SQLException {
         
-        return new IpAlias(resultset.getInt("id"), 
-                           client, 
-                           InetAddress.getByName(resultset.getString("ip")), 
-                           resultset.getInt("num_used"),  
-                           new DateTime(resultset.getLong("time_add"), this.timezone), 
-                           new DateTime(resultset.getLong("time_edit"), this.timezone));
+        return new Alias(resultset.getInt("id"), 
+                         client, 
+                         resultset.getString("name"), 
+                         resultset.getInt("num_used"), 
+                         new DateTime(resultset.getLong("time_add"), this.timezone),  
+                         new DateTime(resultset.getLong("time_edit"), this.timezone));
         
     }
 

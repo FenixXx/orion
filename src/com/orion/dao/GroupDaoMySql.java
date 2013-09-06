@@ -37,7 +37,7 @@ import java.util.List;
 import com.orion.domain.Group;
 import com.orion.storage.DataSourceManager;
 
-public class MySqlGroupDao implements GroupDao {
+public class GroupDaoMySql implements GroupDao {
     
     private final DataSourceManager storage;
     
@@ -60,7 +60,7 @@ public class MySqlGroupDao implements GroupDao {
      * @author Daniele Pantaleone
      * @param  storage The <tt>DataSourceManager</tt> interface
      **/
-    public MySqlGroupDao(DataSourceManager storage) {
+    public GroupDaoMySql(DataSourceManager storage) {
         this.storage = storage;
     }
     

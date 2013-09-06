@@ -47,7 +47,7 @@ import com.orion.domain.Client;
 import com.orion.domain.Group;
 import com.orion.storage.DataSourceManager;
 
-public class MySqlCallvoteDao implements CallvoteDao {
+public class CallvoteDaoMySql implements CallvoteDao {
     
     private final DateTimeZone timezone;
     private final DataSourceManager storage;
@@ -142,7 +142,7 @@ public class MySqlCallvoteDao implements CallvoteDao {
      * @author Daniele Pantaleone
      * @param  orion <tt>Orion</tt> object reference
      **/
-    public MySqlCallvoteDao(Orion orion) {
+    public CallvoteDaoMySql(Orion orion) {
         this.timezone = orion.timezone;
         this.storage = orion.storage;
     }

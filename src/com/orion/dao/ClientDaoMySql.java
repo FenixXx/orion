@@ -46,7 +46,7 @@ import com.orion.domain.Client;
 import com.orion.domain.Group;
 import com.orion.storage.DataSourceManager;
 
-public class MySqlClientDao implements ClientDao {
+public class ClientDaoMySql implements ClientDao {
     
     private final DateTimeZone timezone;
     private final DataSourceManager storage;
@@ -145,7 +145,7 @@ public class MySqlClientDao implements ClientDao {
      * @author Daniele Pantaleone
      * @param  orion <tt>Orion</tt> object reference
      **/
-    public MySqlClientDao(Orion orion) {
+    public ClientDaoMySql(Orion orion) {
         this.timezone = orion.timezone;
         this.storage = orion.storage;
     }

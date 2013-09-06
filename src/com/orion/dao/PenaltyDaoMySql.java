@@ -49,7 +49,7 @@ import com.orion.domain.Group;
 import com.orion.domain.Penalty;
 import com.orion.storage.DataSourceManager;
 
-public class MySqlPenaltyDao implements PenaltyDao {
+public class PenaltyDaoMySql implements PenaltyDao {
     
     private final DateTimeZone timezone;
     private final DataSourceManager storage;
@@ -198,7 +198,7 @@ public class MySqlPenaltyDao implements PenaltyDao {
      * @author Daniele Pantaleone
      * @param  orion <tt>Orion</tt> object reference
      **/
-    public MySqlPenaltyDao(Orion orion) {
+    public PenaltyDaoMySql(Orion orion) {
         this.timezone = orion.timezone;
         this.storage = orion.storage;
     }
