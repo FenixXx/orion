@@ -30,8 +30,6 @@ package com.orion.parser;
 import java.util.List;
 import java.util.Map;
 
-import net.goreclan.rcon.RconException;
-
 import com.orion.urt.Gametype;
 import com.orion.urt.Hitlocation;
 import com.orion.urt.Item;
@@ -129,17 +127,14 @@ public interface Parser {
     
     
     /**
-     * Return a <tt>List</tt> of available <tt>Team</tt> objects according to
-     * the current played <tt>Gametype</tt>. If the <tt>Gametype</tt> has not 
-     * been computed yet, it will retrieve the value from the server before 
-     * returning the collection
+     * Return a <tt>List</tt> of available <tt>Team</tt>
+     * objects according to the current played <tt>Gametype</tt>
      * 
      * @author Daniele Pantaleone
-     * @throws RconException If we could not retrieve the current gametype
      * @return A <tt>List</tt> of available <tt>Team</tt> objects according to
      *         the current played <tt>Gametype</tt>
      **/
-    public abstract List<Team> getAvailableTeams() throws RconException;
+    public abstract List<Team> getAvailableTeams();
     
     
     /**
