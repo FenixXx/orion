@@ -42,16 +42,8 @@ public class Cvar {
      * @author Daniele Pantaleone
      * @param  name The CVAR name
      * @param  value The CVAR value as a <tt>String</tt>
-     * @throws NullPointerException If the CVAR name is <tt>null</tt>
      **/
-    public Cvar(String name, String value) throws NullPointerException {
-        
-        if (name == null) {
-            // If the CVAR name is NULL, throw an Exception since
-            // we cannot track it's value and it will be useless
-            throw new NullPointerException("CVAR name can't be NULL");
-        }
-        
+    public Cvar(String name, String value) {
         this.name = name.toLowerCase();
         this.value = value;
     }
