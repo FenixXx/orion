@@ -55,7 +55,7 @@ public class Rcon {
     
     
     /**
-     * Build a new <tt>JRcon</tt> object
+     * Build a new <tt>Rcon</tt> object
      * 
      * @author Daniele Pantaleone
      * @param  ip The ip/domain where RCON packets should be sent
@@ -76,7 +76,7 @@ public class Rcon {
     
     
     /**
-     * Build a new <tt>JRcon</tt> object
+     * Build a new <tt>Rcon</tt> object
      * 
      * @author Daniele Pantaleone
      * @param  ip The ip/domain where RCON packets should be sent
@@ -127,6 +127,7 @@ public class Rcon {
             throw new IllegalArgumentException("packet timeout must be a positive value");
         
         PACKET_TIMEOUT = timeout;
+        
     }
     
     
@@ -147,6 +148,7 @@ public class Rcon {
             throw new IllegalArgumentException("multi packet timeout must be a positive value");
         
         PACKET_TIMEOUT_MULTI = timeout;
+        
     }
     
     
@@ -166,6 +168,7 @@ public class Rcon {
             throw new IllegalArgumentException("socket delay must be a positive value");
         
         SOCKET_DELAY = delay;
+        
     }
    
     
@@ -329,6 +332,5 @@ public class Rcon {
     public synchronized void send(String command) throws RconException {
         this.send(command, false);
     }
-
        
 }
