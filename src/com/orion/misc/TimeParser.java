@@ -25,7 +25,7 @@
  * @package     com.orion.utility
  **/
 
-package com.orion.utility;
+package com.orion.misc;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
