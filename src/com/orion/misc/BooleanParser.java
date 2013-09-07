@@ -20,12 +20,12 @@
  * THE SOFTWARE.
  * 
  * @author      Mathias Van Malderen
- * @version     1.1
+ * @version     1.2
  * @copyright   Mathias Van Malderen 09 July, 2012
- * @package     com.orion.utility
+ * @package     com.orion.misc
  **/
 
-package com.orion.utility;
+package com.orion.misc;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -57,18 +57,15 @@ public class BooleanParser {
      * Convert a <tt>String</tt> into a <tt>boolean</tt> primitive
      * 
      * @author Mathias Van Malderen
-     * @param  str The <tt>String</tt> to be parsed
+     * @param  s The <tt>String</tt> to be parsed
      * @throws ParserException If the input <tt>String</tt> can't be converted
      **/
-    public static boolean parseBoolean(String str) throws ParserException {
+    public static boolean parseBoolean(String s) throws ParserException {
         
-        Boolean value = stringToBoolean.get(str.toLowerCase());
+        Boolean value = stringToBoolean.get(s.toLowerCase());
         
-        if (value == null) {
-            // The given string is not a key of our HashMap. Throw an Exception
-            // instead of returning null so top level layers will notice
-            throw new ParserException("Couldn't parse string as a boolean: " + str);
-        }
+        if (value == null)
+            throw new ParserException("couldn't parse string as a boolean: " + s);
         
         return value;
     
@@ -79,18 +76,15 @@ public class BooleanParser {
      * Convert a <tt>String</tt> into a </tt>Boolean</tt> object
      * 
      * @author Mathias Van Malderen
-     * @param  str The <tt>String</tt> to be parsed
+     * @param  s The <tt>String</tt> to be parsed
      * @throws ParserException If the input <tt>String</tt> can't be converted
      **/
-    public static Boolean valueOf(String str) throws ParserException {
+    public static Boolean valueOf(String s) throws ParserException {
         
-        Boolean value = stringToBoolean.get(str.toLowerCase());
+        Boolean value = stringToBoolean.get(s.toLowerCase());
         
-        if (value == null) {
-            // The given string is not a key of our HashMap. Throw an Exception
-            // instead of returning null so top level layers will notice
-            throw new ParserException("Couldn't parse string as a Boolean: " + str);
-        }
+        if (value == null)
+            throw new ParserException("Couldn't parse string as a Boolean: " + s);
         
         return value;
     
