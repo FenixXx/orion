@@ -31,12 +31,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import org.apache.commons.logging.Log;
+import org.slf4j.Logger;
 
 public class MySqlDataSourceManager implements DataSourceManager {
     
-    private final Log log;
-    
+    private final Logger log;
     private final String username;
     private final String password;
     private final String dcs;
@@ -50,18 +49,18 @@ public class MySqlDataSourceManager implements DataSourceManager {
      * @param  username The username for storage layer authentication
      * @param  password The password for storage layer authentication
      * @param  dcs The database connection string in JDBC notation
-     * @param  log A reference to the main logger object
+     * @param  log Main logger object reference
      **/
-    public MySqlDataSourceManager(String username, String password, String dcs, Log log) {
+    public MySqlDataSourceManager(String username, String password, String dcs, Logger log) {
         
         this.log = log;
         this.username = username;
         this.password = password;
         this.dcs = dcs;
      
-        this.log.debug("Storage utility initialized [ username : " + this.username + 
+        this.log.debug("Storage utility initialized { username : " + this.username + 
                                                   " | password : " + this.password + 
-                                                  " | connection : " + this.dcs + " ]");
+                                                  " | connection : " + this.dcs + " }");
     }
     
     
@@ -107,7 +106,7 @@ public class MySqlDataSourceManager implements DataSourceManager {
             return true;
             
         } catch (SQLException | ClassNotFoundException e) {
-            this.log.error("Could not connect to the storage layer", e);
+            this.log.error("Could not establish a connection with the storage", e);
             return false;
         }
         

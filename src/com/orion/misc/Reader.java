@@ -25,52 +25,51 @@
  * @package     com.orion.utility
  **/
 
-package com.orion.utility;
+package com.orion.misc;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import org.apache.commons.logging.Log;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
 
-import com.orion.bot.Orion;
 import com.orion.parser.Parser;
 
 public class Reader implements Runnable {
     
-    private final Log log;
+    private final Logger log;
     private final Parser parser;
     private final RandomAccessFile file;
-    private final int delay;
     
     
     /**
-     * Object constructor.
+     * Object constructor
      * 
      * @author Mathias Van Malderen
-     * @param  path The filepath of the Urban Terror log file
-     * @param  delay Amount of milliseconds to wait for new log lines to be read
-     * @param  orion Orion object reference
+     * @param  log Main logger object reference
+     * @param  parser Main parser object reference
+     * @param  path The gameserver log filepath
      * @throws FileNotFoundException If the specified path is not valid
      **/
-    public Reader(String path, int delay, Orion orion) throws FileNotFoundException {
+    public Reader(Logger log, 
+                  Parser parser,
+                  String path) throws FileNotFoundException {
         
-        this.log = orion.log;
-        this.parser = orion.parser;
-        this.delay = delay;
+        this.log = log;
+        this.parser = parser;
         this.file = new RandomAccessFile(path, "r");
         
-        // Print some debugging info so the user can check if he's reading the correct log file.
-        this.log.debug("Log reader initialized [ logfile : " + path + " | delay : " + this.delay + "ms ]");
+        this.log.debug("Log reader initialized: using " + path);
         
     }
    
     
     /**
      * Runnable implementation.<br>
-     * Will keep processing the Urban Terror log file
+     * Will keep processing the game server log file
      * until it finds new log lines to be processed or
-     * untill the process is manually killed by a user.
+     * until the process is manually killed by a user.
      * 
      * @author Mathias Van Malderen, Daniele Pantaleone
      **/
@@ -78,18 +77,17 @@ public class Reader implements Runnable {
         
         String line = null;
         
-        // Notifying Thread start in the log file.
-        this.log.debug("Starting log reader [ systime : " + System.currentTimeMillis() + " ]");
+        this.log.debug("Log reader started: " + new DateTime().toString());
 
         try {
             
-            // Moving the file pointer at the end of the file.
+            // Moving the file pointer at the end of the file
             // This actually define from when/where Orion will start 
             // processing data. All the past log lines are going to
             // be discarded. Usually is better to fully initialize
-            // the BOT before starting to process the log file.
+            // the BOT before starting to process the log file
             // otherwise the event/command queue will be filled
-            // without the possibility of dispatching such objects.
+            // without the possibility of dispatching such objects
             this.file.seek(this.file.length());
             
         } catch (IOException e) {
@@ -112,13 +110,14 @@ public class Reader implements Runnable {
                  try {
                      
                      line = null;
-                     Thread.sleep(this.delay);
                      
-                     // Read log lines until EOF has been reached or until the thread is interrupted.
                      while ((line = this.file.readLine()) != null) {
                          
-                         // Parsing retrieved data.
+                         if (Thread.interrupted())
+                             throw new InterruptedException();
+
                          this.parser.parseLine(line);
+                         
                      }
                  
                  } catch (IOException e) {
@@ -130,8 +129,6 @@ public class Reader implements Runnable {
              
                  } catch (InterruptedException e) {
                      
-                     // Thread has received interrupt signal.
-                     // Breaking the cycle so it will terminate.
                      break;
                      
                  }
@@ -145,22 +142,19 @@ public class Reader implements Runnable {
                 // Trying to close the log file pointer.
                 // This will generate an IOException if the
                 // log file has been removed meanwhile the
-                // Thread was reading new lines from it.
+                // Thread was reading new lines from it
                 this.file.close();
                 
             } catch (IOException e) {
             
-                // Logging the Exception.
-                this.log.error("Unable to close file pointer", e);
+                // This is very rare!
+                this.log.error("Could not to close file pointer", e);
             
             }
             
         }
         
-        // Thread is going to be shutted down, no matter if the
-        // log file pointer has been closed correctly. It will be 
-        // eventually closed when the process terminate.
-        this.log.debug("Stopping log reader [ systime : " + System.currentTimeMillis() + " ]");
+        this.log.debug("Log reader stopped: " + new DateTime().toString());
         
     }
     

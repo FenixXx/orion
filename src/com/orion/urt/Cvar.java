@@ -28,7 +28,7 @@
 package com.orion.urt;
 
 import com.orion.exception.ParserException;
-import com.orion.utility.BooleanParser;
+import com.orion.misc.BooleanParser;
 
 public class Cvar {
     

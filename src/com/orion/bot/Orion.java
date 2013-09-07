@@ -58,6 +58,7 @@ import com.orion.control.IpAliasC;
 import com.orion.control.PenaltyC;
 import com.orion.exception.ParserException;
 import com.orion.misc.CommandProcessor;
+import com.orion.misc.Reader;
 import com.orion.misc.RegisteredCommand;
 import com.orion.parser.Parser;
 import com.orion.plugin.Plugin;
@@ -68,7 +69,6 @@ import com.orion.urt.Game;
 import com.orion.utility.Configuration;
 import com.orion.utility.MultiKeyHashMap;
 import com.orion.utility.MultiKeyMap;
-import com.orion.utility.Reader;
 import com.orion.utility.XmlConfiguration;
 
 public class Orion {

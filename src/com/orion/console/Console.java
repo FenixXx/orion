@@ -28,11 +28,11 @@
 package com.orion.console;
 
 import java.util.List;
-
-import net.goreclan.rcon.RconException;
+import java.util.Map;
 
 import com.orion.command.Command;
 import com.orion.domain.Client;
+import com.orion.exception.RconException;
 import com.orion.urt.Cvar;
 import com.orion.urt.Team;
 
@@ -82,7 +82,18 @@ public interface Console {
      **/
     public abstract Cvar getCvar(String name) throws RconException;
     
-        
+       
+    /**
+     * Return a <tt>Map</tt> with all the CVARs set on the server
+     * 
+     * @author Daniele Pantaleone
+     * @param  match A pattern to be used to short the <tt>Cvar</tt> list
+     * @throws RconException If the <tt>Cvar</tt> list couldn't be retrieved from the server
+     * @return A <tt>Map</tt> with all the CVARs set on the server
+     **/
+    public abstract Map<String, Cvar> getCvarList(String match) throws RconException;
+    
+    
     /**
      * Return the current map name
      * 

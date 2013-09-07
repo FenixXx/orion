@@ -32,8 +32,9 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 
-import org.apache.commons.logging.Log;
 import org.joda.time.DateTime;
+
+import org.slf4j.Logger;
 
 import com.google.common.collect.Multimap;
 import com.orion.event.Event;
@@ -43,7 +44,7 @@ import com.orion.plugin.Plugin;
 
 public class EventProcessor implements Runnable {
     
-    private final Log log;
+    private final Logger log;
     private BlockingQueue<Event> eventBus;
     private Multimap<Class<?>, RegisteredMethod> regMethod;
     
@@ -56,7 +57,7 @@ public class EventProcessor implements Runnable {
      * @param  eventBus A <tt>BlockingQueue</tt> from where to fetch events
      * @param  regMethod A <tt>Multimap</tt> which associate each <tt>Event</tt> to a method
      **/
-    public EventProcessor(Log log, 
+    public EventProcessor(Logger log, 
                           BlockingQueue<Event> eventBus, 
                           Multimap<Class<?>, RegisteredMethod> regMethod) {
         
@@ -87,10 +88,9 @@ public class EventProcessor implements Runnable {
             try {
                 
                 // FIXME: need to handle OrionStopEvent
-                
-                if (Thread.interrupted()) {
+
+                if (Thread.interrupted())
                     throw new InterruptedException();
-                }
                 
                 Event event = this.eventBus.take();
                 Collection<RegisteredMethod> collection = this.regMethod.get(event.getClass());

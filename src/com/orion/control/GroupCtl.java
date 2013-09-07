@@ -35,7 +35,7 @@ import org.apache.commons.logging.Log;
 
 import com.orion.bot.Orion;
 import com.orion.dao.GroupDao;
-import com.orion.dao.MySqlGroupDao;
+import com.orion.dao.GroupDaoMySql;
 import com.orion.domain.Group;
 
 public class GroupCtl {
@@ -53,7 +53,7 @@ public class GroupCtl {
      **/
     public GroupCtl(Orion orion) {
         this.log = orion.log;
-        this.dao = new MySqlGroupDao(orion.storage);
+        this.dao = new GroupDaoMySql(orion.storage);
         this.groups = new LinkedList<Group>();
     }
     

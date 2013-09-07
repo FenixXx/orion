@@ -37,7 +37,7 @@ import org.joda.time.DateTimeZone;
 
 import com.orion.bot.Orion;
 import com.orion.bot.PenaltyType;
-import com.orion.dao.MySqlPenaltyDao;
+import com.orion.dao.PenaltyDaoMySql;
 import com.orion.dao.PenaltyDao;
 import com.orion.domain.Client;
 import com.orion.domain.Penalty;
@@ -58,7 +58,7 @@ public class PenaltyCtl {
     public PenaltyCtl(Orion orion) {
         this.log = orion.log;
         this.timezone = orion.timezone;
-        this.dao = new MySqlPenaltyDao(orion);
+        this.dao = new PenaltyDaoMySql(orion);
     }
        
     

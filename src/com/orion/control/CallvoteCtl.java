@@ -37,7 +37,7 @@ import org.joda.time.DateTimeZone;
 
 import com.orion.bot.Orion;
 import com.orion.dao.CallvoteDao;
-import com.orion.dao.MySqlCallvoteDao;
+import com.orion.dao.CallvoteDaoMySql;
 import com.orion.domain.Callvote;
 import com.orion.domain.Client;
 
@@ -57,7 +57,7 @@ public class CallvoteCtl {
     public CallvoteCtl(Orion orion) {
         this.log = orion.log;
         this.timezone = orion.timezone;
-        this.dao = new MySqlCallvoteDao(orion);
+        this.dao = new CallvoteDaoMySql(orion);
     }
     
     

@@ -37,7 +37,7 @@ import org.joda.time.DateTimeZone;
 
 import com.orion.bot.Orion;
 import com.orion.dao.IpAliasDao;
-import com.orion.dao.MySqlIpAliasDao;
+import com.orion.dao.IpAliasDaoMySql;
 import com.orion.domain.Client;
 import com.orion.domain.IpAlias;
 
@@ -57,7 +57,7 @@ public class IpAliasCtl {
     public IpAliasCtl(Orion orion) {
         this.log = orion.log;
         this.timezone = orion.timezone;
-        this.dao = new MySqlIpAliasDao(orion);
+        this.dao = new IpAliasDaoMySql(orion);
     }
     
     

@@ -46,7 +46,7 @@ import com.orion.bot.Orion;
 import com.orion.comparator.ClientSlotComparator;
 import com.orion.console.Console;
 import com.orion.dao.ClientDao;
-import com.orion.dao.MySqlClientDao;
+import com.orion.dao.ClientDaoMySql;
 import com.orion.domain.Client;
 import com.orion.urt.Color;
 import com.orion.urt.Team;
@@ -74,7 +74,7 @@ public class ClientCtl {
         this.log = orion.log;
         this.console = orion.console;
         this.timezone = orion.timezone;
-        this.dao = new MySqlClientDao(orion);
+        this.dao = new ClientDaoMySql(orion);
         this.clients = new LinkedList<Client>();
     }
     

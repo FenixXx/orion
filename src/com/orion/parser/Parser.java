@@ -149,8 +149,8 @@ public interface Parser {
     
     
     /**
-     * Parse a Urban Terror log message.
-     * Will generate an <tt>Event</tt> if necessary and push it in the <tt>Event</tt> queue.
+     * Parse a log line.Will generate an <tt>Event</tt> 
+     * if necessary and push it in the <tt>Event</tt> bus
      * 
      * @author Daniele Pantaleone
      * @param  line A log line

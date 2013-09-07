@@ -40,8 +40,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.goreclan.rcon.RconException;
-
 import org.apache.commons.logging.Log;
 import org.joda.time.DateTime;
 import org.joda.time.Hours;
@@ -55,7 +53,6 @@ import com.orion.control.ClientCtl;
 import com.orion.control.GroupCtl;
 import com.orion.domain.Callvote;
 import com.orion.domain.Client;
-import com.orion.domain.Group;
 import com.orion.event.ClientBombDefusedEvent;
 import com.orion.event.ClientBombHolderEvent;
 import com.orion.event.ClientBombPlantedEvent;
@@ -94,8 +91,10 @@ import com.orion.event.GameWarmupEvent;
 import com.orion.event.SurvivorWinnerEvent;
 import com.orion.event.TeamFlagReturnEvent;
 import com.orion.event.TeamSurvivorWinnerEvent;
+import com.orion.exception.AuthenticationException;
 import com.orion.exception.ExpectedParameterException;
 import com.orion.exception.ParserException;
+import com.orion.exception.RconException;
 import com.orion.urt.Cvar;
 import com.orion.urt.Gametype;
 import com.orion.urt.Hitlocation;
@@ -561,19 +560,23 @@ public class UrT42Parser implements Parser {
     
     
     /**
-     * Return a <tt>List</tt> of available <tt>Team</tt> objects according to
-     * the current played <tt>Gametype</tt>. If the <tt>Gametype</tt> has not 
-     * been computed yet, it will retrieve the value from the server before 
-     * returning the collection
+     * Return a <tt>List</tt> of available <tt>Team</tt>
+     * objects according to the current played <tt>Gametype</tt>
      * 
      * @author Daniele Pantaleone
-     * @throws RconException If we could not retrieve the current gametype
      * @return A <tt>List</tt> of available <tt>Team</tt> objects according to
      *         the current played <tt>Gametype</tt>
      **/
-    public List<Team> getAvailableTeams() throws RconException {
-        Gametype gametype = gametypeByCode.get(this.console.getCvar("g_gametype"));
+    public List<Team> getAvailableTeams() {
+        
+        Cvar cvar = this.cvarList.get("g_gametype");
+        
+        if (cvar == null)
+            return new LinkedList<Team>();
+        
+        Gametype gametype = gametypeByCode.get(cvar.getInt());
         return new LinkedList<Team>(teamsByGametype.get(gametype));
+        
     }
     
     
@@ -1059,96 +1062,87 @@ public class UrT42Parser implements Parser {
         
         try {
             
-            // Check if this is a new client connection
+            // check if this is a new client connection
             Client client = checkNotNull(this.clientCtl.getBySlot(slot));
            
-            // Checking for possible gear change
+            // checking for gear change
             if (userinfo.containsKey("gear")) {
-                
-                String gear = userinfo.get("gear");
-                if ((client.getGear() == null) || (!client.getGear().equals(gear))) {
-                    client.setGear(gear);
-                    this.eventBus.put(new ClientGearChangeEvent(client));
-                    this.log.trace("[EVENT] ClientGearChangeEvent [ client : " + client.getSlot() + " ]");
+
+                if (client.getGear() == null || !client.getGear().equals(userinfo.get("gear"))) {
+                    
+                    try {
+                        
+                        client.setGear(userinfo.get("gear"));
+                        this.eventBus.put(new ClientGearChangeEvent(client));
+                        this.log.trace("[parser] ClientGearChangeEvent [ client : " + client.getSlot() + " ]");
+                        
+                    } catch (InterruptedException e) {
+                      
+                        // 
+                        this.log.error("Could not generate 'ClientGearChangeEvent'", e);
+                        
+                    }
+                    
                 }
             
             }
             
-        } catch (NullPointerException | InterruptedException e1) {
+        } catch (NullPointerException e1) {
+            
+            // we couldn't retrieve a client object so we will
+            // assume that this is a new client connection to the server
             
             Client client = null;
-            Map<String, String> authinfo = null;
             
             if (!(userinfo.containsKey("cl_guid")) && (userinfo.containsKey("skill"))) {
                 
                 try {
                     
-                    // A bot is connecting to the server. We'll handle this in a different way
+                    // a bot is connecting to the server
+                    // we'll handle this in a different way
+                    
                     client = new Client.Builder(InetAddress.getByName("0.0.0.0"), "BOT_" + slot)
                                        .bot(true)
                                        .build();
                     
                     this.log.debug("Client connecting on slot " + slot + " has been detected as a BOT");
                     
-                } catch (UnknownHostException e) {
+                } catch (UnknownHostException e2) {
                     
-                    // Logging the Exception
-                    this.log.error("[EVENT] ClientConnect", e);
+                    this.log.error("Could not generate 'ClientConnectEvent'", e2);
                     return;
                 
                 }
                 
             } else {
-            
-                try {
-                    
-                    // Trying to auth the client using 
-                    // the Frozen Sand auth login at first
-                    authinfo = this.console.authwhois(slot);
-                    client = this.authByFsa(slot, userinfo, authinfo); 
-                    
-                } catch (UnsupportedOperationException | 
-                         RconException | 
-                         ParserException |
-                         NullPointerException e2) {
-                    
-                    // Client info couldn't be retrieved using FSA. Possible reason will led here: auth system
-                    // disabled, client not authed, client authed but it is his first connection, RCON connection
-                    // failure. In all this cases we'll try to backup using the client GUID
-                    this.log.debug("Could not authenticate client connecting on slot " + slot + " using FSA", e2);
-                    
-                    try {
-                        
-                        // Trying to auth the client using the GUID
-                        client = this.authByGuid(slot, userinfo, authinfo);
-                        
-                    } catch (NullPointerException e3) {
-                        
-                        // Client info couldn't be retrieved using the GUID. At this point we can't do more
-                        // We'll consider this connection as first one and we'll build the necessary structures
-                        this.log.debug("Could not authenticate client connecting on slot " + slot + " using GUID", e3);
-                        this.log.debug("Client connecting on slot " + slot + " will be handled as a new client...");
-                    
-                    }
                 
+                // normal client connecting
+                // we'll try to auth the client using FSA at first
+                client = this.authByFsa(slot, userinfo);
+                
+                if (client == null) {
+                    
+                    // no match for this client matching FSA
+                    // trying to backup using the old good GUID
+                    client = this.authByGuid(slot, userinfo);
+                    
+                    if (client == null) {
+                        
+                        // no match also searching by GUID
+                        // handle this as a new client on this server
+                        client = new Client.Builder(InetAddress.getByName(userinfo.get("ip").split(":", 2)[0]), userinfo.get("cl_guid"))
+                                            .auth(userinfo.containsKey("auth_account") ? userinfo.get("auth_account") : null)
+                                            .group(this.groupCtl.getByKeyword("guest"))
+                                            .build();
+                        
+                    }
+                    
                 }
-     
+
             }
             
-           
+            
             try {
-                
-                if (client == null) {   
-                    
-                    String guid = userinfo.get("g_guid");
-                    String auth = authinfo != null && authinfo.get("login") != null ? authinfo.get("login") : null;
-                    InetAddress ip = InetAddress.getByName(userinfo.get("ip").split(":", 2)[0]);
-                    Group group = this.groupCtl.getByKeyword("guest");
-                    
-                    // Building a new client object using retrieved information 
-                    client = new Client.Builder(ip, guid).auth(auth).group(group).build();
-                    
-                }
                 
                 client.setSlot(slot);
                 
@@ -1161,13 +1155,9 @@ public class UrT42Parser implements Parser {
                 if (userinfo.containsKey("team"))    
                     client.setTeam(getTeamByName(userinfo.get("team")));
                 
-                // Update the client number of connections 
-                // just if the client is a new client or if
-                // he last connected more than one hour ago
-                if ((client.getTimeEdit() == null) || 
-                    (Hours.hoursBetween(client.getTimeEdit(), new DateTime()).getHours() > 1)) {
+                // update the number of connections just if it's a new client or he disconnected more than 1 hour ago
+                if (client.getTimeEdit() == null || Hours.hoursBetween(client.getTimeEdit(), new DateTime()).getHours() > 1)
                     client.setConnections(client.getConnections() + 1);
-                } 
 
                 this.clientCtl.add(client);
                 this.clientCtl.save(client);
@@ -1936,90 +1926,123 @@ public class UrT42Parser implements Parser {
     
     
     /**
-     * Return an initialized <tt>Client</tt> object<br>
-     * Will fetch <tt>Client</tt> informations from the storage using the
-     * FS auth system login and eventually perform necessary updates
+     * Authenticate a client by matching his FSA
      * 
      * @author Daniele Pantaleone
      * @param  slot The connecting <tt>Client</tt> slot
      * @param  userinfo The parsed <tt>Client</tt> userinfo
-     * @param  authinfo The parsed <tt>Client</tt> auth data
-     * @throws NullPointerException If the <tt>Client</tt> coudln't be retrieved from the storage using the FSA
      * @return An initialized <tt>Client</tt> object
      **/
-    public Client authByFsa(int slot, Map<String, String> userinfo, Map<String, String> authinfo) throws NullPointerException {
-        
-        Client client = null;
-        String login = authinfo.get("login");
+    public Client authByFsa(int slot, Map<String, String> userinfo) {
         
         try {
-           
-            client = this.clientCtl.getByAuth(login);
-            checkNotNull(client, "no match found in the storage for FSA: %s", login);
+        
+            Cvar authEnable = this.cvarList.get("auth_enable");
+            Cvar authOwners = this.cvarList.get("auth_owners");
+     
+            if (authEnable == null || !authEnable.getBoolean() || authOwners == null)
+                throw new AuthenticationException("auth system is not configured properly");
             
-            this.log.debug("Client connecting on slot " + slot + "authenticated using FSA: " + login);
-            this.log.trace("Welcome back " + client.getName() + " [@" + client.getId() + "] - Level: " + 
-                            client.getGroup().getName() + " [" + client.getGroup().getLevel() + "]");
+            try {
             
-            // Check client GUID consistency
-            String guid = userinfo.get("cl_guid");
-            if (!client.getGuid().equals(guid)) {
-                this.log.debug("Detected GUID mismatch for client @" + client.getId() + ": " + client.getGuid() + " != " + guid);
-                this.log.debug("Updating client @" + client.getId() + " GUID value with the new one: " + guid);
-                client.setGuid(guid);   
+                // retrieving auth informations using the game console
+                String result = this.console.write("auth-whois " + slot, true);
+                
+                Pattern pattern = Pattern.compile("^auth:\\s*id:\\s*(?<slot>\\d+)\\s*-\\s*name:\\s*(?<name>\\w+)\\s*-\\s*login:\\s*(?<account>\\w*)\\s*-\\s*notoriety:\\s*(?<notoriety>.*)\\s*-\\s*level:\\s*(?<level>\\d+)\\s*-\\s*(?<rank>.*)$", Pattern.CASE_INSENSITIVE);
+                Matcher matcher = pattern.matcher(result);
+                
+                if (!matcher.matches())
+                    throw new ParserException("could not parse auth server response");
+                
+                if (matcher.group("account").isEmpty()) 
+                    throw new AuthenticationException("client is not authed using the FrozenSand auth system");
+                
+                userinfo.put("auth_slot", matcher.group("slot"));
+                userinfo.put("auth_name", matcher.group("name"));
+                userinfo.put("auth_account", matcher.group("account"));
+                userinfo.put("auth_notoriety", matcher.group("notoriety"));
+                userinfo.put("auth_level", matcher.group("level"));
+                userinfo.put("auth_rank", matcher.group("rank"));
+                
+                // lookup the client in the database using the FSA account login
+                Client client = this.clientCtl.getByAuth(userinfo.get("auth_account"));
+                checkNotNull(client, "no match found in the storage for FSA: %s", userinfo.get("auth_account"));
+                
+                this.log.debug("Client connecting on slot " + slot + "authenticated using FSA: " + client.getAuth());
+                this.log.trace("Welcome back " + client.getName() + " (@" + client.getId() + ") - level: " + client.getGroup().getName());
+                
+                // double check auth/guid consistency
+                if (!client.getGuid().equals(userinfo.get("cl_guid"))) {
+                    this.log.debug("Detected GUID mismatch for client @" + client.getId() + ": " + client.getGuid() + " != " + userinfo.get("cl_guid"));
+                    this.log.debug("Updating client @" + client.getId() + " GUID with the most recent one: " + userinfo.get("cl_guid"));
+                    client.setGuid(userinfo.get("cl_guid"));
+                }
+                
+                return client;
+                
+            } catch (RconException | 
+                     ParserException | 
+                     NullPointerException | 
+                     ClassNotFoundException | 
+                     UnknownHostException | 
+                     SQLException e) {
+                
+                // throw our custom exception
+                throw new AuthenticationException(e);
+ 
             }
             
-            return client;
+        } catch (AuthenticationException e) {
             
-        } catch (ClassNotFoundException | UnknownHostException | SQLException e) {
-            
-            this.log.error("Could not fetch data from the storage layer", e);
-            throw new NullPointerException("could not retrieve client data using FSA: " + login);
+            this.log.debug("Could not authenticate client connecting on slot " + slot + " using FSA", e);
+            return null;
             
         }
 
     }
     
     
-   /**
-    * Return an initialized <tt>Client</tt> object<br>
-    * Will fetch <tt>Client</tt> informations from the storage using the
-    * GUID and eventually perform necessary updates
-    * 
-    * @author Daniele Pantaleone
-    * @param  slot The connecting <tt>Client</tt> slot
-    * @param  userinfo The parsed <tt>Client</tt> userinfo
-    * @param  authinfo The parsed <tt>Client</tt> auth data
-    * @throws NullPointerException If the <tt>Client</tt> coudln't be retrieved from the storage using the GUID
-    * @return An initialized <tt>Client</tt> object
-    **/
-   public Client authByGuid(int slot, Map<String, String> userinfo, Map<String, String> authinfo) throws NullPointerException {
-       
-       Client client = null;
-       String guid = userinfo.get("cl_guid");
+    /**
+     * Authenticate a client by matching his GUID
+     * 
+     * @author Daniele Pantaleone
+     * @param  slot The connecting <tt>Client</tt> slot
+     * @param  userinfo The parsed <tt>Client</tt> userinfo
+     * @return An initialized <tt>Client</tt> object
+     **/
+   public Client authByGuid(int slot, Map<String, String> userinfo) {
        
        try {
            
-           client = this.clientCtl.getByGuid(guid);
-           checkNotNull(client, "no match found in the storage for GUID: %s", guid);
+           try {
+               
+               Client client = this.clientCtl.getByGuid(userinfo.get("cl_guid"));
+               checkNotNull(client, "no match found in the storage for GUID: %s", userinfo.get("cl_guid"));
+               
+               this.log.debug("Client connecting on slot " + slot + "authenticated using GUID: " + client.getGuid());
+               this.log.trace("Welcome back " + client.getName() + " (@" + client.getId() + ") - level: " + client.getGroup().getName());
+               
+               if (userinfo.containsKey("auth_account")) {
+                   this.log.debug("Updating client @" + client.getId() + " AUTH login using FSA: " + userinfo.get("auth_account"));
+                   client.setAuth(userinfo.get("auth_account"));
+               }
+               
+               return client;
+               
+           } catch (NullPointerException | 
+                    ClassNotFoundException | 
+                    UnknownHostException | 
+                    SQLException e) {
+              
+              // throw our custom exception
+              throw new AuthenticationException(e);
+
+          }
+            
+       } catch (AuthenticationException e) {
            
-           this.log.debug("Client connecting on slot " + slot + "authenticated using GUID: " + guid);
-           this.log.trace("Welcome back " + client.getName() + " [@" + client.getId() + "] - Level: " + 
-                           client.getGroup().getName() + " [" + client.getGroup().getLevel() + "]");
-           
-           // Update auth field if necessary
-           if ((authinfo != null) && (authinfo.get("login") != null)) {
-               String login = authinfo.get("login");
-               this.log.debug("Updating client @" + client.getId() + " AUTH login using FSA: " + login);
-               client.setAuth(login);
-           }
-           
-           return client;
-           
-       } catch (ClassNotFoundException | UnknownHostException | SQLException e) {
-           
-           this.log.error("Could not fetch data from the storage layer", e);
-           throw new NullPointerException("could not retrieve client data using GUID: " + guid);
+           this.log.debug("Could not authenticate client connecting on slot " + slot + " using GUID", e);
+           return null;
            
        }
        
@@ -2052,9 +2075,8 @@ public class UrT42Parser implements Parser {
     
     
     /**
-     * Parse a Urban Terror log line<br>
-     * Will generate an <tt>Event</tt> if necessary and 
-     * push it in the <tt>Event</tt> bus
+     * Parse a log line.Will generate an <tt>Event</tt> 
+     * if necessary and push it in the <tt>Event</tt> bus
      * 
      * @author Daniele Pantaleone
      * @param  line A log line
@@ -2063,10 +2085,10 @@ public class UrT42Parser implements Parser {
         
         Matcher matcher = null;
         
-        // Iterating through all the patters trying to find a match
+        // iterating through all the patters trying to find a match
         for (Map.Entry<String, Pattern> entry : patterns.entrySet()) { 
             
-            // Getting a matcher for the current line
+            // getting a matcher for the current line
             matcher = entry.getValue().matcher(line);
             if (!matcher.matches()) 
                 continue;

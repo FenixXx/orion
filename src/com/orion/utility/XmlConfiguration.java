@@ -48,6 +48,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.orion.exception.ParserException;
+import com.orion.misc.BooleanParser;
+import com.orion.misc.TimeParser;
 
 public class XmlConfiguration implements Configuration {
         

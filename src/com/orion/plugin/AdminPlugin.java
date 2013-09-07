@@ -59,11 +59,11 @@ import com.orion.event.ClientTeamChangeEvent;
 import com.orion.exception.CommandRuntimeException;
 import com.orion.exception.CommandSyntaxException;
 import com.orion.misc.RegisteredCommand;
+import com.orion.misc.TimeParser;
 import com.orion.urt.Color;
 import com.orion.urt.Team;
 import com.orion.utility.Configuration;
 import com.orion.utility.MessageFormat;
-import com.orion.utility.TimeParser;
 
 public class AdminPlugin extends Plugin {
     

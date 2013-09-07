@@ -29,10 +29,12 @@ package com.orion.misc;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
-import org.apache.commons.logging.Log;
 import org.joda.time.DateTime;
+
+import org.slf4j.Logger;
 
 import com.orion.annotation.Usage;
 import com.orion.command.Command;
@@ -42,15 +44,14 @@ import com.orion.exception.CommandSyntaxException;
 import com.orion.exception.RconException;
 import com.orion.plugin.Plugin;
 import com.orion.urt.Color;
-import com.orion.utility.MultiKeyMap;
 
 public class CommandProcessor implements Runnable {
    
-    private final Log log;
+    private final Logger log;
     private final Console console;
     
     private BlockingQueue<Command> commandBus;
-    private MultiKeyMap<String, String, RegisteredMethod> regMethod;
+    private Map<String, RegisteredMethod> regMethod;
     
     
     /**
@@ -62,17 +63,17 @@ public class CommandProcessor implements Runnable {
      * @param  commandBus A <tt>BlockingQueue</tt> from where to fetch commands
      * @param  regMethod A <tt>MultiKeyMap</tt> which associate each <tt>Command</tt> to a method
      **/
-    public CommandProcessor(Log log,
+    public CommandProcessor(Logger log,
                             Console console,
                             BlockingQueue<Command> commandBus,
-                            MultiKeyMap<String, String, RegisteredMethod> regMethod) {
+                            Map<String, RegisteredMethod> regMethod) {
         
         this.log = log;
         this.console = console;
         this.commandBus = commandBus;
         this.regMethod = regMethod;
         
-        this.log.debug("Command processor initialized: " + this.regMethod.getMap1().size() + " commands registered");
+        this.log.debug("Command processor initialized: " + this.regMethod.size() +" commands registered");
         
     }
     
@@ -96,10 +97,8 @@ public class CommandProcessor implements Runnable {
             
             try {
                 
-                if (Thread.interrupted()) {
-                    // Stop thread execution
+                if (Thread.interrupted())
                     throw new InterruptedException();
-                }
                 
                 // Check if the command actually exists
                 if (!this.regMethod.containsKey(command.getHandle())) {
@@ -151,7 +150,7 @@ public class CommandProcessor implements Runnable {
                     } 
                         
                     // Informing the client of the Exception and log it. We'll keep processing anyway...
-                    this.console.sayPrivate(command.getClient(), "There was an error processing your command");
+                    this.console.sayPrivate(command.getClient(), "There was an " + Color.RED + "error" + Color.WHITE + " processing your command");
                     this.log.error("[" + r.getPlugin().getClass().getSimpleName() + "] Could not process command " + command.getPrefix().getChar() + command.getHandle(), e);
                     continue;
                 
@@ -160,7 +159,7 @@ public class CommandProcessor implements Runnable {
             } catch (RconException e) {
                 
                 // Just log the exception since we cannot inform the client in this situation
-                this.log.error("Could not process command " + command.getPrefix().getChar() + command.getHandle());
+                this.log.error("Could not process command " + command.getPrefix().getChar() + command.getHandle(), e);
                 
             } catch (InterruptedException e) {
                 
@@ -171,7 +170,7 @@ public class CommandProcessor implements Runnable {
         
         }
         
-        this.log.debug("Command processor stopped: " + new DateTime().toString());
+        this.log.debug("Command processor stopped: "+ new DateTime().toString() );
     
     }
 

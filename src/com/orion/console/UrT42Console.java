@@ -30,22 +30,23 @@ package com.orion.console;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import net.goreclan.rcon.JRcon;
-import net.goreclan.rcon.RconException;
 
 import org.apache.commons.logging.Log;
 
 import com.orion.command.Command;
 import com.orion.domain.Client;
+import com.orion.exception.RconException;
+import com.orion.misc.Message;
+import com.orion.misc.Rcon;
 import com.orion.urt.Color;
 import com.orion.urt.Cvar;
 import com.orion.urt.Team;
-import com.orion.utility.Splitter;
 
 public class UrT42Console {
     
@@ -53,11 +54,10 @@ public class UrT42Console {
     private static final int CENTER_SCREEN_DELAY = 2000;
     private static final int MAX_SAY_STRLEN = 62;
     
-    private final JRcon rcon;
     private final Log log;
+    private final Rcon rcon;
     
-    private Cvar authEnable = null;
-    private Cvar authOwners = null;
+    private Map<String, Cvar> cvarList;
     
     
     /**
@@ -65,86 +65,23 @@ public class UrT42Console {
      * 
      * @author Daniele Pantaleone 
      * @param  log Main logger object reference
-     * @param  address The remote server address
-     * @param  port The virtual port on which the server is accepting connections
-     * @param  password The server RCON password
-     * @throws IllegalArgumentException If the given port is out of range
-     * @throws UnknownHostException If the IP address of a host could not be determined
+     * @param  rcon An initialized <tt>Rcon</tt> object
+     * @param  cvarList A <tt>Map</tt> of <tt>Cvar</tt> objects shared 
+     *                  by the Parser and the Console
      **/
     public UrT42Console(Log log, 
-                        String address, 
-                        int port, 
-                        String password) throws IllegalArgumentException, UnknownHostException {
+                        Rcon rcon, 
+                        Map<String, Cvar> cvarList) {
         
         this.log = log;
-        this.rcon = new JRcon(address, port, password);
+        this.rcon = rcon;
+        this.cvarList = cvarList;
         
-        try {
-            
-            this.authEnable = this.getCvar("auth_enable");
-            this.authOwners = this.getCvar("auth_owners");
-            
-        } catch (NullPointerException | RconException e) {
-            // Console will work but without auth support
-            this.log.warn("Could not retrieve auth related CVARs. Auth support will be disbled");
-        }      
         
+            
         this.log.debug("Urban Terror 4.2 console initialized");
         
     }
-    
-    
-    /**
-     * Fetch FS Auth System informations for the specified <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone
-     * @param  slot The slot of the <tt>Client</tt> whose informations needs to be retrieved
-     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
-     * @throws RconException If the RCON command fails in being executed
-     * @throws ParserException If the auth-whois response couldn't be parsed correctly
-     * @return A <tt>Map</tt> containing the auth-whois command response
-     **//*
-    public Map<String, String> authwhois(int slot) throws UnsupportedOperationException, RconException, ParserException {
-        
-        if (!this.game.isCvar("auth_enable") || !this.game.getCvar("auth_enable").getBoolean())
-            throw new UnsupportedOperationException("auth system is disabled");
-        
-        Map<String, String> data = new HashMap<String, String>();
-        String result = this.rcon.send("auth-whois " + slot, true);
-        
-        // Collecting FS Auth System informations
-        Pattern pattern = Pattern.compile("^auth:\\s*id:\\s*(?<slot>\\d+)\\s*-\\s*name:\\s*(?<name>\\w+)\\s*-\\s*login:\\s*(?<login>\\w*)\\s*-\\s*notoriety:\\s*(?<notoriety>.*)\\s*-\\s*level:\\s*(?<level>\\d+)\\s*-\\s*(?<rank>.*)$", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(result);
-        
-        if (!matcher.matches())
-            throw new ParserException("could not parse auth-whois command response");
-        
-        data.put("slot",        matcher.group("slot"));
-        data.put("name",        matcher.group("name"));
-        data.put("login",       matcher.group("login").isEmpty() ? null : matcher.group("login"));
-        data.put("notoriety",   matcher.group("login").isEmpty() ? null : matcher.group("notoriety"));
-        data.put("level",       matcher.group("login").isEmpty() ? null : matcher.group("level"));
-        data.put("rank",        matcher.group("login").isEmpty() ? null : matcher.group("rank"));
-        
-        return data;
-        
-    }*/
-    
-    
-    /**
-     * Fetch FS Auth System informations for the specified <tt>Client</tt>
-     * 
-     * @author Daniele Pantaleone
-     * @param  client The <tt>Client</tt> whose informations needs to be retrieved
-     * @throws UnsupportedOperationException If the Auth System has not been correctly initialized
-     * @throws RconException If the RCON command fails in being executed
-     * @throws ParserException If the auth-whois response couldn't be parsed correctly
-     * @throws NullPointerException If the given <tt>Client</tt> is <tt>null</tt>
-     * @return A <tt>Map</tt> containing the auth-whois command response
-     **//*
-    public Map<String, String> authwhois(Client client) throws UnsupportedOperationException, RconException, ParserException, NullPointerException {
-        return this.authwhois(checkNotNull(client).getSlot());
-    }*/
     
     
     /**
@@ -267,7 +204,7 @@ public class UrT42Console {
      * @return The <tt>Cvar</tt> object associated to the given CVAR name or <tt>null</tt> 
      *         if such CVAR is not set on the server
      **/
-    public Cvar getCvar(String name) throws RconException, NullPointerException {
+    public Cvar getCvar(String name) throws RconException {
         
         try {
             
@@ -294,6 +231,43 @@ public class UrT42Console {
         
         return null;
         
+    }
+    
+    
+    /**
+     * Return a <tt>Map</tt> with all the CVARs set on the server
+     * 
+     * @author Daniele Pantaleone
+     * @param  match A pattern to be used to short the <tt>Cvar</tt> list
+     * @throws RconException If the <tt>Cvar</tt> list couldn't be retrieved from the server
+     * @return A <tt>Map</tt> with all the CVARs set on the server
+     **/
+    public Map<String, Cvar> getCvarList(String match) throws RconException {
+        
+        // convert to empty if null given
+        match = match != null ? match : "";
+        
+        String result = this.write("cvarlist " + match, true);
+        Map<String, Cvar> cvarList = new HashMap<String, Cvar>();
+        
+        Pattern pattern = Pattern.compile("^.{7} (?<name>\\s*\\w+)\\s+\"(?<value>.*)\"$", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(result);
+        
+        while (matcher.find()) {
+            
+            String n = matcher.group("name").toLowerCase();
+            String v = matcher.group("value");
+            
+            if (!n.trim().isEmpty() && !v.trim().isEmpty())
+                cvarList.put(n, new Cvar(n, v));
+            
+        }
+        
+        // leave a trace in the log so we know how many CVARs we retrieved
+        this.log.trace("Retrieved " + cvarList.size() + " CVARs from the server");
+        
+        return cvarList;
+
     }
     
         
@@ -580,7 +554,7 @@ public class UrT42Console {
         if (message.length() > MAX_SAY_STRLEN) {
             
             // Splitting the message into multiple strings
-            List<String> collection = Splitter.split(message, MAX_SAY_STRLEN);
+            List<String> collection = Message.split(message, MAX_SAY_STRLEN);
             
             for (String sentence: collection) {
                 
@@ -615,7 +589,7 @@ public class UrT42Console {
         if (message.length() > MAX_SAY_STRLEN) {
             
             // Splitting the message into multiple strings
-            List<String> collection = Splitter.split(message, MAX_SAY_STRLEN);
+            List<String> collection = Message.split(message, MAX_SAY_STRLEN);
             
             for (String sentence: collection) {
  
@@ -651,7 +625,7 @@ public class UrT42Console {
             
             // Splitting the message into multiple sentences
             // In this way it won't overflow the game chat and it will print nicer
-            List<String> collection = Splitter.split(message, MAX_SAY_STRLEN);
+            List<String> collection = Message.split(message, MAX_SAY_STRLEN);
             
             for (String sentence: collection) {
                 
